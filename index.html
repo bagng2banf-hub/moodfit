@@ -1,13 +1,1516 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="MoodFit - premium fashion intelligence studio." />
-    <title>MoodFit Studio</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="무드핏 - 옷장, 핏 저장, 무드 스타일링을 관리하는 패션 스튜디오" />
+  <title>무드핏</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --font: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", -apple-system, BlinkMacSystemFont, sans-serif;
+      --bg-a: #fffdf8;
+      --bg-b: #f4eadf;
+      --bg-c: #ead8c3;
+      --ink: #171412;
+      --muted: rgba(23, 20, 18, .62);
+      --surface: rgba(255, 255, 255, .72);
+      --surface-strong: rgba(255, 255, 255, .9);
+      --line: rgba(35, 28, 22, .12);
+      --accent: #d98258;
+      --accent-soft: #f2c6a8;
+      --button: #171412;
+      --button-ink: #fffaf2;
+      --shadow: 0 26px 80px rgba(62, 44, 30, .14);
+      --avatar-glow: rgba(255, 142, 80, .75);
+      --radius-xl: 34px;
+      --radius-lg: 26px;
+      --top-color: #efe0c8;
+      --outer-color: #111111;
+      --bottom-color: #2b2b2b;
+      --shoe-color: #f8f5ef;
+      --skin: #d69a72;
+      --pose-lean: 0deg;
+      --shoulder: 126px;
+      --hip: 108px;
+      --leg: 108px;
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg-a: #050505;
+      --bg-b: #121212;
+      --bg-c: #2a2a2a;
+      --ink: #f7f4ef;
+      --muted: rgba(247, 244, 239, .62);
+      --surface: rgba(18, 18, 18, .72);
+      --surface-strong: rgba(28, 28, 28, .92);
+      --line: rgba(255, 255, 255, .13);
+      --accent: #f1eee7;
+      --accent-soft: #888f9a;
+      --button: #f7f4ef;
+      --button-ink: #101010;
+      --shadow: 0 28px 90px rgba(0, 0, 0, .42);
+      --avatar-glow: rgba(245, 239, 229, .42);
+    }
+
+    [data-theme="wood"] {
+      --bg-a: #fff8ed;
+      --bg-b: #e8d1b7;
+      --bg-c: #9f7351;
+      --ink: #23180f;
+      --muted: rgba(35, 24, 15, .64);
+      --surface: rgba(255, 248, 236, .72);
+      --surface-strong: rgba(255, 248, 236, .92);
+      --line: rgba(74, 45, 24, .16);
+      --accent: #9b5c35;
+      --accent-soft: #d6ad83;
+      --button: #2a160c;
+      --button-ink: #fff5e8;
+      --shadow: 0 26px 80px rgba(80, 45, 18, .17);
+      --avatar-glow: rgba(208, 126, 65, .7);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg-b);
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: var(--font);
+      background:
+        radial-gradient(circle at 50% 12%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 28%),
+        linear-gradient(135deg, var(--bg-a), var(--bg-b) 48%, var(--bg-c));
+      transition: background .45s ease, color .3s ease;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, transparent 0 9%, rgba(255,255,255,.12) 9% 9.1%, transparent 9.1% 18%),
+        radial-gradient(circle at 18% 20%, rgba(255,255,255,.3), transparent 22%),
+        radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--accent-soft) 30%, transparent), transparent 24%);
+      opacity: .72;
+      animation: atmosphere 12s ease-in-out infinite alternate;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: 0;
+    }
+
+    .app {
+      width: min(100% - 28px, 1440px);
+      margin: 0 auto;
+      padding: 18px 0 64px;
+    }
+
+    .nav {
+      position: sticky;
+      top: 14px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--surface-strong) 86%, transparent);
+      box-shadow: 0 18px 56px rgba(0,0,0,.08);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 160px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      color: var(--button-ink);
+      background: var(--button);
+      box-shadow: 0 12px 28px color-mix(in srgb, var(--button) 25%, transparent);
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 700;
+    }
+
+    .nav-actions,
+    .segmented {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .theme-btn,
+    .chip,
+    .ghost,
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: color-mix(in srgb, var(--surface) 70%, transparent);
+      font-weight: 850;
+      transition: transform .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
+    }
+
+    .theme-btn,
+    .chip,
+    .ghost {
+      padding: 10px 14px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      padding: 0;
+      font-size: 1.04rem;
+    }
+
+    .theme-btn.active,
+    .chip.active {
+      color: var(--button-ink);
+      background: var(--button);
+      border-color: var(--button);
+    }
+
+    .theme-btn:hover,
+    .chip:hover,
+    .ghost:hover,
+    .icon-btn:hover,
+    .primary:hover {
+      transform: translateY(-2px);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(390px, .78fr);
+      gap: 18px;
+      min-height: calc(100vh - 108px);
+      padding-top: 18px;
+    }
+
+    .panel,
+    .studio,
+    .card,
+    .drawer {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+    }
+
+    .panel {
+      padding: clamp(24px, 5vw, 62px);
+      overflow: hidden;
+    }
+
+    .eyebrow {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: .8rem;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      word-break: keep-all;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin: 0;
+      font-size: clamp(3rem, 6.4vw, 7.2rem);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: clamp(1.8rem, 3vw, 3.1rem);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      line-height: 1.25;
+    }
+
+    p {
+      line-height: 1.75;
+    }
+
+    .lead {
+      max-width: 690px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .prompt-box {
+      margin-top: 32px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: color-mix(in srgb, var(--surface-strong) 70%, transparent);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 9px;
+      font-weight: 900;
+    }
+
+    textarea,
+    input,
+    select {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      outline: none;
+      color: var(--ink);
+      background: color-mix(in srgb, var(--surface-strong) 88%, white 8%);
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    textarea {
+      min-height: 118px;
+      padding: 15px 16px;
+      resize: vertical;
+      line-height: 1.65;
+    }
+
+    input,
+    select {
+      padding: 0 14px;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
+      border-color: color-mix(in srgb, var(--accent) 62%, var(--line));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+    }
+
+    .primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 50px;
+      width: 100%;
+      border-radius: 999px;
+      color: var(--button-ink);
+      background: var(--button);
+      font-weight: 900;
+      transition: transform .18s ease, box-shadow .18s ease;
+      box-shadow: 0 18px 40px color-mix(in srgb, var(--button) 18%, transparent);
+    }
+
+    .studio {
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .studio-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 6px 6px 16px;
+    }
+
+    .studio-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .stage {
+      position: relative;
+      min-height: 570px;
+      border-radius: 30px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 17%, rgba(255,255,255,.54), transparent 25%),
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 78%, transparent), color-mix(in srgb, var(--surface) 48%, transparent));
+    }
+
+    .stage::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      width: 72%;
+      height: 78%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--avatar-glow), transparent 65%);
+      filter: blur(20px);
+      opacity: .5;
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    .stage[data-vibe="rain"] {
+      background:
+        linear-gradient(120deg, rgba(255,255,255,.18), transparent 32%, rgba(255,255,255,.13)),
+        repeating-linear-gradient(110deg, transparent 0 22px, rgba(255,255,255,.12) 22px 24px),
+        linear-gradient(180deg, #d7dfe4, #83919d);
+    }
+
+    .stage[data-vibe="street"] {
+      background:
+        radial-gradient(circle at 20% 28%, rgba(103,255,228,.32), transparent 24%),
+        radial-gradient(circle at 78% 20%, rgba(255,95,188,.3), transparent 26%),
+        linear-gradient(180deg, #15171d, #07080b);
+    }
+
+    .stage[data-vibe="luxury"] {
+      background:
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,.28), transparent 28%),
+        linear-gradient(135deg, #050505, #1d1d1f 58%, #8c8f94);
+    }
+
+    .drop-hint {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 18px;
+      color: color-mix(in srgb, var(--ink) 70%, white);
+      background: rgba(255,255,255,.18);
+      backdrop-filter: blur(10px);
+      font-size: .84rem;
+      font-weight: 800;
+    }
+
+    .avatar {
+      position: absolute;
+      left: 50%;
+      bottom: 78px;
+      width: 250px;
+      height: 430px;
+      transform: translateX(-50%) rotate(var(--pose-lean));
+      transform-origin: 50% 90%;
+      animation: float 4.6s ease-in-out infinite;
+      transition: transform .45s ease;
+    }
+
+    .avatar.transitioning .wear {
+      animation: garmentIn .42s ease;
+    }
+
+    .part {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: all .36s ease;
+    }
+
+    .hair {
+      top: 8px;
+      width: 96px;
+      height: 64px;
+      border-radius: 50px 50px 30px 30px;
+      background: #2d241f;
+      z-index: 4;
+    }
+
+    .head {
+      top: 28px;
+      width: 80px;
+      height: 88px;
+      border-radius: 44% 44% 50% 50%;
+      background: var(--skin);
+      box-shadow: inset 0 -8px rgba(77, 42, 28, .16);
+      z-index: 5;
+    }
+
+    .eye {
+      top: 68px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #191919;
+      z-index: 6;
+    }
+
+    .eye.left {
+      margin-left: -17px;
+    }
+
+    .eye.right {
+      margin-left: 17px;
+    }
+
+    .mouth {
+      top: 92px;
+      width: 26px;
+      height: 8px;
+      border-bottom: 2px solid #8b5140;
+      border-radius: 999px;
+      z-index: 6;
+    }
+
+    .neck {
+      top: 112px;
+      width: 30px;
+      height: 28px;
+      border-radius: 10px;
+      background: var(--skin);
+      z-index: 3;
+    }
+
+    .torso {
+      top: 134px;
+      width: 104px;
+      height: 145px;
+      border-radius: 34px;
+      clip-path: polygon(12% 0, 88% 0, 76% 100%, 24% 100%);
+      background: var(--skin);
+      z-index: 2;
+    }
+
+    .arm {
+      top: 154px;
+      width: 24px;
+      height: 124px;
+      border-radius: 999px;
+      background: var(--skin);
+      z-index: 3;
+    }
+
+    .arm.left {
+      margin-left: calc(var(--shoulder) / -2 - 18px);
+      rotate: -4deg;
+    }
+
+    .arm.right {
+      margin-left: calc(var(--shoulder) / 2 + 18px);
+      rotate: 8deg;
+    }
+
+    .top-wear {
+      top: 134px;
+      width: var(--shoulder);
+      height: 116px;
+      border-radius: 34px 34px 18px 18px;
+      clip-path: polygon(9% 0, 91% 0, 100% 18%, 88% 100%, 12% 100%, 0 18%);
+      background:
+        var(--pattern-top),
+        linear-gradient(135deg, var(--top-color), color-mix(in srgb, var(--top-color) 68%, #fff));
+      z-index: 7;
+    }
+
+    .outer-wear {
+      top: 126px;
+      width: calc(var(--shoulder) + 30px);
+      height: 170px;
+      border: 9px solid var(--outer-color);
+      border-bottom-width: 20px;
+      border-radius: 44px;
+      opacity: var(--outer-on, 1);
+      z-index: 8;
+      background: var(--pattern-outer);
+    }
+
+    .bottom-wear {
+      top: 238px;
+      width: var(--hip);
+      height: 78px;
+      border-radius: 20px 20px 28px 28px;
+      background:
+        var(--pattern-bottom),
+        linear-gradient(135deg, var(--bottom-color), color-mix(in srgb, var(--bottom-color) 75%, #fff));
+      z-index: 7;
+    }
+
+    .leg {
+      top: 304px;
+      width: 29px;
+      height: var(--leg);
+      border-radius: 16px;
+      background: var(--bottom-color);
+      z-index: 4;
+    }
+
+    .leg.left {
+      margin-left: -23px;
+    }
+
+    .leg.right {
+      margin-left: 23px;
+    }
+
+    .shoe {
+      top: calc(298px + var(--leg));
+      width: 47px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--shoe-color);
+      z-index: 9;
+    }
+
+    .shoe.left {
+      margin-left: -31px;
+    }
+
+    .shoe.right {
+      margin-left: 31px;
+    }
+
+    .floor-shadow {
+      position: absolute;
+      left: 50%;
+      bottom: 58px;
+      width: 250px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(0,0,0,.25);
+      filter: blur(13px);
+      transform: translateX(-50%);
+    }
+
+    .below {
+      display: grid;
+      grid-template-columns: .72fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .drawer {
+      padding: 22px;
+    }
+
+    .drawer-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .drawer-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .94rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .wardrobe-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      padding: 16px;
+      min-height: 150px;
+      box-shadow: 0 16px 42px rgba(0,0,0,.07);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+    }
+
+    .swatch {
+      display: block;
+      height: 64px;
+      border-radius: 18px;
+      margin-bottom: 12px;
+      background:
+        var(--pattern),
+        linear-gradient(135deg, var(--color), color-mix(in srgb, var(--color) 65%, #fff));
+      box-shadow: inset 0 -20px 32px rgba(0,0,0,.13);
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: color-mix(in srgb, var(--surface-strong) 72%, transparent);
+      border: 1px solid var(--line);
+      font-size: .78rem;
+      font-weight: 850;
+    }
+
+    .upload-zone {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 178px;
+      padding: 18px;
+      border: 1.5px dashed color-mix(in srgb, var(--accent) 45%, var(--line));
+      border-radius: var(--radius-lg);
+      background: color-mix(in srgb, var(--surface-strong) 56%, transparent);
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .upload-zone input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-zone strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .upload-zone p,
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.6;
+    }
+
+    .result-card {
+      min-height: 172px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: color-mix(in srgb, var(--surface-strong) 72%, transparent);
+    }
+
+    .look-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .look-row {
+      display: grid;
+      grid-template-columns: 76px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: color-mix(in srgb, var(--surface-strong) 60%, transparent);
+    }
+
+    .mini-fit {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+
+    .mini-fit span {
+      height: 44px;
+      border-radius: 12px;
+      background: var(--c);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      z-index: 100;
+      transform: translateX(-50%) translateY(24px);
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--button-ink);
+      background: var(--button);
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 18px 46px rgba(0,0,0,.2);
+      transition: opacity .2s ease, transform .2s ease;
+      font-weight: 850;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @keyframes float {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -11px; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .38; scale: 1; }
+      50% { opacity: .62; scale: 1.04; }
+    }
+
+    @keyframes garmentIn {
+      from { opacity: .45; filter: blur(10px); transform: translateX(-50%) scale(.96); }
+      to { opacity: 1; filter: blur(0); transform: translateX(-50%) scale(1); }
+    }
+
+    @keyframes atmosphere {
+      from { transform: scale(1); filter: saturate(1); }
+      to { transform: scale(1.03); filter: saturate(1.08); }
+    }
+
+    @media (max-width: 1080px) {
+      .hero,
+      .below {
+        grid-template-columns: 1fr;
+      }
+
+      .studio {
+        order: -1;
+      }
+
+      .wardrobe-grid,
+      .grid.three {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app {
+        width: min(100% - 18px, 1440px);
+        padding-top: 10px;
+      }
+
+      .nav {
+        position: static;
+        align-items: flex-start;
+        border-radius: 26px;
+        flex-direction: column;
+      }
+
+      .nav-actions {
+        justify-content: flex-start;
+      }
+
+      h1 {
+        font-size: 3.05rem;
+        line-height: 1.08;
+      }
+
+      .panel,
+      .drawer {
+        padding: 20px;
+        border-radius: 26px;
+      }
+
+      .stage {
+        min-height: 500px;
+      }
+
+      .avatar {
+        scale: .86;
+        bottom: 48px;
+      }
+
+      .wardrobe-grid,
+      .grid.two,
+      .grid.three {
+        grid-template-columns: 1fr;
+      }
+
+      .look-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body data-theme="white">
+  <div class="app">
+    <header class="nav">
+      <div class="brand" aria-label="무드핏">
+        <span class="brand-mark">MF</span>
+        <div>무드핏<small>Fashion mood studio</small></div>
+      </div>
+
+      <div class="nav-actions" aria-label="테마 선택">
+        <button class="theme-btn active" type="button" data-theme-btn="white">White</button>
+        <button class="theme-btn" type="button" data-theme-btn="dark">Dark</button>
+        <button class="theme-btn" type="button" data-theme-btn="wood">Wood</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <section class="panel">
+        <p class="eyebrow">Moodfit Atelier</p>
+        <h1>오늘의 분위기를 입는 방식.</h1>
+        <p class="lead">
+          옷장에 있는 옷을 스캔하고, 직접 입혀보고, 마음에 드는 핏을 저장하세요.
+          무드, 날씨, 장소에 따라 아바타와 추천 조합이 자연스럽게 바뀝니다.
+        </p>
+
+        <div class="prompt-box">
+          <label for="stylePrompt">스타일 프롬프트</label>
+          <textarea id="stylePrompt">성수에서 비 오는 날 입을 고급스럽고 편한 룩. 블랙 재킷, 와이드 팬츠, 은은한 포인트가 있었으면 좋겠어.</textarea>
+
+          <div class="segmented" id="moodButtons" style="margin:14px 0 16px"></div>
+          <button class="primary" id="applyPrompt" type="button">핏 추천 적용</button>
+        </div>
+      </section>
+
+      <aside class="studio">
+        <div class="studio-head">
+          <div>
+            <h3 id="lookTitle">Rain Gallery Fit</h3>
+            <p id="lookCaption">흐린 날에도 정돈된 블랙 레이어링</p>
+          </div>
+          <button class="icon-btn" id="saveLook" type="button" title="현재 핏 저장">저장</button>
+        </div>
+
+        <div class="stage" id="stage" data-vibe="rain">
+          <div class="floor-shadow"></div>
+          <div class="avatar" id="avatar" aria-label="패션 아바타">
+            <span class="part hair"></span>
+            <span class="part head"></span>
+            <span class="part eye left"></span>
+            <span class="part eye right"></span>
+            <span class="part mouth"></span>
+            <span class="part neck"></span>
+            <span class="part torso"></span>
+            <span class="part arm left"></span>
+            <span class="part arm right"></span>
+            <span class="part wear top-wear"></span>
+            <span class="part wear outer-wear"></span>
+            <span class="part wear bottom-wear"></span>
+            <span class="part leg left"></span>
+            <span class="part leg right"></span>
+            <span class="part shoe left"></span>
+            <span class="part shoe right"></span>
+          </div>
+          <div class="drop-hint">
+            <span>옷 카드를 드래그해서 아바타에 입히기</span>
+            <span id="fitScore">92%</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="below">
+      <aside class="drawer">
+        <div class="drawer-head">
+          <div>
+            <h2>프로필</h2>
+            <p>체형과 취향에 맞춰 아바타 비율과 추천 톤을 조정합니다.</p>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <label>체형
+            <select id="bodyType">
+              <option value="standard">균형형</option>
+              <option value="slim">슬림형</option>
+              <option value="upper">상체 발달형</option>
+              <option value="lower">하체 발달형</option>
+            </select>
+          </label>
+          <label>피부 톤
+            <select id="skinTone">
+              <option value="#d69a72">뉴트럴</option>
+              <option value="#e5b894">밝은 톤</option>
+              <option value="#9c6548">딥 톤</option>
+              <option value="#d7aa9b">쿨 톤</option>
+            </select>
+          </label>
+          <label>예산
+            <input id="budget" type="number" value="180000" min="0" step="10000" />
+          </label>
+          <label>오늘 장소
+            <input id="place" type="text" value="성수 쇼룸" />
+          </label>
+        </div>
+      </aside>
+
+      <section class="drawer">
+        <div class="drawer-head">
+          <div>
+            <h2>추천 결과</h2>
+            <p>현재 입력과 옷장을 기준으로 바로 입을 수 있는 조합을 만듭니다.</p>
+          </div>
+        </div>
+
+        <div class="grid three" id="recommendations"></div>
+      </section>
+    </section>
+
+    <section class="below">
+      <aside class="drawer">
+        <div class="drawer-head">
+          <div>
+            <h2>옷 사진 스캔</h2>
+            <p>사진을 올리면 색상, 분위기, 무늬를 읽어 옷장에 저장합니다.</p>
+          </div>
+        </div>
+
+        <div class="upload-zone">
+          <input id="photoInput" type="file" accept="image/*" />
+          <div>
+            <strong>사진을 클릭하거나 끌어오세요</strong>
+            <p>대표 색상과 패턴을 분석해 새 옷 카드로 추가합니다.</p>
+          </div>
+        </div>
+
+        <div class="result-card" id="scanResult" style="margin-top:12px">
+          <strong>스캔 대기 중</strong>
+          <p class="hint">셔츠, 재킷, 팬츠, 신발 사진을 올리면 바로 옷장에 들어갑니다.</p>
+        </div>
+      </aside>
+
+      <section class="drawer">
+        <div class="drawer-head">
+          <div>
+            <h2>내 옷장</h2>
+            <p>카드를 클릭하면 아바타에 바로 입혀집니다.</p>
+          </div>
+          <button class="ghost" id="addManual" type="button">옷 추가</button>
+        </div>
+
+        <div class="wardrobe-grid" id="wardrobeGrid"></div>
+      </section>
+    </section>
+
+    <section class="below">
+      <aside class="drawer">
+        <div class="drawer-head">
+          <div>
+            <h2>무드 & 날씨</h2>
+            <p>상황에 따라 배경과 핏 방향이 바뀝니다.</p>
+          </div>
+        </div>
+        <div class="grid two" id="weatherCards"></div>
+      </aside>
+
+      <section class="drawer">
+        <div class="drawer-head">
+          <div>
+            <h2>저장한 핏</h2>
+            <p>마음에 드는 조합을 저장하고 다시 불러올 수 있습니다.</p>
+          </div>
+        </div>
+        <div class="look-list" id="savedLooks"></div>
+      </section>
+    </section>
+  </div>
+
+  <div class="toast" id="toast">저장했습니다</div>
+
+  <script>
+    // 무드핏 단일 파일 버전: file://로 바로 열 수 있도록 외부 빌드 도구 없이 동작합니다.
+    const patternMap = {
+      plain: "linear-gradient(135deg, transparent, transparent)",
+      stripe: "repeating-linear-gradient(90deg, rgba(255,255,255,.28) 0 8px, transparent 8px 18px)",
+      check: "linear-gradient(90deg, rgba(255,255,255,.24) 50%, transparent 50%), linear-gradient(rgba(255,255,255,.22) 50%, transparent 50%)",
+      knit: "repeating-linear-gradient(135deg, rgba(255,255,255,.24) 0 3px, transparent 3px 11px)",
+      gloss: "linear-gradient(115deg, rgba(255,255,255,.36), transparent 30%, rgba(255,255,255,.18) 55%, transparent)",
+      denim: "repeating-linear-gradient(135deg, rgba(255,255,255,.12) 0 2px, transparent 2px 7px)"
+    };
+
+    const moodData = {
+      cozy: {
+        label: "Cozy",
+        title: "Soft Boutique Fit",
+        caption: "따뜻한 니트와 편한 실루엣",
+        top: "#efe0c8",
+        outer: "#c79a76",
+        bottom: "#7a604e",
+        shoe: "#fff7ed",
+        pattern: "knit",
+        vibe: "cozy",
+        pose: "0deg"
+      },
+      luxury: {
+        label: "Luxury",
+        title: "Black Chrome Fit",
+        caption: "블랙과 실버가 만든 고급스러운 긴장감",
+        top: "#f4eee5",
+        outer: "#0d0d0d",
+        bottom: "#161616",
+        shoe: "#ece8df",
+        pattern: "gloss",
+        vibe: "luxury",
+        pose: "-1deg"
+      },
+      street: {
+        label: "Street",
+        title: "Neon Street Fit",
+        caption: "오버사이즈와 데님으로 만든 편한 존재감",
+        top: "#23272d",
+        outer: "#20242a",
+        bottom: "#315979",
+        shoe: "#e9f8f4",
+        pattern: "denim",
+        vibe: "street",
+        pose: "3deg"
+      },
+      rain: {
+        label: "Rain",
+        title: "Rain Gallery Fit",
+        caption: "흐린 날에도 정돈된 블랙 레이어링",
+        top: "#d7dce0",
+        outer: "#1b1c1f",
+        bottom: "#25272b",
+        shoe: "#f5f3ef",
+        pattern: "stripe",
+        vibe: "rain",
+        pose: "-2deg"
+      }
+    };
+
+    const defaultWardrobe = [
+      { id: 1, name: "아이보리 캐시미어 니트", slot: "top", mood: "cozy", color: "#efe0c8", pattern: "knit", source: "기본" },
+      { id: 2, name: "블랙 새틴 블레이저", slot: "outer", mood: "luxury", color: "#111111", pattern: "gloss", source: "기본" },
+      { id: 3, name: "오버사이즈 봄버", slot: "outer", mood: "street", color: "#20242a", pattern: "plain", source: "기본" },
+      { id: 4, name: "글래스 트렌치", slot: "outer", mood: "rain", color: "#d7dce0", pattern: "stripe", source: "기본" },
+      { id: 5, name: "차콜 와이드 팬츠", slot: "bottom", mood: "luxury", color: "#252525", pattern: "plain", source: "기본" },
+      { id: 6, name: "워시드 데님 팬츠", slot: "bottom", mood: "street", color: "#315979", pattern: "denim", source: "기본" },
+      { id: 7, name: "화이트 레더 스니커즈", slot: "shoes", mood: "cozy", color: "#f8f5ef", pattern: "plain", source: "기본" },
+      { id: 8, name: "실버 포인트 로퍼", slot: "shoes", mood: "luxury", color: "#d8d8d8", pattern: "gloss", source: "기본" }
+    ];
+
+    let currentMood = localStorage.getItem("moodfit-mood") || "rain";
+    let wardrobe = JSON.parse(localStorage.getItem("moodfit-wardrobe") || "null") || defaultWardrobe;
+    let savedLooks = JSON.parse(localStorage.getItem("moodfit-saved-looks") || "[]");
+    let fit = JSON.parse(localStorage.getItem("moodfit-current-fit") || "null") || {
+      top: wardrobe.find(item => item.slot === "top" && item.mood === "rain") || wardrobe[0],
+      outer: wardrobe.find(item => item.slot === "outer" && item.mood === "rain") || wardrobe[1],
+      bottom: wardrobe.find(item => item.slot === "bottom") || wardrobe[4],
+      shoes: wardrobe.find(item => item.slot === "shoes") || wardrobe[6]
+    };
+
+    const $ = selector => document.querySelector(selector);
+
+    function init() {
+      renderMoodButtons();
+      renderWardrobe();
+      renderWeatherCards();
+      renderSavedLooks();
+      applyMood(currentMood);
+      bindEvents();
+    }
+
+    function bindEvents() {
+      document.querySelectorAll("[data-theme-btn]").forEach(button => {
+        button.addEventListener("click", () => {
+          document.body.dataset.theme = button.dataset.themeBtn;
+          document.querySelectorAll("[data-theme-btn]").forEach(item => item.classList.toggle("active", item === button));
+        });
+      });
+
+      $("#applyPrompt").addEventListener("click", () => {
+        const text = $("#stylePrompt").value.toLowerCase();
+        const nextMood =
+          text.includes("비") || text.includes("rain") ? "rain" :
+          text.includes("스트릿") || text.includes("street") || text.includes("데님") ? "street" :
+          text.includes("고급") || text.includes("블랙") || text.includes("luxury") ? "luxury" :
+          "cozy";
+        applyMood(nextMood);
+        toast("프롬프트를 핏에 반영했습니다");
+      });
+
+      $("#saveLook").addEventListener("click", saveCurrentLook);
+      $("#addManual").addEventListener("click", addManualItem);
+      $("#bodyType").addEventListener("change", updateProfile);
+      $("#skinTone").addEventListener("change", updateProfile);
+      $("#photoInput").addEventListener("change", event => {
+        const file = event.target.files && event.target.files[0];
+        if (file) scanClothingPhoto(file);
+      });
+
+      const stage = $("#stage");
+      stage.addEventListener("dragover", event => event.preventDefault());
+      stage.addEventListener("drop", event => {
+        event.preventDefault();
+        const id = Number(event.dataTransfer.getData("text/plain"));
+        const item = wardrobe.find(piece => piece.id === id);
+        if (item) wearItem(item);
+      });
+    }
+
+    function renderMoodButtons() {
+      $("#moodButtons").innerHTML = Object.entries(moodData).map(([key, mood]) => (
+        `<button class="chip ${key === currentMood ? "active" : ""}" type="button" data-mood="${key}">${mood.label}</button>`
+      )).join("");
+
+      document.querySelectorAll("[data-mood]").forEach(button => {
+        button.addEventListener("click", () => applyMood(button.dataset.mood));
+      });
+    }
+
+    function applyMood(moodKey) {
+      currentMood = moodKey;
+      localStorage.setItem("moodfit-mood", moodKey);
+      const mood = moodData[moodKey];
+      $("#stage").dataset.vibe = mood.vibe;
+      $("#lookTitle").textContent = mood.title;
+      $("#lookCaption").textContent = mood.caption;
+
+      fit.top = findBest("top", moodKey) || fit.top;
+      fit.outer = findBest("outer", moodKey) || fit.outer;
+      fit.bottom = findBest("bottom", moodKey) || fit.bottom;
+      fit.shoes = findBest("shoes", moodKey) || fit.shoes;
+
+      document.documentElement.style.setProperty("--pose-lean", mood.pose);
+      renderMoodButtons();
+      applyFit();
+      renderRecommendations();
+    }
+
+    function findBest(slot, moodKey) {
+      return wardrobe.find(item => item.slot === slot && item.mood === moodKey) || wardrobe.find(item => item.slot === slot);
+    }
+
+    function applyFit() {
+      const root = document.documentElement;
+      const mood = moodData[currentMood];
+      root.style.setProperty("--top-color", fit.top?.color || mood.top);
+      root.style.setProperty("--outer-color", fit.outer?.color || mood.outer);
+      root.style.setProperty("--bottom-color", fit.bottom?.color || mood.bottom);
+      root.style.setProperty("--shoe-color", fit.shoes?.color || mood.shoe);
+      root.style.setProperty("--pattern-top", patternMap[fit.top?.pattern || mood.pattern] || patternMap.plain);
+      root.style.setProperty("--pattern-outer", patternMap[fit.outer?.pattern || "plain"] || patternMap.plain);
+      root.style.setProperty("--pattern-bottom", patternMap[fit.bottom?.pattern || "plain"] || patternMap.plain);
+      root.style.setProperty("--outer-on", fit.outer ? 1 : 0);
+      localStorage.setItem("moodfit-current-fit", JSON.stringify(fit));
+
+      $("#avatar").classList.remove("transitioning");
+      requestAnimationFrame(() => $("#avatar").classList.add("transitioning"));
+      renderRecommendations();
+    }
+
+    function wearItem(item) {
+      fit[item.slot] = item;
+      if (item.mood) currentMood = item.mood;
+      applyFit();
+      renderMoodButtons();
+      toast(`${item.name} 착장 적용`);
+    }
+
+    function renderWardrobe() {
+      $("#wardrobeGrid").innerHTML = wardrobe.map(item => (
+        `<article class="card wardrobe-item" draggable="true" data-id="${item.id}">
+          <span class="swatch" style="--color:${item.color};--pattern:${patternMap[item.pattern] || patternMap.plain}"></span>
+          <h3>${item.name}</h3>
+          <div class="meta">
+            <span class="pill">${slotName(item.slot)}</span>
+            <span class="pill">${moodData[item.mood]?.label || "Mood"}</span>
+            <span class="pill">${patternName(item.pattern)}</span>
+          </div>
+        </article>`
+      )).join("");
+
+      document.querySelectorAll(".wardrobe-item").forEach(card => {
+        card.addEventListener("click", () => {
+          const item = wardrobe.find(piece => piece.id === Number(card.dataset.id));
+          if (item) wearItem(item);
+        });
+        card.addEventListener("dragstart", event => {
+          event.dataTransfer.setData("text/plain", card.dataset.id);
+        });
+      });
+    }
+
+    function renderRecommendations() {
+      const budget = Number($("#budget").value || 0);
+      const place = $("#place").value || "오늘의 장소";
+      const mood = moodData[currentMood];
+      const total = [fit.top, fit.outer, fit.bottom, fit.shoes].filter(Boolean).length * 42000;
+      const score = Math.min(98, 82 + Object.values(fit).filter(Boolean).length * 3);
+      $("#fitScore").textContent = `${score}%`;
+
+      const cards = [
+        {
+          title: "오늘의 조합",
+          text: `${place}에 맞춰 ${fit.outer?.name || "아우터"}와 ${fit.bottom?.name || "팬츠"}를 중심으로 정리했습니다.`,
+          tag: mood.label
+        },
+        {
+          title: "예산 감각",
+          text: budget ? `예상 연출 비용은 약 ${total.toLocaleString()}원입니다. 입력 예산 ${budget.toLocaleString()}원 안에서 충분히 맞출 수 있습니다.` : "예산을 입력하면 더 정확하게 조정합니다.",
+          tag: "Budget"
+        },
+        {
+          title: "스타일 포인트",
+          text: `${patternName(fit.top?.pattern || "plain")} 질감과 ${patternName(fit.outer?.pattern || "plain")} 레이어가 룩에 깊이를 만듭니다.`,
+          tag: "Detail"
+        }
+      ];
+
+      $("#recommendations").innerHTML = cards.map(card => (
+        `<article class="card">
+          <span class="pill">${card.tag}</span>
+          <h3 style="margin-top:14px">${card.title}</h3>
+          <p class="hint" style="margin-top:8px">${card.text}</p>
+        </article>`
+      )).join("");
+    }
+
+    function renderWeatherCards() {
+      const items = [
+        ["비", "트렌치와 방수감 있는 신발로 반사광을 살립니다.", "rain"],
+        ["맑음", "아이보리와 니트 텍스처로 부드럽게 정리합니다.", "cozy"],
+        ["저녁 약속", "블랙 재킷과 실버 포인트로 분위기를 잡습니다.", "luxury"],
+        ["주말", "데님과 오버핏 아우터로 움직임을 편하게 둡니다.", "street"]
+      ];
+
+      $("#weatherCards").innerHTML = items.map(([title, text, mood]) => (
+        `<button class="card" type="button" data-weather-mood="${mood}" style="text-align:left">
+          <span class="pill">${moodData[mood].label}</span>
+          <h3 style="margin-top:14px">${title}</h3>
+          <p class="hint" style="margin-top:8px">${text}</p>
+        </button>`
+      )).join("");
+
+      document.querySelectorAll("[data-weather-mood]").forEach(button => {
+        button.addEventListener("click", () => applyMood(button.dataset.weatherMood));
+      });
+    }
+
+    function saveCurrentLook() {
+      const look = {
+        id: Date.now(),
+        title: $("#lookTitle").textContent,
+        mood: currentMood,
+        fit: structuredClone(fit),
+        createdAt: new Date().toLocaleDateString("ko-KR")
+      };
+      savedLooks.unshift(look);
+      savedLooks = savedLooks.slice(0, 8);
+      localStorage.setItem("moodfit-saved-looks", JSON.stringify(savedLooks));
+      renderSavedLooks();
+      toast("현재 핏을 저장했습니다");
+    }
+
+    function renderSavedLooks() {
+      if (!savedLooks.length) {
+        $("#savedLooks").innerHTML = `<div class="result-card"><strong>저장된 핏이 없습니다</strong><p class="hint">아바타 위의 저장 버튼을 누르면 여기에 보관됩니다.</p></div>`;
+        return;
+      }
+
+      $("#savedLooks").innerHTML = savedLooks.map(look => (
+        `<article class="look-row">
+          <div class="mini-fit">
+            <span style="--c:${look.fit.top?.color || "#ddd"}"></span>
+            <span style="--c:${look.fit.outer?.color || "#ddd"}"></span>
+            <span style="--c:${look.fit.bottom?.color || "#ddd"}"></span>
+            <span style="--c:${look.fit.shoes?.color || "#ddd"}"></span>
+          </div>
+          <div>
+            <h3>${look.title}</h3>
+            <p class="hint">${look.createdAt} · ${moodData[look.mood]?.label || "Mood"}</p>
+          </div>
+          <button class="ghost" type="button" data-load-look="${look.id}">불러오기</button>
+        </article>`
+      )).join("");
+
+      document.querySelectorAll("[data-load-look]").forEach(button => {
+        button.addEventListener("click", () => {
+          const look = savedLooks.find(item => item.id === Number(button.dataset.loadLook));
+          if (!look) return;
+          currentMood = look.mood;
+          fit = look.fit;
+          applyMood(currentMood);
+          applyFit();
+          toast("저장한 핏을 불러왔습니다");
+        });
+      });
+    }
+
+    function addManualItem() {
+      const name = prompt("옷 이름을 입력하세요", "새 옷");
+      if (!name) return;
+      const slot = prompt("종류를 입력하세요: top, outer, bottom, shoes", "top") || "top";
+      const color = prompt("색상을 입력하세요. 예: #222222", "#222222") || "#222222";
+      const pattern = prompt("무늬를 입력하세요: plain, stripe, check, knit, gloss, denim", "plain") || "plain";
+      const item = {
+        id: Date.now(),
+        name,
+        slot: ["top", "outer", "bottom", "shoes"].includes(slot) ? slot : "top",
+        mood: currentMood,
+        color,
+        pattern,
+        source: "직접 추가"
+      };
+      wardrobe.unshift(item);
+      saveWardrobe();
+      renderWardrobe();
+      wearItem(item);
+    }
+
+    function scanClothingPhoto(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const image = new Image();
+        image.onload = () => {
+          const scan = analyzeImage(image, file.name);
+          const item = {
+            id: Date.now(),
+            name: scan.name,
+            slot: scan.slot,
+            mood: scan.mood,
+            color: scan.color,
+            pattern: scan.pattern,
+            source: "사진 스캔"
+          };
+          wardrobe.unshift(item);
+          saveWardrobe();
+          renderWardrobe();
+          wearItem(item);
+          $("#scanResult").innerHTML = `
+            <strong>${item.name}</strong>
+            <p class="hint">대표 색상 ${item.color}, ${slotName(item.slot)}, ${patternName(item.pattern)} 패턴으로 저장했습니다.</p>
+          `;
+        };
+        image.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function analyzeImage(image, fileName) {
+      const canvas = document.createElement("canvas");
+      const size = 80;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(image, 0, 0, size, size);
+      const { data } = ctx.getImageData(0, 0, size, size);
+      let r = 0, g = 0, b = 0, count = 0, contrast = 0;
+
+      for (let i = 0; i < data.length; i += 16) {
+        const alpha = data[i + 3];
+        if (alpha < 80) continue;
+        r += data[i];
+        g += data[i + 1];
+        b += data[i + 2];
+        contrast += Math.abs(data[i] - data[i + 4] || 0) + Math.abs(data[i + 1] - data[i + 5] || 0);
+        count += 1;
+      }
+
+      r = Math.round(r / count);
+      g = Math.round(g / count);
+      b = Math.round(b / count);
+      const color = rgbToHex(r, g, b);
+      const brightness = (r + g + b) / 3;
+      const nameHint = fileName.toLowerCase();
+      const slot =
+        nameHint.includes("shoe") || nameHint.includes("신발") ? "shoes" :
+        nameHint.includes("pants") || nameHint.includes("팬츠") || nameHint.includes("bottom") ? "bottom" :
+        nameHint.includes("jacket") || nameHint.includes("coat") || nameHint.includes("outer") || nameHint.includes("재킷") ? "outer" :
+        "top";
+      const mood = brightness < 70 ? "luxury" : b > r + 18 ? "rain" : g > r + 10 ? "street" : "cozy";
+      const pattern = contrast / Math.max(count, 1) > 24 ? "check" : brightness > 185 ? "gloss" : "plain";
+      return { name: `스캔한 ${slotName(slot)}`, slot, mood, color, pattern };
+    }
+
+    function updateProfile() {
+      const bodyType = $("#bodyType").value;
+      const skin = $("#skinTone").value;
+      const root = document.documentElement;
+      root.style.setProperty("--skin", skin);
+      root.style.setProperty("--shoulder", bodyType === "upper" ? "142px" : bodyType === "slim" ? "116px" : "126px");
+      root.style.setProperty("--hip", bodyType === "lower" ? "128px" : bodyType === "slim" ? "96px" : "108px");
+      root.style.setProperty("--leg", bodyType === "lower" ? "116px" : "108px");
+      renderRecommendations();
+    }
+
+    function saveWardrobe() {
+      localStorage.setItem("moodfit-wardrobe", JSON.stringify(wardrobe));
+    }
+
+    function slotName(slot) {
+      return ({ top: "상의", outer: "아우터", bottom: "하의", shoes: "신발" })[slot] || "아이템";
+    }
+
+    function patternName(pattern) {
+      return ({ plain: "솔리드", stripe: "스트라이프", check: "체크", knit: "니트", gloss: "광택", denim: "데님" })[pattern] || "솔리드";
+    }
+
+    function rgbToHex(r, g, b) {
+      return "#" + [r, g, b].map(value => value.toString(16).padStart(2, "0")).join("");
+    }
+
+    function toast(message) {
+      const box = $("#toast");
+      box.textContent = message;
+      box.classList.add("show");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => box.classList.remove("show"), 1800);
+    }
+
+    init();
+  </script>
+</body>
 </html>
