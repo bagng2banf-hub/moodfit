@@ -232,6 +232,11 @@ function App() {
           <p className="eyebrow">{t("heroEyebrow")}</p>
           <h1>{t("heroTitle")}</h1>
           <p className="lead">{t("heroLead")}</p>
+          <div className="daily-note">
+            <span>{t("dailyNoteMeta")}</span>
+            <strong>{t("dailyNoteTitle")}</strong>
+            <p>{t("dailyNoteBody")}</p>
+          </div>
           <div className="control-grid">
             <label><span>{t("promptLabel")}</span><textarea value={brief} placeholder={t("promptPlaceholder")} onChange={(event) => setBrief(event.target.value)} /></label>
             <label><span>{t("weather")}</span><input value={weather} onChange={(event) => setWeather(event.target.value)} /></label>
@@ -266,6 +271,8 @@ function App() {
           <Info title={t("tips")} value={recommendation.tips} />
         </aside>
       </section>
+
+      <FeatureShowcase t={t} />
 
       <section id="wardrobe" className="wardrobe glass">
         <div className="section-head">
@@ -513,14 +520,43 @@ function MiniFit({ fit }) {
   return <span className="mini-fit">{["tops", "outerwear", "bottoms", "shoes"].map((key) => <i key={key} style={{ "--c": fit[key]?.color || "#ddd" }} />)}</span>;
 }
 
+function FeatureShowcase({ t }) {
+  const cards = [
+    ["featureReply", "featureReplyCopy", Mail],
+    ["featureSummary", "featureSummaryCopy", Search],
+    ["featureSchedule", "featureScheduleCopy", Settings],
+    ["featureMood", "featureMoodCopy", Moon],
+    ["featureFashion", "featureFashionCopy", Shirt],
+  ];
+  return (
+    <section className="feature-showcase glass">
+      <div className="feature-intro">
+        <p className="eyebrow">{t("tagline")}</p>
+        <h2>{t("featureSectionTitle")}</h2>
+        <p>{t("featureSectionLead")}</p>
+      </div>
+      <div className="feature-cards">
+        {cards.map(([title, copy, Icon]) => (
+          <article className="feature-card" key={title}>
+            <span><Icon size={18} /></span>
+            <h3>{t(title)}</h3>
+            <p>{t(copy)}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function buildRecommendation({ t, mood, fit, brief, weather, schedule, eventType, aesthetic }) {
   const pieces = [fit.tops, fit.outerwear, fit.bottoms, fit.shoes].filter(Boolean).map((item) => item.name);
+  const pieceText = pieces.length ? pieces.join(", ") : t("wardrobeTitle");
   return {
     name: `${t(mood)} Atelier ${eventType || "Look"}`,
-    explanation: `${schedule || t("schedule")}에 맞춰 ${pieces.join(", ")} 조합을 중심으로 균형을 잡았습니다.`,
+    explanation: t("recommendationSentence").replace("{schedule}", schedule || t("schedule")).replace("{pieces}", pieceText),
     colors: [fit.tops?.color, fit.outerwear?.color, fit.bottoms?.color].filter(Boolean).join(" · "),
-    avoid: `${weather || t("weather")}에는 무거운 색을 한 번에 많이 겹치기보다 한 가지 포인트만 남기는 편이 좋습니다.`,
-    tips: `${aesthetic || t("aesthetic")} 감성을 살리려면 실루엣은 여유 있게, 액세서리는 작게 정리하세요. ${brief ? sanitizeInput(brief) : ""}`,
+    avoid: t("avoidSentence").replace("{weather}", weather || t("weather")),
+    tips: `${t("tipSentence").replace("{aesthetic}", aesthetic || t("aesthetic"))}${brief ? ` ${sanitizeInput(brief)}` : ""}`,
   };
 }
 
