@@ -520,7 +520,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .info-card small { color: var(--muted); font-size: 11px; font-weight: 950; letter-spacing: .11em; text-transform: uppercase; }
 .info-card p { margin: 7px 0 0; color: var(--ink); line-height: 1.55; }
 
-.profile-dock, .wardrobe, .lookbook, .settings, .feature-showcase { position: relative; z-index: 1; width: min(1480px, 100%); margin: 18px auto 0; padding: 24px; }
+.profile-dock, .wardrobe, .lookbook, .settings, .feature-showcase, .real-examples, .trust-section { position: relative; z-index: 1; width: min(1480px, 100%); margin: 18px auto 0; padding: 24px; }
 .profile-dock { display: grid; grid-template-columns: minmax(240px, .28fr) 1fr; gap: 20px; align-items: center; margin-bottom: 18px; overflow: hidden; }
 .profile-dock strong { display: block; color: var(--muted); line-height: 1.55; }
 .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
@@ -626,6 +626,106 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .feature-card span { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 50%; color: var(--accent); margin-bottom: 22px; }
 .feature-card h3 { margin-bottom: 10px; font-size: 18px; }
 .feature-card p { margin-bottom: 0; font-size: 13px; line-height: 1.65; }
+.real-examples {
+  display: grid;
+  grid-template-columns: .9fr 1fr 1fr 1fr;
+  gap: 14px;
+  padding: 0;
+}
+.examples-copy,
+.example-card {
+  min-height: 250px;
+  padding: 22px;
+}
+.examples-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.example-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.example-label {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 950;
+}
+.chat-preview {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+.chat-preview p {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--surface-strong) 70%, transparent);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.chat-preview p:nth-child(2) {
+  justify-self: end;
+  background: var(--button);
+  color: var(--button-ink);
+}
+.example-card > strong {
+  font-size: 14px;
+  line-height: 1.45;
+}
+.mood-track,
+.plan-strip {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.mood-track i {
+  flex: 1;
+  height: 56px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 18%, white), color-mix(in srgb, var(--accent) 8%, var(--surface-strong)));
+}
+.mood-track i:nth-child(2) { height: 76px; }
+.mood-track i:nth-child(3) { height: 44px; }
+.mood-track i:nth-child(4) { height: 64px; }
+.plan-strip span {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 900;
+}
+.trust-section {
+  display: grid;
+  grid-template-columns: minmax(260px, .55fr) 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.trust-section h2 {
+  font-size: clamp(22px, 2.3vw, 34px);
+}
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.trust-grid article {
+  min-height: 112px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--surface-strong) 62%, transparent);
+  color: var(--ink);
+  line-height: 1.6;
+  font-weight: 800;
+}
 
 @keyframes float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -13px; } }
 @keyframes pulse { 0%, 100% { opacity: .55; scale: 1; } 50% { opacity: .9; scale: 1.06; } }
@@ -640,6 +740,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   .wardrobe-grid { grid-template-columns: repeat(4, minmax(150px, 1fr)); }
   .feature-showcase { grid-template-columns: 1fr; }
   .feature-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .real-examples { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .trust-section { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {
@@ -652,6 +754,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   .wardrobe-grid { grid-template-columns: repeat(2, minmax(145px, 1fr)); }
   .profile-dock, .profile-fields, .composer-grid, .checklist-grid { grid-template-columns: 1fr; }
   .feature-cards { grid-template-columns: 1fr; }
+  .real-examples,
+  .trust-grid {
+    grid-template-columns: 1fr;
+  }
   h1 { font-size: 46px; }
   .profile-dock { padding: 18px; }
   .profile-fields { grid-template-columns: 1fr; }

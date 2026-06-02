@@ -280,6 +280,7 @@ function App() {
       </section>
 
       <FeatureShowcase t={t} />
+      <RealLifeExamples t={t} />
 
       <section id="wardrobe" className="wardrobe glass">
         <div className="section-head">
@@ -320,6 +321,7 @@ function App() {
           {session?.mode === "account" && <button className="secondary" onClick={logout} type="button"><LogOut size={16} />{t("logout")}</button>}
         </div>
       </section>
+      <TrustSection t={t} />
       <div className={`toast ${toast ? "show" : ""}`}>{toast}</div>
       {settingsOpen && (
         <SettingsModal
@@ -640,6 +642,50 @@ function FeatureShowcase({ t }) {
             <p>{t(copy)}</p>
           </article>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function RealLifeExamples({ t }) {
+  return (
+    <section className="real-examples">
+      <div className="examples-copy glass">
+        <p className="eyebrow">{t("examplesTitle")}</p>
+        <h2>{t("examplesLead")}</h2>
+      </div>
+      <article className="example-card chat-example glass">
+        <span className="example-label">{t("exampleChatTitle")}</span>
+        <div className="chat-preview">
+          <p>{t("exampleChatMessage")}</p>
+          <p>{t("exampleChatReply")}</p>
+        </div>
+        <strong>{t("exampleChatOutfit")}</strong>
+      </article>
+      <article className="example-card glass">
+        <span className="example-label">{t("exampleMoodTitle")}</span>
+        <p>{t("exampleMoodCopy")}</p>
+        <div className="mood-track"><i /><i /><i /><i /></div>
+      </article>
+      <article className="example-card glass">
+        <span className="example-label">{t("examplePlanTitle")}</span>
+        <p>{t("examplePlanCopy")}</p>
+        <div className="plan-strip"><span>09:30</span><span>18:00</span><span>20:30</span></div>
+      </article>
+    </section>
+  );
+}
+
+function TrustSection({ t }) {
+  const items = ["trustLocal", "trustNoPassword", "trustDelete", "trustPrivate"];
+  return (
+    <section className="trust-section glass">
+      <div>
+        <p className="eyebrow">{t("trustTitle")}</p>
+        <h2>{t("trustLead")}</h2>
+      </div>
+      <div className="trust-grid">
+        {items.map((item) => <article key={item}>{t(item)}</article>)}
       </div>
     </section>
   );
