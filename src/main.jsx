@@ -57,6 +57,7 @@ function App() {
   const [toast, setToast] = useState("");
   const [lastRequestAt, setLastRequestAt] = useState(0);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [avatarWardrobeOpen, setAvatarWardrobeOpen] = useState(false);
   const fileInputRef = useRef(null);
   const t = useMemo(() => createTranslator(language || "ko"), [language]);
   const recommendation = useMemo(
@@ -255,11 +256,17 @@ function App() {
         </section>
 
         <section className="avatar-panel glass">
+          <button className="avatar-wardrobe-button" onClick={() => setAvatarWardrobeOpen((open) => !open)} type="button">
+            <Shirt size={17} />
+            {avatarWardrobeOpen ? t("closeWardrobe") : t("openWardrobe")}
+          </button>
           <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} />
           <div className="avatar-caption">
             <span>{recommendation.name}</span>
             <strong>{t(mood)}</strong>
           </div>
+          <WearingMap t={t} fit={fit} />
+          {avatarWardrobeOpen && <AvatarWardrobe t={t} fit={fit} wardrobe={wardrobe} wear={wear} />}
         </section>
 
         <aside className="recommendation glass">
@@ -518,6 +525,61 @@ function RangeControl({ label, min, max, value, onChange }) {
 
 function MiniFit({ fit }) {
   return <span className="mini-fit">{["tops", "outerwear", "bottoms", "shoes"].map((key) => <i key={key} style={{ "--c": fit[key]?.color || "#ddd" }} />)}</span>;
+}
+
+function WearingMap({ t, fit }) {
+  const parts = [
+    ["tops", "partTops"],
+    ["outerwear", "partOuterwear"],
+    ["bottoms", "partBottoms"],
+    ["shoes", "partShoes"],
+  ];
+  return (
+    <div className="wearing-map" aria-label={t("wearingNow")}>
+      {parts.map(([slot, label]) => (
+        <article key={slot}>
+          <span style={{ "--dot": fit[slot]?.color || "#d8d2c7" }} />
+          <small>{t(label)}</small>
+          <strong>{fit[slot]?.name || t(slot)}</strong>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function AvatarWardrobe({ t, fit, wardrobe, wear }) {
+  const slots = ["tops", "outerwear", "bottoms", "shoes", "bags", "accessories"];
+  return (
+    <aside className="avatar-wardrobe">
+      <div className="avatar-wardrobe-head">
+        <p className="eyebrow">{t("avatarWardrobe")}</p>
+        <strong>{t("wearingNow")}</strong>
+      </div>
+      <div className="wearing-details">
+        {slots.map((slot) => (
+          <div className="wearing-detail" key={slot}>
+            <span style={{ "--swatch": fit[slot]?.color || "#ddd" }} />
+            <div>
+              <small>{t(`part${capitalize(slot)}`) || t(slot)}</small>
+              <strong>{fit[slot]?.name || t(slot)}</strong>
+              <em>{fit[slot] ? `${t(fit[slot].fitType || "regularFit")} · ${fit[slot].season || "all"}` : t("emptyWardrobe")}</em>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="avatar-closet-list">
+        {wardrobe.map((item) => (
+          <button className={fit[item.category]?.id === item.id ? "active" : ""} key={item.id} onClick={() => wear(item)} type="button">
+            {item.image ? <img src={item.image} alt="" /> : <span style={{ "--swatch": item.color }} />}
+            <div>
+              <strong>{item.name}</strong>
+              <small>{t(item.category)} · {t(item.mood)} · {t("dressOnAvatar")}</small>
+            </div>
+          </button>
+        ))}
+      </div>
+    </aside>
+  );
 }
 
 function FeatureShowcase({ t }) {

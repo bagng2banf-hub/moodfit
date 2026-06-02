@@ -2,18 +2,18 @@
   color-scheme: light;
   font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", Inter, system-ui, sans-serif;
   --display-font: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", Inter, system-ui, sans-serif;
-  --ink: #191511;
-  --muted: rgba(25, 21, 17, .64);
-  --bg-a: #fffaf0;
-  --bg-b: #eee4d4;
-  --bg-c: #d9c0a0;
-  --surface: rgba(255, 252, 245, .72);
-  --surface-strong: rgba(255, 253, 248, .94);
-  --line: rgba(50, 39, 28, .13);
-  --accent: #a77b45;
-  --button: #191511;
-  --button-ink: #fffaf2;
-  --shadow: 0 28px 78px rgba(50, 38, 26, .13);
+  --ink: #101010;
+  --muted: rgba(16, 16, 16, .58);
+  --bg-a: #ffffff;
+  --bg-b: #f4f4f1;
+  --bg-c: #e7e5df;
+  --surface: rgba(255, 255, 255, .78);
+  --surface-strong: rgba(255, 255, 255, .96);
+  --line: rgba(16, 16, 16, .11);
+  --accent: #111111;
+  --button: #101010;
+  --button-ink: #ffffff;
+  --shadow: 0 26px 74px rgba(16, 16, 16, .10);
 }
 
 * { box-sizing: border-box; }
@@ -60,9 +60,9 @@ a { color: inherit; text-decoration: none; }
 .app {
   min-height: 100vh;
   background:
-    linear-gradient(90deg, rgba(255,255,255,.16) 1px, transparent 1px),
-    radial-gradient(circle at 50% 8%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 28%),
-    linear-gradient(135deg, var(--bg-a), var(--bg-b) 58%, var(--bg-c));
+    linear-gradient(90deg, rgba(0,0,0,.035) 1px, transparent 1px),
+    radial-gradient(circle at 70% 8%, rgba(0,0,0,.045), transparent 24%),
+    linear-gradient(135deg, var(--bg-a), var(--bg-b) 62%, var(--bg-c));
   background-size: 96px 96px, auto, auto;
   color: var(--ink);
 }
@@ -263,7 +263,49 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .avatar-panel { position: relative; display: grid; place-items: center; overflow: hidden; border-radius: 34px; }
 .avatar-panel::before { content: ""; position: absolute; inset: 12% 8%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 42%, white 12%), transparent 64%); filter: blur(20px); animation: pulse 4.8s ease-in-out infinite; }
-.fashion-avatar { position: relative; width: 270px; height: 590px; scale: var(--avatar-scale, 1); animation: float 4.8s ease-in-out infinite; transform-origin: 50% 15%; }
+.avatar-panel::after {
+  content: "MOODFIT EDITORIAL";
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 86px;
+  z-index: 1;
+  height: 145px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background:
+    linear-gradient(115deg, rgba(255,255,255,.72) 0 28%, transparent 28% 38%, rgba(0,0,0,.08) 38% 39%, transparent 39%),
+    linear-gradient(145deg, #f7f7f4, #d8d6cf);
+  color: rgba(16,16,16,.18);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 18px;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .28em;
+}
+.avatar-wardrobe-button {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  z-index: 8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 14px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--surface-strong) 86%, transparent);
+  box-shadow: 0 14px 34px rgba(0,0,0,.08);
+  font-size: 13px;
+  font-weight: 900;
+}
+.avatar-wardrobe-button:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 48%, var(--line)); }
+.fashion-avatar { position: relative; z-index: 2; width: 270px; height: 590px; scale: var(--avatar-scale, 1); animation: float 4.8s ease-in-out infinite; transform-origin: 50% 15%; }
 .fashion-avatar i { position: absolute; left: 50%; transform: translateX(-50%); transition: all .45s ease; }
 .avatar-glow { inset: 0; left: 0 !important; border-radius: 48%; background: radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 60%); filter: blur(28px); transform: none !important; }
 .head { top: 28px; width: 82px; height: 92px; border-radius: 50% 50% 46% 46%; background: linear-gradient(145deg, color-mix(in srgb, var(--avatar-skin, #d98b5d) 72%, white), var(--avatar-skin, #d98b5d)); }
@@ -291,11 +333,143 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .shoe.left { transform: translateX(-70px); }
 .shoe.right { transform: translateX(12px); }
 .floor { top: calc(220px + var(--avatar-torso, 160px) + var(--avatar-leg, 118px)); width: 260px; height: 34px; border-radius: 50%; background: rgba(0,0,0,.22); filter: blur(12px); }
-.mood-moodStreet .fashion-avatar { rotate: -2deg; scale: 1.03; }
-.mood-moodLuxury .fashion-avatar { scale: .97; }
-.mood-moodCozy .fashion-avatar, .mood-moodSoft .fashion-avatar { rotate: 1deg; }
-.avatar-caption { position: absolute; left: 24px; right: 24px; bottom: 24px; display: flex; justify-content: space-between; gap: 12px; border: 1px solid var(--line); border-radius: 22px; padding: 13px 15px; background: color-mix(in srgb, var(--surface-strong) 48%, transparent); font-weight: 900; }
+.mood-moodStreet .fashion-avatar,
+.mood-moodLuxury .fashion-avatar,
+.mood-moodCozy .fashion-avatar,
+.mood-moodSoft .fashion-avatar {
+  rotate: 0deg;
+}
+.avatar-caption { position: absolute; z-index: 7; left: 24px; right: 24px; bottom: 24px; display: flex; justify-content: space-between; gap: 12px; border: 1px solid var(--line); border-radius: 22px; padding: 13px 15px; background: color-mix(in srgb, var(--surface-strong) 72%, transparent); font-weight: 900; }
 .avatar-caption span { color: var(--muted); }
+.wearing-map {
+  position: absolute;
+  left: 22px;
+  top: 22px;
+  z-index: 7;
+  display: grid;
+  gap: 8px;
+  width: min(210px, calc(100% - 44px));
+}
+.wearing-map article {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  column-gap: 9px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--surface-strong) 72%, transparent);
+}
+.wearing-map article span {
+  width: 12px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--dot);
+  grid-row: span 2;
+}
+.wearing-map small,
+.wearing-detail small,
+.avatar-closet-list small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+.wearing-map strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.avatar-wardrobe {
+  position: absolute;
+  top: 74px;
+  right: 22px;
+  bottom: 86px;
+  z-index: 9;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 12px;
+  width: min(360px, calc(100% - 44px));
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
+  box-shadow: 0 28px 74px rgba(0,0,0,.16);
+  backdrop-filter: blur(22px);
+}
+.avatar-wardrobe-head .eyebrow { margin-bottom: 5px; }
+.avatar-wardrobe-head strong { font-size: 18px; }
+.wearing-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.wearing-detail {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 9px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 9px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+.wearing-detail > span {
+  width: 34px;
+  min-height: 52px;
+  border-radius: 12px;
+  background: var(--swatch);
+}
+.wearing-detail strong,
+.wearing-detail em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wearing-detail strong { font-size: 12px; }
+.wearing-detail em { color: var(--muted); font-size: 11px; font-style: normal; }
+.avatar-closet-list {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+.avatar-closet-list button {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 9px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  text-align: left;
+}
+.avatar-closet-list button.active {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-strong));
+}
+.avatar-closet-list img,
+.avatar-closet-list button > span {
+  width: 48px;
+  height: 54px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: var(--swatch);
+}
+.avatar-closet-list strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
 
 .recommendation { display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; }
 .info-card { border: 1px solid var(--line); border-radius: 22px; padding: 14px; background: color-mix(in srgb, var(--surface-strong) 38%, transparent); }
