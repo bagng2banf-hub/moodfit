@@ -58,6 +58,7 @@ function App() {
   const [lastRequestAt, setLastRequestAt] = useState(0);
   const [composerOpen, setComposerOpen] = useState(false);
   const [avatarWardrobeOpen, setAvatarWardrobeOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const fileInputRef = useRef(null);
   const t = useMemo(() => createTranslator(language || "ko"), [language]);
   const recommendation = useMemo(
@@ -218,7 +219,7 @@ function App() {
           <a href="#studio">{t("navStudio")}</a>
           <a href="#wardrobe">{t("navWardrobe")}</a>
           <a href="#looks">{t("navLooks")}</a>
-          <a href="#settings">{t("navSettings")}</a>
+          <button className="nav-button" onClick={() => setSettingsOpen(true)} type="button">{t("navSettings")}</button>
         </nav>
         <div className="status-pill">
           <UserRound size={15} />
@@ -260,12 +261,11 @@ function App() {
             <Shirt size={17} />
             {avatarWardrobeOpen ? t("closeWardrobe") : t("openWardrobe")}
           </button>
-          <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} />
+          <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
           <div className="avatar-caption">
             <span>{recommendation.name}</span>
             <strong>{t(mood)}</strong>
           </div>
-          <WearingMap t={t} fit={fit} />
           {avatarWardrobeOpen && <AvatarWardrobe t={t} fit={fit} wardrobe={wardrobe} wear={wear} />}
         </section>
 
@@ -321,6 +321,18 @@ function App() {
         </div>
       </section>
       <div className={`toast ${toast ? "show" : ""}`}>{toast}</div>
+      {settingsOpen && (
+        <SettingsModal
+          t={t}
+          language={language}
+          setLanguage={setLanguage}
+          theme={theme}
+          setTheme={setTheme}
+          session={session}
+          logout={logout}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </main>
   );
 }
@@ -487,20 +499,21 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
   );
 }
 
-function FashionAvatar({ fit, mood, bodyProfile }) {
+function FashionAvatar({ fit, mood, bodyProfile, t }) {
   const avatarStyle = avatarVariables(bodyProfile);
+  const label = (slot, part) => `${t(part)} · ${fit[slot]?.name || t(slot)}`;
   return (
     <div className={`fashion-avatar ${mood} body-${bodyProfile.bodyType}`} style={avatarStyle}>
       <i className="avatar-glow" />
       <i className="head" /><i className="neck" />
-      <i className="torso" style={{ "--cloth": fit.tops?.color }} />
-      <i className="outer left" style={{ "--cloth": fit.outerwear?.color }} />
-      <i className="outer right" style={{ "--cloth": fit.outerwear?.color }} />
+      <i className="torso wear-part" data-tooltip={label("tops", "partTops")} style={{ "--cloth": fit.tops?.color }} />
+      <i className="outer left wear-part" data-tooltip={label("outerwear", "partOuterwear")} style={{ "--cloth": fit.outerwear?.color }} />
+      <i className="outer right wear-part" data-tooltip={label("outerwear", "partOuterwear")} style={{ "--cloth": fit.outerwear?.color }} />
       <i className="arm left" /><i className="arm right" />
-      <i className="bottom" style={{ "--cloth": fit.bottoms?.color }} />
+      <i className="bottom wear-part" data-tooltip={label("bottoms", "partBottoms")} style={{ "--cloth": fit.bottoms?.color }} />
       <i className="leg left" /><i className="leg right" />
-      <i className="shoe left" style={{ "--cloth": fit.shoes?.color }} />
-      <i className="shoe right" style={{ "--cloth": fit.shoes?.color }} />
+      <i className="shoe left wear-part" data-tooltip={label("shoes", "partShoes")} style={{ "--cloth": fit.shoes?.color }} />
+      <i className="shoe right wear-part" data-tooltip={label("shoes", "partShoes")} style={{ "--cloth": fit.shoes?.color }} />
       <i className="floor" />
     </div>
   );
@@ -527,27 +540,8 @@ function MiniFit({ fit }) {
   return <span className="mini-fit">{["tops", "outerwear", "bottoms", "shoes"].map((key) => <i key={key} style={{ "--c": fit[key]?.color || "#ddd" }} />)}</span>;
 }
 
-function WearingMap({ t, fit }) {
-  const parts = [
-    ["tops", "partTops"],
-    ["outerwear", "partOuterwear"],
-    ["bottoms", "partBottoms"],
-    ["shoes", "partShoes"],
-  ];
-  return (
-    <div className="wearing-map" aria-label={t("wearingNow")}>
-      {parts.map(([slot, label]) => (
-        <article key={slot}>
-          <span style={{ "--dot": fit[slot]?.color || "#d8d2c7" }} />
-          <small>{t(label)}</small>
-          <strong>{fit[slot]?.name || t(slot)}</strong>
-        </article>
-      ))}
-    </div>
-  );
-}
-
 function AvatarWardrobe({ t, fit, wardrobe, wear }) {
+  const [selected, setSelected] = useState(wardrobe[0] || null);
   const slots = ["tops", "outerwear", "bottoms", "shoes", "bags", "accessories"];
   return (
     <aside className="avatar-wardrobe">
@@ -569,16 +563,57 @@ function AvatarWardrobe({ t, fit, wardrobe, wear }) {
       </div>
       <div className="avatar-closet-list">
         {wardrobe.map((item) => (
-          <button className={fit[item.category]?.id === item.id ? "active" : ""} key={item.id} onClick={() => wear(item)} type="button">
+          <button className={selected?.id === item.id ? "active" : ""} key={item.id} onClick={() => setSelected(item)} type="button">
             {item.image ? <img src={item.image} alt="" /> : <span style={{ "--swatch": item.color }} />}
             <div>
               <strong>{item.name}</strong>
-              <small>{t(item.category)} · {t(item.mood)} · {t("dressOnAvatar")}</small>
+              <small>{t(item.category)} · {t(item.mood)}</small>
             </div>
           </button>
         ))}
       </div>
+      <div className="selected-garment-detail">
+        <p className="eyebrow">{t("itemDetail")}</p>
+        {selected ? (
+          <>
+            <div className="detail-swatch" style={{ "--swatch": selected.color }}>
+              {selected.image && <img src={selected.image} alt="" />}
+            </div>
+            <strong>{selected.name}</strong>
+            <dl>
+              <div><dt>{t("category")}</dt><dd>{t(selected.category)}</dd></div>
+              <div><dt>{t("fitType")}</dt><dd>{t(selected.fitType || "regularFit")}</dd></div>
+              <div><dt>{t("season")}</dt><dd>{selected.season || "all"}</dd></div>
+              <div><dt>{t("vibe")}</dt><dd>{selected.vibe || t(selected.mood)}</dd></div>
+            </dl>
+            <button className="primary detail-dress-button" onClick={() => wear(selected)} type="button">{t("dressOnAvatar")}</button>
+          </>
+        ) : <p>{t("noItemSelected")}</p>}
+      </div>
     </aside>
+  );
+}
+
+function SettingsModal({ t, language, setLanguage, theme, setTheme, session, logout, onClose }) {
+  return (
+    <div className="modal-backdrop">
+      <section className="settings-modal glass">
+        <div className="section-head">
+          <div><p className="eyebrow">{t("settingsTitle")}</p><h2>{t("openSettings")}</h2></div>
+          <button className="round-button" onClick={onClose} type="button" aria-label={t("closeSettings")}><X size={18} /></button>
+        </div>
+        <div className="settings-modal-grid">
+          <Segment label={t("languageSetting")} items={[["ko", t("korean")], ["en", t("english")]]} value={language} onChange={setLanguage} />
+          <Segment label={t("themeSetting")} items={themes.map((item) => [item, t(`theme${capitalize(item)}`)])} value={theme} onChange={setTheme} />
+          <article className="account-card">
+            <small>{t("accountSetting")}</small>
+            <strong>{session?.mode === "guest" ? t("guestStatus") : t("accountStatus")}</strong>
+            <p>{session?.mode === "guest" ? t("localOnly") : t("protectedCopy")}</p>
+            {session?.mode === "account" && <button className="secondary" onClick={logout} type="button"><LogOut size={16} />{t("logout")}</button>}
+          </article>
+        </div>
+      </section>
+    </div>
   );
 }
 
