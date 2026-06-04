@@ -12,6 +12,8 @@ import {
   Mail,
   Medal,
   Moon,
+  LayoutGrid,
+  Palette,
   Save,
   Search,
   X,
@@ -36,7 +38,8 @@ function App() {
   const stored = loadStoredState();
   const [language, setLanguage] = useState(stored.language || null);
   const [session, setSession] = useState(loadSession());
-  const [entryStep, setEntryStep] = useState(language ? (session ? "app" : "auth") : "language");
+  const [entryStep, setEntryStep] = useState(session ? "app" : "auth");
+  const [activePanel, setActivePanel] = useState("today");
   const [theme, setTheme] = useState(stored.theme || "white");
   const [mood, setMood] = useState(stored.mood || "moodLuxury");
   const [wardrobe, setWardrobe] = useState(stored.wardrobe || seedWardrobe);
@@ -71,6 +74,8 @@ function App() {
     [t, mood, fit, brief, weather, schedule, eventType, aesthetic]
   );
   const scores = useMemo(() => scoreOutfit({ fit, weather, mood, eventType }), [fit, weather, mood, eventType]);
+  const showToday = activePanel === "today" || activePanel === "all";
+  const showAll = activePanel === "all";
 
   function persist(next = {}) {
     localStorage.setItem(
@@ -109,10 +114,10 @@ function App() {
   async function handleAccount(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const email = sanitizeInput(form.get("email"));
+    const email = sanitizeInput(form.get("email")) || "hello@moodfit.local";
     const password = String(form.get("password") || "");
     if (!isValidEmail(email)) return showToast(t("invalidEmail"));
-    if (password.length < 8) return showToast(t("invalidPassword"));
+    if (password && password.length < 8) return showToast(t("invalidPassword"));
     const nextSession = await signInWithEmail({ email });
     setSession(nextSession);
     setEntryStep("app");
@@ -139,8 +144,8 @@ function App() {
       streak: game.streak,
     };
     setGame(next);
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...saved, game: next }));
+    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+    localStorage.setItem(storageKey, JSON.stringify({ ...saved, game: next }));
     showToast(`${reason} +${xp} XP`);
   }
 
@@ -222,7 +227,6 @@ function App() {
     event.target.value = "";
   }
 
-  if (entryStep === "language") return <LanguageScreen t={t} onChoose={chooseLanguage} />;
   if (entryStep === "auth") {
     return <AuthScreen t={t} onGuest={continueGuest} onAccount={handleAccount} setLanguage={setLanguage} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />;
   }
@@ -232,15 +236,16 @@ function App() {
       <div className="ambient" aria-hidden="true" />
       <input ref={fileInputRef} className="hidden-input" type="file" accept="image/*" onChange={scanPhoto} />
       <header className="topbar">
-        <a className="brand" href="#studio">
+        <button className="brand" onClick={() => setActivePanel("today")} type="button">
           <span className="brand-mark">MF</span>
           <span><strong>{t("brand")}</strong><small>{t("tagline")}</small></span>
-        </a>
-        <nav className="nav" aria-label="Main">
-          <a href="#studio">{t("navStudio")}</a>
-          <a href="#wardrobe">{t("navWardrobe")}</a>
-          <a href="#looks">{t("navLooks")}</a>
-          <button className="nav-button" onClick={() => setSettingsOpen(true)} type="button">{t("navSettings")}</button>
+        </button>
+        <nav className="nav main-tabs" aria-label="Main">
+          <button className={activePanel === "wardrobe" ? "active" : ""} onClick={() => setActivePanel("wardrobe")} type="button"><Shirt size={16} />{t("navWardrobe")}</button>
+          <button className={activePanel === "customize" ? "active" : ""} onClick={() => setActivePanel("customize")} type="button"><Palette size={16} />{t("navCustom")}</button>
+          <button className={activePanel === "today" ? "active" : ""} onClick={() => setActivePanel("today")} type="button"><Sparkles size={16} />{t("navToday")}</button>
+          <button className={activePanel === "all" ? "active" : ""} onClick={() => setActivePanel("all")} type="button"><LayoutGrid size={16} />{t("navAll")}</button>
+          <button className={activePanel === "settings" ? "active" : ""} onClick={() => setActivePanel("settings")} type="button"><Settings size={16} />{t("navSettings")}</button>
         </nav>
         <div className="status-pill">
           <UserRound size={15} />
@@ -248,9 +253,9 @@ function App() {
         </div>
       </header>
 
-      <ProfileDock t={t} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />
+      {showAll && <ProfileDock t={t} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />}
 
-      <section id="studio" className="hero">
+      {showToday && <section id="studio" className="hero">
         <section className="hero-copy glass">
           <p className="eyebrow">{t("heroEyebrow")}</p>
           <h1>{t("heroTitle")}</h1>
@@ -299,13 +304,13 @@ function App() {
           <Info title={t("tips")} value={recommendation.tips} />
           <GameScorePanel t={t} scores={scores} />
         </aside>
-      </section>
+      </section>}
 
-      <GameLayer t={t} game={game} wardrobe={wardrobe} savedLooks={savedLooks} />
-      <FeatureShowcase t={t} />
-      <RealLifeExamples t={t} />
+      {showAll && <GameLayer t={t} game={game} wardrobe={wardrobe} savedLooks={savedLooks} />}
+      {showAll && <FeatureShowcase t={t} />}
+      {showAll && <RealLifeExamples t={t} />}
 
-      <section id="wardrobe" className="wardrobe glass">
+      {(activePanel === "wardrobe" || showAll) && <section id="wardrobe" className="wardrobe glass panel-view">
         <div className="section-head">
           <div><p className="eyebrow">{t("wardrobeTitle")}</p><h2>{t("wardrobeLead")}</h2></div>
           <button className="icon-button" onClick={addItem} type="button"><Shirt size={18} />{t("addItem")}</button>
@@ -319,10 +324,10 @@ function App() {
             </button>
           )) : <p className="empty">{t("emptyWardrobe")}</p>}
         </div>
-      </section>
+      </section>}
       {composerOpen && <ItemComposer t={t} mood={mood} onClose={() => setComposerOpen(false)} onSubmit={saveDetailedItem} />}
 
-      <section id="looks" className="lookbook">
+      {(activePanel === "looks" || showAll) && <section id="looks" className="lookbook panel-view">
         {savedLooks.length ? savedLooks.map((look) => (
           <button className="saved-look glass" key={look.id} onClick={() => { setFit(look.fit); setMood(look.mood); showToast(t("loaded")); }} type="button">
             <MiniFit fit={look.fit} />
@@ -330,9 +335,11 @@ function App() {
             <span>{t(look.mood)}</span>
           </button>
         )) : <div className="saved-look glass empty">{t("emptyLooks")}</div>}
-      </section>
+      </section>}
 
-      <section id="settings" className="settings glass">
+      {activePanel === "customize" && <CustomizePanel t={t} theme={theme} setTheme={setTheme} mood={mood} setMood={setMood} fit={fit} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />}
+
+      {activePanel === "settings" && <section id="settings" className="settings glass panel-view">
         <div>
           <p className="eyebrow">{t("settingsTitle")}</p>
           <h2>{session?.mode === "guest" ? t("localOnly") : t("protectedCopy")}</h2>
@@ -343,9 +350,9 @@ function App() {
           {session?.mode === "account" && <button className="secondary" type="button"><Lock size={16} />{t("protectedSettings")}</button>}
           {session?.mode === "account" && <button className="secondary" onClick={logout} type="button"><LogOut size={16} />{t("logout")}</button>}
         </div>
-      </section>
-      <TrustSection t={t} />
-      <PlatformLayer t={t} wardrobe={wardrobe} savedLooks={savedLooks} fit={fit} />
+      </section>}
+      {activePanel === "settings" && <TrustSection t={t} />}
+      {showAll && <PlatformLayer t={t} wardrobe={wardrobe} savedLooks={savedLooks} fit={fit} />}
       <div className={`toast ${toast ? "show" : ""}`}>{toast}</div>
       {settingsOpen && (
         <SettingsModal
@@ -380,7 +387,7 @@ function LanguageScreen({ t, onChoose }) {
   );
 }
 
-function AuthScreen({ t, onGuest, onAccount, setLanguage, bodyProfile, setBodyProfile, persist }) {
+function AuthScreen({ t, onGuest, onAccount, setLanguage }) {
   return (
     <main className="entry-screen">
       <section className="entry-card auth-card">
@@ -389,22 +396,48 @@ function AuthScreen({ t, onGuest, onAccount, setLanguage, bodyProfile, setBodyPr
           <h1>{t("authTitle")}</h1>
           <p>{t("authLead")}</p>
           <p className="notice">{t("guestNotice")}</p>
+          <div className="language-options compact-language">
+            <button onClick={() => setLanguage("ko")} type="button"><Globe2 />{t("korean")}</button>
+            <button onClick={() => setLanguage("en")} type="button"><Globe2 />{t("english")}</button>
+          </div>
         </div>
         <form className="auth-form" onSubmit={onAccount}>
-          <p className="eyebrow">{t("styleProfile")}</p>
-          <p className="notice">{t("styleProfileLead")}</p>
-          <ProfileFields t={t} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} compact />
+          <p className="eyebrow">{t("accountMode")}</p>
           <label><span>{t("email")}</span><input name="email" type="email" autoComplete="email" /></label>
           <label><span>{t("password")}</span><input name="password" type="password" autoComplete="current-password" /></label>
-          <button className="primary" type="submit"><Mail size={16} />{t("signIn")} / {t("signUp")}</button>
+          <button className="primary" type="submit"><Mail size={16} />{t("signIn")}</button>
           <button className="secondary" type="button">{t("socialLogin")}</button>
           <button className="text-button" type="button">{t("resetPassword")}</button>
           <button className="guest-button" onClick={onGuest} type="button">{t("guestMode")}</button>
           <p className="notice">{t("secureNotice")}</p>
-          <div className="mini-language"><button type="button" onClick={() => setLanguage("ko")}>한국어</button><button type="button" onClick={() => setLanguage("en")}>English</button></div>
         </form>
       </section>
     </main>
+  );
+}
+
+function CustomizePanel({ t, theme, setTheme, mood, setMood, fit, bodyProfile, setBodyProfile, persist }) {
+  return (
+    <section className="customize-panel glass panel-view">
+      <div className="custom-copy">
+        <p className="eyebrow">{t("customTitle")}</p>
+        <h2>{t("customLead")}</h2>
+        <div className="cloud-buddy" aria-label={t("cloudBuddy")}>
+          <span>{t("cloudBuddy")}</span>
+          <strong>{t("cloudBuddyLine")}</strong>
+        </div>
+        <Segment label={t("themeSetting")} items={themes.map((item) => [item, t(`theme${capitalize(item)}`)])} value={theme} onChange={setTheme} />
+        <div className="mood-row custom-moods">
+          {moods.map((key) => <button key={key} className={mood === key ? "active" : ""} onClick={() => setMood(key)} type="button">{t(key)}</button>)}
+        </div>
+      </div>
+      <div className="custom-avatar">
+        <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
+      </div>
+      <div className="custom-fields">
+        <ProfileFields t={t} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />
+      </div>
+    </section>
   );
 }
 
