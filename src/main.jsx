@@ -66,6 +66,7 @@ function App() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [avatarWardrobeOpen, setAvatarWardrobeOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [eventOpen, setEventOpen] = useState(false);
   const [game, setGame] = useState(stored.game || { xp: 420, coins: 86, petLevel: 3, streak: 4 });
   const fileInputRef = useRef(null);
   const t = useMemo(() => createTranslator(language || "ko"), [language]);
@@ -232,7 +233,7 @@ function App() {
   }
 
   return (
-    <main className={`app theme-${theme} mood-${mood}`}>
+    <main className={`app moodfit-game theme-${theme} mood-${mood} panel-${activePanel}`}>
       <div className="ambient" aria-hidden="true" />
       <input ref={fileInputRef} className="hidden-input" type="file" accept="image/*" onChange={scanPhoto} />
       <header className="topbar">
@@ -262,6 +263,7 @@ function App() {
           scores={scores}
           game={game}
           mood={mood}
+          onEvent={() => setEventOpen(true)}
         />
       )}
 
@@ -338,6 +340,7 @@ function App() {
         </div>
       </section>}
       {composerOpen && <ItemComposer t={t} mood={mood} onClose={() => setComposerOpen(false)} onSubmit={saveDetailedItem} />}
+      {eventOpen && <EventPopup onClose={() => setEventOpen(false)} />}
 
       {(activePanel === "looks" || showAll) && <section id="looks" className="lookbook panel-view">
         {savedLooks.length ? savedLooks.map((look) => (
@@ -432,49 +435,30 @@ function AuthScreen({ t, onGuest, onAccount, setLanguage }) {
   );
 }
 
-function SketchHome({ setActivePanel, recommendation, scores, game, mood, t }) {
+function SketchHome({ setActivePanel, recommendation, scores, game, mood, t, onEvent }) {
   return (
-    <section className="sketch-home panel-view">
-      <div className="hero-clouds" aria-hidden="true">
-        <i className="cloud cloud-a" />
-        <i className="cloud cloud-b" />
-        <i className="cloud cloud-c" />
-        <i className="sparkle sparkle-a" />
-        <i className="sparkle sparkle-b" />
-        <i className="heart-pop" />
-      </div>
-      <div className="sketch-logo">
-        <h1><span>골</span><span>라</span><span>줄</span><span>개</span></h1>
-        <p>당신의 무드를 정해줄개</p>
-      </div>
-      <GollaJulGaeMascot />
-      <div className="home-card-grid">
-        <EventCard title="이벤트" label="핑크 구름 출석" copy="오늘 스타일 미션을 완료하면 선글라스 스티커와 코인을 받아요." />
-        <FeatureCard title="오늘의 미션" icon={<Check size={20} />} copy={`XP ${game.xp} · 코인 ${game.coins} · ${t(mood)} 무드`} onClick={() => setActivePanel("ranking")} />
-        <FeatureCard title="오늘의 무드" icon={<Moon size={20} />} copy="날씨와 약속을 보고 포근한 색 조합을 추천해요." onClick={() => setActivePanel("style")} />
-        <StyleResultCard title="추천 스타일 미리보기" recommendation={recommendation} scores={scores} onClick={() => setActivePanel("today")} />
+    <section className="sketch-home image-map-home panel-view" aria-label="골라줄개 홈">
+      <img className="sketch-reference" src="/sketch-reference-bg.png" alt="골라줄개 메인 화면" />
+      <button className="map-hotspot map-closet" onClick={() => setActivePanel("wardrobe")} type="button" aria-label="옷장으로 갈개"><span>옷장 갈개</span></button>
+      <button className="map-hotspot map-character" onClick={() => setActivePanel("customize")} type="button" aria-label="캐릭터로 갈개"><span>캐릭터 갈개</span></button>
+      <button className="map-hotspot map-photo" onClick={() => setActivePanel("photo")} type="button" aria-label="사진으로 갈개"><span>사진 볼개</span></button>
+      <button className="map-hotspot map-style" onClick={() => setActivePanel("today")} type="button" aria-label="스타일로 갈개"><span>스타일 볼개</span></button>
+      <button className="map-hotspot map-ranking" onClick={() => setActivePanel("ranking")} type="button" aria-label="랭킹으로 갈개"><span>랭킹 볼개</span></button>
+      <button className="map-hotspot map-user" onClick={() => setActivePanel("all")} type="button" aria-label="전체보기로 갈개"><span>전체 볼개</span></button>
+      <button className="map-hotspot map-settings" onClick={() => setActivePanel("settings")} type="button" aria-label="설정으로 갈개"><span>설정할개</span></button>
+      <button className="map-hotspot map-event" onClick={onEvent} type="button" aria-label="이벤트 열개"><span>이벤트 열개</span></button>
+      <button className="map-hotspot map-preview" onClick={() => setActivePanel("today")} type="button" aria-label="추천 스타일 볼개">
+        <span>{scores.total}점 코디 볼개</span>
+      </button>
+      <div className="home-mini-reaction" aria-live="polite">
+        {t(mood)} 무드로 골라줄개
       </div>
     </section>
   );
 }
 
 function GollaJulGaeMascot() {
-  return (
-    <div className="golla-mascot" aria-label="선글라스와 스카프를 한 골라줄개">
-      <i className="dog-ear left" />
-      <i className="dog-ear right" />
-      <i className="dog-head" />
-      <i className="dog-spot spot-a" />
-      <i className="dog-spot spot-b" />
-      <i className="dog-glasses left" />
-      <i className="dog-glasses right" />
-      <i className="dog-glasses bridge" />
-      <i className="dog-nose" />
-      <i className="dog-mouth" />
-      <i className="dog-scarf" />
-      <i className="dog-scarf-tail" />
-    </div>
-  );
+  return <img className="golla-mascot" src="/gollajulgae-mascot.png" alt="선글라스와 스카프를 한 골라줄개" />;
 }
 
 function FeatureCard({ title, copy, icon, onClick }) {
@@ -494,6 +478,25 @@ function EventCard({ title, label, copy }) {
       <strong>{label}</strong>
       <p>{copy}</p>
     </article>
+  );
+}
+
+function EventPopup({ onClose }) {
+  return (
+    <div className="event-pop-backdrop" role="dialog" aria-modal="true" aria-label="이벤트">
+      <section className="event-pop-card">
+        <img src="/event-cloud-card.png" alt="" />
+        <div className="event-pop-copy">
+          <span>♥ 이벤트</span>
+          <strong>구름 출석 열개</strong>
+          <p>오늘 코디 저장하면 핑크 스카프 조각 줄개</p>
+          <div className="event-pop-actions">
+            <button className="primary" type="button" onClick={onClose}>받을개</button>
+            <button className="secondary" type="button" onClick={onClose}>닫을개</button>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 
