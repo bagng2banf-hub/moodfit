@@ -39,7 +39,7 @@ function App() {
   const [language, setLanguage] = useState(stored.language || null);
   const [session, setSession] = useState(loadSession());
   const [entryStep, setEntryStep] = useState(session ? "app" : "auth");
-  const [activePanel, setActivePanel] = useState("today");
+  const [activePanel, setActivePanel] = useState("home");
   const [theme, setTheme] = useState(stored.theme || "white");
   const [mood, setMood] = useState(stored.mood || "moodLuxury");
   const [wardrobe, setWardrobe] = useState(stored.wardrobe || seedWardrobe);
@@ -236,26 +236,38 @@ function App() {
       <div className="ambient" aria-hidden="true" />
       <input ref={fileInputRef} className="hidden-input" type="file" accept="image/*" onChange={scanPhoto} />
       <header className="topbar">
-        <button className="brand" onClick={() => setActivePanel("today")} type="button">
-          <span className="brand-mark">MF</span>
-          <span><strong>{t("brand")}</strong><small>{t("tagline")}</small></span>
+        <button className="brand sketch-home-button" onClick={() => setActivePanel("home")} type="button">
+          <span className="brand-mark">🐾</span>
+          <span><strong>골라줄개</strong><small>당신의 무드를 정해줄개</small></span>
         </button>
         <nav className="nav main-tabs" aria-label="Main">
-          <button className={activePanel === "wardrobe" ? "active" : ""} onClick={() => setActivePanel("wardrobe")} type="button"><Shirt size={16} />{t("navWardrobe")}</button>
-          <button className={activePanel === "customize" ? "active" : ""} onClick={() => setActivePanel("customize")} type="button"><Palette size={16} />{t("navCustom")}</button>
-          <button className={activePanel === "today" ? "active" : ""} onClick={() => setActivePanel("today")} type="button"><Sparkles size={16} />{t("navToday")}</button>
-          <button className={activePanel === "all" ? "active" : ""} onClick={() => setActivePanel("all")} type="button"><LayoutGrid size={16} />{t("navAll")}</button>
-          <button className={activePanel === "settings" ? "active" : ""} onClick={() => setActivePanel("settings")} type="button"><Settings size={16} />{t("navSettings")}</button>
+          <button className={activePanel === "customize" ? "active" : ""} onClick={() => setActivePanel("customize")} type="button"><UserRound size={16} />캐릭터</button>
+          <button className={activePanel === "wardrobe" ? "active" : ""} onClick={() => setActivePanel("wardrobe")} type="button"><Shirt size={16} />옷장</button>
+          <button className={activePanel === "today" ? "active" : ""} onClick={() => setActivePanel("today")} type="button"><Sparkles size={16} />스타일</button>
+          <button className={activePanel === "photo" ? "active" : ""} onClick={() => setActivePanel("photo")} type="button"><Camera size={16} />사진</button>
+          <button className={activePanel === "ranking" ? "active" : ""} onClick={() => setActivePanel("ranking")} type="button"><Trophy size={16} />랭킹</button>
+          <button className={activePanel === "all" ? "active" : ""} onClick={() => setActivePanel("all")} type="button"><LayoutGrid size={16} />전체보기</button>
         </nav>
-        <div className="status-pill">
-          <UserRound size={15} />
-          {session?.mode === "guest" ? t("guestStatus") : t("accountStatus")}
+        <div className="header-actions">
+          <button className="status-pill" onClick={() => setActivePanel("all")} type="button"><UserRound size={15} />사용자 정보</button>
+          <button className="settings-bubble" onClick={() => setActivePanel("settings")} type="button" aria-label="설정"><Settings size={24} /><span>설정</span></button>
         </div>
       </header>
 
+      {activePanel === "home" && (
+        <SketchHome
+          t={t}
+          setActivePanel={setActivePanel}
+          recommendation={recommendation}
+          scores={scores}
+          game={game}
+          mood={mood}
+        />
+      )}
+
       {showAll && <ProfileDock t={t} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />}
 
-      {showToday && <section id="studio" className="hero">
+      {showToday && activePanel !== "home" && <section id="studio" className="hero">
         <section className="hero-copy glass">
           <p className="eyebrow">{t("heroEyebrow")}</p>
           <h1>{t("heroTitle")}</h1>
@@ -339,6 +351,10 @@ function App() {
 
       {activePanel === "customize" && <CustomizePanel t={t} theme={theme} setTheme={setTheme} mood={mood} setMood={setMood} fit={fit} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />}
 
+      {activePanel === "photo" && <PhotoTryOnPage t={t} onUpload={() => fileInputRef.current?.click()} wardrobe={wardrobe} />}
+
+      {activePanel === "ranking" && <RankingBoard t={t} game={game} scores={scores} wardrobe={wardrobe} savedLooks={savedLooks} />}
+
       {activePanel === "settings" && <section id="settings" className="settings glass panel-view">
         <div>
           <p className="eyebrow">{t("settingsTitle")}</p>
@@ -413,6 +429,133 @@ function AuthScreen({ t, onGuest, onAccount, setLanguage }) {
         </form>
       </section>
     </main>
+  );
+}
+
+function SketchHome({ setActivePanel, recommendation, scores, game, mood, t }) {
+  return (
+    <section className="sketch-home panel-view">
+      <div className="hero-clouds" aria-hidden="true">
+        <i className="cloud cloud-a" />
+        <i className="cloud cloud-b" />
+        <i className="cloud cloud-c" />
+        <i className="sparkle sparkle-a" />
+        <i className="sparkle sparkle-b" />
+        <i className="heart-pop" />
+      </div>
+      <div className="sketch-logo">
+        <h1><span>골</span><span>라</span><span>줄</span><span>개</span></h1>
+        <p>당신의 무드를 정해줄개</p>
+      </div>
+      <GollaJulGaeMascot />
+      <div className="home-card-grid">
+        <EventCard title="이벤트" label="핑크 구름 출석" copy="오늘 스타일 미션을 완료하면 선글라스 스티커와 코인을 받아요." />
+        <FeatureCard title="오늘의 미션" icon={<Check size={20} />} copy={`XP ${game.xp} · 코인 ${game.coins} · ${t(mood)} 무드`} onClick={() => setActivePanel("ranking")} />
+        <FeatureCard title="오늘의 무드" icon={<Moon size={20} />} copy="날씨와 약속을 보고 포근한 색 조합을 추천해요." onClick={() => setActivePanel("style")} />
+        <StyleResultCard title="추천 스타일 미리보기" recommendation={recommendation} scores={scores} onClick={() => setActivePanel("today")} />
+      </div>
+    </section>
+  );
+}
+
+function GollaJulGaeMascot() {
+  return (
+    <div className="golla-mascot" aria-label="선글라스와 스카프를 한 골라줄개">
+      <i className="dog-ear left" />
+      <i className="dog-ear right" />
+      <i className="dog-head" />
+      <i className="dog-spot spot-a" />
+      <i className="dog-spot spot-b" />
+      <i className="dog-glasses left" />
+      <i className="dog-glasses right" />
+      <i className="dog-glasses bridge" />
+      <i className="dog-nose" />
+      <i className="dog-mouth" />
+      <i className="dog-scarf" />
+      <i className="dog-scarf-tail" />
+    </div>
+  );
+}
+
+function FeatureCard({ title, copy, icon, onClick }) {
+  return (
+    <button className="feature-card-soft" onClick={onClick} type="button">
+      <span>{icon}</span>
+      <strong>{title}</strong>
+      <p>{copy}</p>
+    </button>
+  );
+}
+
+function EventCard({ title, label, copy }) {
+  return (
+    <article className="event-card-soft">
+      <span>♥ {title}</span>
+      <strong>{label}</strong>
+      <p>{copy}</p>
+    </article>
+  );
+}
+
+function StyleResultCard({ title, recommendation, scores, onClick }) {
+  return (
+    <button className="style-result-soft" onClick={onClick} type="button">
+      <span>{title}</span>
+      <strong>{recommendation.name}</strong>
+      <p>{recommendation.explanation}</p>
+      <em>{scores.total}점 · 색 {scores.color} · 편안함 {scores.comfort}</em>
+    </button>
+  );
+}
+
+function PhotoTryOnPage({ t, onUpload, wardrobe }) {
+  const sample = wardrobe[0];
+  return (
+    <section className="soft-page photo-page panel-view">
+      <div className="soft-page-copy">
+        <p className="eyebrow">photo try-on</p>
+        <h2>사진을 넣으면 옷 타입, 색, 패턴, 분위기를 읽어줘요.</h2>
+        <p>업로드한 옷 사진을 바탕으로 비슷한 옷장 아이템과 더 잘 어울리는 스타일을 제안해요.</p>
+        <button className="primary" onClick={onUpload} type="button"><Upload size={17} />사진 올리기</button>
+      </div>
+      <div className="before-after">
+        <article><span>before</span><div className="photo-placeholder">{sample?.image ? <img src={sample.image} alt="" /> : <Camera size={44} />}</div><p>사진 분석 대기</p></article>
+        <article><span>after</span><div className="photo-placeholder styled"><Sparkles size={44} /></div><p>패턴 · 색감 · 무드 추천</p></article>
+      </div>
+    </section>
+  );
+}
+
+function RankingBoard({ game, scores, wardrobe, savedLooks }) {
+  const ranking = [
+    ["오늘의 무드 장인", scores.total, "선글라스"],
+    ["컬러 조합 천재", scores.color, "핑크 스카프"],
+    ["옷장 수집가", wardrobe.length * 12, "구름 코인"],
+    ["룩북 스타", savedLooks.length * 25 + 40, "XP"],
+  ].sort((a, b) => b[1] - a[1]);
+  return (
+    <section className="soft-page ranking-page panel-view">
+      <div className="soft-page-copy">
+        <p className="eyebrow">ranking & challenge</p>
+        <h2>스타일 점수, 주간 챌린지, 뱃지를 모으는 공간이에요.</h2>
+        <p>코디를 저장하고 옷장을 채울수록 골라줄개 아이템과 코인이 쌓여요.</p>
+      </div>
+      <div className="ranking-list">
+        {ranking.map(([name, score, reward], index) => (
+          <article key={name}>
+            <strong>{index + 1}</strong>
+            <span>{name}</span>
+            <em>{score}점</em>
+            <small>{reward}</small>
+          </article>
+        ))}
+      </div>
+      <div className="reward-card">
+        <Gift size={26} />
+        <strong>오늘 보상</strong>
+        <p>{game.coins} 코인 · {game.xp} XP · 골라줄개 스카프 조각</p>
+      </div>
+    </section>
   );
 }
 
