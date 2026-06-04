@@ -322,6 +322,7 @@ function App() {
         </div>
       </section>
       <TrustSection t={t} />
+      <PlatformLayer t={t} wardrobe={wardrobe} savedLooks={savedLooks} fit={fit} />
       <div className={`toast ${toast ? "show" : ""}`}>{toast}</div>
       {settingsOpen && (
         <SettingsModal
@@ -686,6 +687,67 @@ function TrustSection({ t }) {
       </div>
       <div className="trust-grid">
         {items.map((item) => <article key={item}>{t(item)}</article>)}
+      </div>
+    </section>
+  );
+}
+
+function PlatformLayer({ t, wardrobe, savedLooks, fit }) {
+  const palette = Object.values(fit).filter(Boolean).map((item) => item.color).slice(0, 5);
+  const topCategory = wardrobe.reduce((acc, item) => {
+    acc[item.category] = (acc[item.category] || 0) + 1;
+    return acc;
+  }, {});
+  const strongestCategory = Object.entries(topCategory).sort((a, b) => b[1] - a[1])[0]?.[0] || "tops";
+
+  const cards = [
+    {
+      title: t("styleDnaTitle"),
+      copy: t("styleDnaCopy"),
+      stat: `${wardrobe.filter((item) => item.checklist?.favorite || item.source === "scanned").length + savedLooks.length} signals`,
+      visual: <div className="dna-rings"><i /><i /><i /></div>,
+    },
+    {
+      title: t("fashionFeedTitle"),
+      copy: t("fashionFeedCopy"),
+      stat: strongestCategory,
+      visual: <div className="feed-preview">{palette.map((color, index) => <span key={`${color}-${index}`} style={{ "--tone": color }} />)}</div>,
+    },
+    {
+      title: t("smartShoppingTitle"),
+      copy: t("smartShoppingCopy"),
+      stat: "price · quality · fit",
+      visual: <div className="shopping-preview"><span>$72</span><span>$128</span><span>$210</span></div>,
+    },
+    {
+      title: t("outfitCalendarTitle"),
+      copy: t("outfitCalendarCopy"),
+      stat: `${savedLooks.length || 0} saved looks`,
+      visual: <div className="calendar-preview"><i>Mon</i><i>Thu</i><i>Sun</i></div>,
+    },
+    {
+      title: t("premiumTitle"),
+      copy: t("premiumCopy"),
+      stat: "Free · Premium · Marketplace",
+      visual: <div className="premium-preview"><strong>MF+</strong></div>,
+    },
+  ];
+
+  return (
+    <section className="platform-layer glass">
+      <div className="platform-intro">
+        <p className="eyebrow">{t("platformTitle")}</p>
+        <h2>{t("platformLead")}</h2>
+      </div>
+      <div className="platform-grid">
+        {cards.map((card) => (
+          <article className="platform-card" key={card.title}>
+            {card.visual}
+            <span>{card.stat}</span>
+            <h3>{card.title}</h3>
+            <p>{card.copy}</p>
+          </article>
+        ))}
       </div>
     </section>
   );
