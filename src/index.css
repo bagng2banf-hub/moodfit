@@ -504,88 +504,93 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   font-weight: 900;
 }
 .panel-home {
-  padding: 0;
-  background: #fffaf4;
+  background:
+    radial-gradient(circle at 8% 42%, rgba(255,255,255,.86) 0 10%, transparent 11%),
+    radial-gradient(circle at 88% 36%, rgba(255,255,255,.78) 0 14%, transparent 15%),
+    linear-gradient(180deg, #fffaf4 0 18%, #d9edf3 18% 60%, #fff6ef 60%);
 }
-.panel-home .topbar {
-  display: none;
+.cozy-home {
+  width: min(1320px, calc(100vw - 48px));
+  margin: 18px auto 0;
+  padding: 0 0 24px;
 }
-.image-map-home {
-  width: min(100vw, 1440px);
-  min-height: auto;
-  margin: 0 auto;
-  padding: 0;
-  aspect-ratio: 1440 / 1024;
-  border-radius: 0;
+.home-hero-board {
+  position: relative;
+  min-height: 500px;
+  border: 3px solid rgba(132,105,94,.55);
+  border-radius: 30px;
   overflow: hidden;
-  box-shadow: none;
+  background:
+    linear-gradient(rgba(255,250,244,.22), rgba(255,250,244,.2)),
+    url("/home-cloud-panel.png") center / cover no-repeat;
+  box-shadow: 0 12px 0 rgba(132,105,94,.12);
 }
-.sketch-reference {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  user-select: none;
-}
-.map-hotspot {
+.today-note {
   position: absolute;
-  z-index: 8;
-  border: 0;
-  border-radius: 18px;
-  background: rgba(255, 244, 232, .08);
-  color: transparent;
-  cursor: pointer;
-  transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
-}
-.map-hotspot span {
-  position: absolute;
-  left: 50%;
-  bottom: -34px;
-  transform: translateX(-50%);
-  width: max-content;
-  max-width: 150px;
-  border: 2px solid rgba(132,105,94,.4);
-  border-radius: 999px;
-  padding: 6px 10px;
+  left: 54px;
+  top: 44px;
+  display: grid;
+  gap: 10px;
+  width: 230px;
+  border: 3px solid rgba(132,105,94,.45);
+  border-radius: 22px;
+  padding: 20px 22px;
   color: #735f55;
-  background: rgba(255,250,244,.92);
-  font-size: 13px;
+  background: rgba(255,250,244,.84);
+}
+.today-note span,
+.today-note small,
+.today-note em {
+  font-style: normal;
   font-weight: 900;
-  opacity: 0;
-  pointer-events: none;
 }
-.map-hotspot:hover,
-.map-hotspot:focus-visible {
-  outline: none;
-  transform: translateY(-3px) rotate(-1deg);
-  background: rgba(255, 225, 228, .24);
-  box-shadow: 0 0 0 4px rgba(240,167,172,.2);
+.today-note strong {
+  font-size: 28px;
 }
-.map-hotspot:hover span,
-.map-hotspot:focus-visible span {
-  opacity: 1;
-}
-.map-closet { left: 3.2%; top: 4.2%; width: 8.2%; height: 11.3%; }
-.map-character { left: 13.3%; top: 6.3%; width: 7.3%; height: 9.2%; }
-.map-photo { left: 22.8%; top: 6.2%; width: 7.4%; height: 9.5%; }
-.map-style { left: 31.4%; top: 6.4%; width: 7.3%; height: 9.5%; }
-.map-ranking { left: 40.8%; top: 6.4%; width: 7.4%; height: 9.5%; }
-.map-user { left: 69%; top: 5.8%; width: 16.8%; height: 9%; }
-.map-settings { left: 88.2%; top: 3.8%; width: 8.2%; height: 12.4%; border-radius: 50%; }
-.map-event { left: 3.5%; top: 69%; width: 49%; height: 18.8%; }
-.map-preview { left: 55%; top: 69.6%; width: 39%; height: 19%; }
-.home-mini-reaction {
+.home-logo-copy {
   position: absolute;
-  z-index: 7;
-  right: 13%;
-  top: 67%;
-  border: 2px solid rgba(132,105,94,.46);
-  border-radius: 999px;
-  padding: 10px 16px;
-  color: #735f55;
-  background: rgba(255,250,244,.82);
+  left: 29%;
+  top: 42px;
+  text-align: center;
+}
+.home-logo-copy h1 {
+  margin: 0;
+  color: #f8dcc0;
+  font-size: clamp(88px, 10vw, 154px);
   font-weight: 950;
-  transform: rotate(-2deg);
+  line-height: .9;
+  text-shadow:
+    3px 0 #8d7065,
+    -3px 0 #8d7065,
+    0 3px #8d7065,
+    0 -3px #8d7065,
+    0 10px rgba(255,255,255,.75);
+}
+.home-logo-copy p {
+  margin: 20px 0 0;
+  color: #735f55;
+  border-bottom: 7px solid rgba(240,167,172,.58);
+  font-size: 34px;
+  font-weight: 950;
+}
+.golla-mascot {
+  position: absolute;
+  right: 54px;
+  top: 36px;
+  z-index: 3;
+  width: min(350px, 30vw);
+  height: auto;
+  filter: drop-shadow(0 12px 0 rgba(255,255,255,.55));
+  animation: softFloat 4.6s ease-in-out infinite;
+}
+.home-play-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: -210px;
+  padding: 0 64px;
+  position: relative;
+  z-index: 4;
 }
 .event-pop-backdrop {
   position: fixed;
