@@ -4,10 +4,13 @@ import {
   Camera,
   Check,
   ChevronRight,
+  Coins,
+  Gift,
   Globe2,
   Lock,
   LogOut,
   Mail,
+  Medal,
   Moon,
   Save,
   Search,
@@ -16,6 +19,7 @@ import {
   Shirt,
   Sparkles,
   Sun,
+  Trophy,
   Trees,
   Upload,
   UserRound,
@@ -59,12 +63,14 @@ function App() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [avatarWardrobeOpen, setAvatarWardrobeOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [game, setGame] = useState(stored.game || { xp: 420, coins: 86, petLevel: 3, streak: 4 });
   const fileInputRef = useRef(null);
   const t = useMemo(() => createTranslator(language || "ko"), [language]);
   const recommendation = useMemo(
     () => buildRecommendation({ t, mood, fit, brief, weather, schedule, eventType, aesthetic }),
     [t, mood, fit, brief, weather, schedule, eventType, aesthetic]
   );
+  const scores = useMemo(() => scoreOutfit({ fit, weather, mood, eventType }), [fit, weather, mood, eventType]);
 
   function persist(next = {}) {
     localStorage.setItem(
@@ -82,6 +88,7 @@ function App() {
         eventType,
         aesthetic,
         bodyProfile,
+        game,
         ...next,
       })
     );
@@ -124,6 +131,19 @@ function App() {
     showToast.timer = window.setTimeout(() => setToast(""), 2200);
   }
 
+  function award(reason, xp = 25, coins = 6) {
+    const next = {
+      xp: game.xp + xp,
+      coins: game.coins + coins,
+      petLevel: Math.max(game.petLevel, Math.floor((game.xp + xp) / 180) + 1),
+      streak: game.streak,
+    };
+    setGame(next);
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...saved, game: next }));
+    showToast(`${reason} +${xp} XP`);
+  }
+
   function generateStyling() {
     if (!canRequestAi(lastRequestAt)) return showToast(t("rateReady"));
     const cleanBrief = sanitizeInput(brief);
@@ -138,6 +158,7 @@ function App() {
     setMood(nextMood);
     setFit(nextFit);
     persist({ mood: nextMood, fit: nextFit, brief: cleanBrief });
+    award(t("generate"), 30, 8);
   }
 
   function wear(item) {
@@ -183,7 +204,7 @@ function App() {
     wear(item);
     persist({ wardrobe: nextWardrobe });
     setComposerOpen(false);
-    showToast(t("saved"));
+    award(t("addItem"), 45, 12);
   }
 
   function saveLook() {
@@ -191,7 +212,7 @@ function App() {
     const nextLooks = [look, ...savedLooks].slice(0, 8);
     setSavedLooks(nextLooks);
     persist({ savedLooks: nextLooks });
-    showToast(t("saved"));
+    award(t("saveLook"), 35, 10);
   }
 
   function scanPhoto(event) {
@@ -276,9 +297,11 @@ function App() {
           <Info title={t("colors")} value={recommendation.colors} />
           <Info title={t("avoid")} value={recommendation.avoid} />
           <Info title={t("tips")} value={recommendation.tips} />
+          <GameScorePanel t={t} scores={scores} />
         </aside>
       </section>
 
+      <GameLayer t={t} game={game} wardrobe={wardrobe} savedLooks={savedLooks} />
       <FeatureShowcase t={t} />
       <RealLifeExamples t={t} />
 
@@ -617,6 +640,110 @@ function SettingsModal({ t, language, setLanguage, theme, setTheme, session, log
         </div>
       </section>
     </div>
+  );
+}
+
+function scoreOutfit({ fit, weather, mood, eventType }) {
+  const items = Object.values(fit).filter(Boolean);
+  const colorNames = items.map((item) => `${item.colorName || item.color || ""}`.toLowerCase());
+  const hasOuter = Boolean(fit.outerwear);
+  const hasShoes = Boolean(fit.shoes);
+  const weatherText = `${weather || ""}`.toLowerCase();
+  const moodText = `${mood || ""}`.toLowerCase();
+  const eventText = `${eventType || ""}`.toLowerCase();
+  const isRain = weatherText.includes("rain") || weatherText.includes("비");
+  const isCold = weatherText.includes("cold") || weatherText.includes("추") || weatherText.includes("winter");
+  const hasLightDarkBalance =
+    colorNames.some((color) => color.includes("black") || color.includes("navy") || color.includes("brown") || color.includes("dark")) &&
+    colorNames.some((color) => color.includes("white") || color.includes("ivory") || color.includes("cream") || color.includes("beige"));
+  const patternWords = ["stripe", "striped", "check", "checkered", "plaid", "floral", "graphic", "denim"];
+  const patternItems = items.filter((item) =>
+    patternWords.some((pattern) =>
+      `${item.pattern || ""} ${item.clothingType || ""} ${item.vibe || ""} ${item.styleCategory || ""}`.toLowerCase().includes(pattern)
+    )
+  );
+  const patternWarning = patternItems.length > 1;
+  const coverageBonus = Math.min(12, items.length * 3);
+  const color = Math.max(54, Math.min(97, 72 + coverageBonus + (hasLightDarkBalance ? 10 : 3) - (patternWarning ? 9 : 0)));
+  const comfort = Math.max(
+    52,
+    Math.min(96, 66 + coverageBonus + (hasShoes ? 8 : 0) + (hasOuter ? 7 : 0) + (isRain ? (hasOuter ? 4 : -7) : 3) + (isCold ? (hasOuter ? 5 : -5) : 0))
+  );
+  const confidence = Math.max(58, Math.min(98, 70 + coverageBonus + (moodText.includes("luxury") || moodText.includes("chic") ? 9 : 5) + (eventText ? 5 : 0)));
+  const total = Math.round((color + comfort + confidence) / 3);
+  return { total, color, comfort, confidence, patternWarning };
+}
+
+function GameScorePanel({ t, scores }) {
+  const items = [
+    [t("outfitScore"), scores.total],
+    [t("colorScore"), scores.color],
+    [t("comfortScore"), scores.comfort],
+    [t("confidenceScore"), scores.confidence],
+  ];
+  return (
+    <div className="score-panel">
+      {items.map(([label, value]) => (
+        <article key={label}>
+          <strong>{value}</strong>
+          <span>{label}</span>
+          <i style={{ "--score": `${value}%` }} />
+        </article>
+      ))}
+      <p><b>{t("patternAnalysis")}</b> {scores.patternWarning ? t("patternWarning") : t("patternGood")}</p>
+    </div>
+  );
+}
+
+function GameLayer({ t, game, wardrobe, savedLooks }) {
+  const level = Math.floor(game.xp / 180) + 1;
+  const progress = game.xp % 180;
+  const missions = [
+    ["missionBright", "Color", 30],
+    ["missionMonochrome", "Tone", 40],
+    ["missionUpload", "Closet", 45],
+    ["missionOldItem", "Memory", 35],
+  ];
+  const badges = ["badgeMinimal", "badgeColor", "badgeRain", "badgeCampus"];
+  const unlocked = Math.min(4, Math.max(1, Math.floor((wardrobe.length + savedLooks.length) / 2)));
+  return (
+    <section className="game-layer glass">
+      <div className="game-intro">
+        <div className="game-orb"><UserRound size={19} /></div>
+        <p className="eyebrow">{t("gameTitle")}</p>
+        <h2>{t("gameLead")}</h2>
+      </div>
+      <div className="game-stats">
+        <article><Trophy size={18} /><span>{t("styleLevel")}</span><strong>{level}</strong></article>
+        <article><Sparkles size={18} /><span>{t("fashionXp")}</span><strong>{game.xp}</strong><i style={{ "--xp": `${(progress / 180) * 100}%` }} /></article>
+        <article><Coins size={18} /><span>{t("styleCoins")}</span><strong>{game.coins}</strong></article>
+        <article><UserRound size={18} /><span>{t("petLevel")}</span><strong>{game.petLevel}</strong></article>
+      </div>
+      <div className="mission-board">
+        <div>
+          <p className="eyebrow">{t("dailyMissions")}</p>
+          {missions.map(([key, tag, xp]) => (
+            <article className="mission" key={key}>
+              <Check size={16} />
+              <span>{t(key)}</span>
+              <em>+{xp} XP</em>
+              <small>{tag}</small>
+            </article>
+          ))}
+        </div>
+        <div>
+          <p className="eyebrow">{t("achievements")}</p>
+          <div className="badge-grid">
+            {badges.map((badge, index) => <span key={badge} className={index < unlocked ? "unlocked" : ""}><Medal size={16} />{t(badge)}</span>)}
+          </div>
+          <div className="collection-card">
+            <Gift size={18} />
+            <strong>{t("collectionTitle")}</strong>
+            <p>{t("collectionLead")}</p>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
