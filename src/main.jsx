@@ -483,7 +483,7 @@ function WorldView(props) {
   };
 
   return (
-    <section className="world-view cloud-village" aria-live="polite">
+    <section className={`world-view ${props.activePanel === "v3-home" ? "cloud-village home-world" : "plain-world"}`} aria-live="polite">
       <div className="floating-cloud cloud-one" aria-hidden="true" />
       <div className="floating-cloud cloud-two" aria-hidden="true" />
       <div className="twinkle-field" aria-hidden="true"><span /> <span /> <span /> <span /></div>
@@ -503,7 +503,7 @@ function V3Home({ setActivePanel, recommendation, scores, game, wardrobe, savedL
     <section className="world-room v3-home-room">
       <div className="v3-home-hero">
         <div className="hero-copy-world">
-          <p className="world-eyebrow">Cloud Village</p>
+          <p className="world-eyebrow">MoodFit Home</p>
           <h1>골라줄개</h1>
           <p className="world-tagline">당신의 무드를 정해줄개</p>
           <AssistantNote tone="brand" text="오늘은 네이비가 주인공일개!" />
@@ -511,10 +511,6 @@ function V3Home({ setActivePanel, recommendation, scores, game, wardrobe, savedL
             <button className="world-primary" onClick={() => setActivePanel("v3-style")} type="button"><Sparkles size={18} />오늘 코디 받을개</button>
             <button className="world-secondary" onClick={() => setActivePanel("v3-closet")} type="button"><Shirt size={18} />옷장 열어볼개</button>
           </div>
-        </div>
-        <div className="home-fashion-photo" role="img" aria-label="파스텔 톤 패션 에디토리얼 모델 사진">
-          <span>Today Editorial</span>
-          <strong>soft casual mood</strong>
         </div>
         <div className="mascot-stage">
           <GollaJulGaeMascot />
@@ -747,7 +743,7 @@ function MetricPill({ label, value }) {
 function SketchHome({ setActivePanel, recommendation, scores, game, mood, t, onEvent }) {
   return (
     <section className="sketch-home image-map-home panel-view" aria-label="골라줄개 홈">
-      <img className="sketch-reference" src="/home-main-art.png" alt="골라줄개 메인 화면" />
+      <img className="sketch-reference" src="/sketch-reference-bg.png" alt="골라줄개 메인 화면" />
       <button className="map-hotspot map-event" onClick={onEvent} type="button" aria-label="이벤트 열개" />
     </section>
   );

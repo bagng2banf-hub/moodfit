@@ -105,8 +105,7 @@ a { color: inherit; text-decoration: none; }
   display: grid;
   grid-template-columns: 1fr minmax(330px, 440px);
   background:
-    linear-gradient(90deg, rgba(255,250,244,.82), rgba(255,250,244,.92)),
-    url("/home-main-art.png") left center / cover no-repeat;
+    linear-gradient(135deg, rgba(255,250,244,.96), rgba(237,247,250,.9) 58%, rgba(255,239,242,.92));
 }
 
 .auth-hero,
@@ -1747,10 +1746,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .moodfit-game.panel-v3-home,
 .moodfit-game[class*="panel-v3-"] {
   background:
-    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, .82) 0 8%, transparent 9%),
-    radial-gradient(circle at 86% 16%, rgba(255, 232, 238, .68) 0 9%, transparent 10%),
-    radial-gradient(circle at 9% 82%, rgba(211, 238, 247, .66) 0 10%, transparent 11%),
-    linear-gradient(180deg, #fffaf3 0 15%, #e6f6fb 16% 58%, #fff6ef 100%);
+    linear-gradient(180deg, #fffaf4 0 18%, #f2f8fb 19% 62%, #fff7ef 100%);
 }
 
 .world-view {
@@ -1761,9 +1757,40 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   isolation: isolate;
 }
 
+.moodfit-game[class*="panel-v3-"] .topbar {
+  gap: 18px;
+  align-items: center;
+}
+
+.moodfit-game[class*="panel-v3-"] .brand {
+  min-width: 170px;
+}
+
+.moodfit-game[class*="panel-v3-"] .brand strong,
+.moodfit-game[class*="panel-v3-"] .brand small,
+.moodfit-game[class*="panel-v3-"] .main-tabs button {
+  letter-spacing: 0;
+  word-break: keep-all;
+}
+
+.moodfit-game[class*="panel-v3-"] .main-tabs {
+  gap: 10px;
+}
+
+.moodfit-game[class*="panel-v3-"] .main-tabs button {
+  min-width: 82px;
+  padding: 10px 9px;
+  line-height: 1.18;
+  white-space: nowrap;
+}
+
+.moodfit-game[class*="panel-v3-"] .header-actions {
+  gap: 10px;
+}
+
 .cloud-village::before,
 .cloud-village::after,
-.floating-cloud {
+.cloud-village .floating-cloud {
   content: "";
   position: absolute;
   z-index: -1;
@@ -1810,7 +1837,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   animation-delay: -7s;
 }
 
-.twinkle-field span {
+.cloud-village .twinkle-field span {
   position: absolute;
   width: 13px;
   height: 13px;
@@ -1821,10 +1848,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   animation: tinyTwinkle 2.8s ease-in-out infinite;
 }
 
-.twinkle-field span:nth-child(1) { left: 27%; top: 76px; }
-.twinkle-field span:nth-child(2) { right: 31%; top: 120px; animation-delay: -.8s; }
-.twinkle-field span:nth-child(3) { left: 10%; bottom: 170px; animation-delay: -1.6s; }
-.twinkle-field span:nth-child(4) { right: 10%; bottom: 255px; animation-delay: -2.2s; }
+.cloud-village .twinkle-field span:nth-child(1) { left: 27%; top: 76px; }
+.cloud-village .twinkle-field span:nth-child(2) { right: 31%; top: 120px; animation-delay: -.8s; }
+.cloud-village .twinkle-field span:nth-child(3) { left: 10%; bottom: 170px; animation-delay: -1.6s; }
+.cloud-village .twinkle-field span:nth-child(4) { right: 10%; bottom: 255px; animation-delay: -2.2s; }
 
 .world-room {
   position: relative;
@@ -1832,8 +1859,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   border: 3px solid rgba(132, 105, 94, .38);
   border-radius: 34px;
   background:
-    linear-gradient(180deg, rgba(255, 251, 245, .9), rgba(255, 248, 239, .86)),
-    url("/home-cloud-panel.png") center / cover no-repeat;
+    linear-gradient(180deg, rgba(255, 251, 245, .96), rgba(255, 248, 239, .94));
   box-shadow: 0 13px 0 rgba(132, 105, 94, .1), 0 28px 70px rgba(132, 105, 94, .13);
   animation: roomSlideIn .38s cubic-bezier(.2, .74, .22, 1);
 }
@@ -1843,28 +1869,22 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   z-index: 1;
 }
 
-.world-room::before,
-.world-room::after {
+.v3-home-room::before,
+.v3-home-room::after {
   content: "";
   position: absolute;
   pointer-events: none;
 }
 
-.world-room::before {
+.v3-home-room::before {
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(circle at 11% 24%, rgba(255, 255, 255, .9) 0 2.7%, transparent 3%),
-    radial-gradient(circle at 15% 27%, rgba(255, 255, 255, .86) 0 3.4%, transparent 3.7%),
-    radial-gradient(circle at 84% 18%, rgba(255, 255, 255, .82) 0 3.2%, transparent 3.5%),
-    radial-gradient(circle at 88% 21%, rgba(255, 255, 255, .78) 0 2.4%, transparent 2.7%),
-    radial-gradient(circle at 30% 12%, rgba(246, 202, 151, .58) 0 .45%, transparent .6%),
-    radial-gradient(circle at 62% 16%, rgba(230, 151, 165, .48) 0 .45%, transparent .6%),
-    radial-gradient(circle at 76% 72%, rgba(174, 206, 214, .42) 0 .48%, transparent .62%);
-  opacity: .95;
+    linear-gradient(180deg, rgba(255, 250, 244, .18), rgba(255, 250, 244, .58));
+  opacity: .9;
 }
 
-.world-room::after {
+.v3-home-room::after {
   left: 4%;
   right: 4%;
   bottom: -28px;
@@ -1881,19 +1901,21 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .v3-home-room {
   padding: clamp(18px, 2.4vw, 28px);
+  background:
+    linear-gradient(180deg, rgba(255, 251, 245, .68), rgba(255, 248, 239, .76)),
+    url("/sketch-reference-bg.png") center top / cover no-repeat;
 }
 
 .v3-home-hero {
   display: grid;
-  grid-template-columns: minmax(0, .95fr) minmax(260px, 360px) minmax(190px, 260px);
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 280px);
   align-items: center;
   min-height: clamp(390px, 42vw, 520px);
   padding: clamp(24px, 5vw, 72px);
   border: 3px solid rgba(132, 105, 94, .28);
   border-radius: 30px;
   background:
-    linear-gradient(90deg, rgba(255, 251, 246, .72), rgba(255, 251, 246, .2) 58%, rgba(255, 251, 246, .72)),
-    url("/home-main-art.png") center / cover no-repeat;
+    linear-gradient(90deg, rgba(255, 251, 246, .72), rgba(255, 251, 246, .34) 58%, rgba(255, 251, 246, .78));
 }
 
 .hero-copy-world h1 {
@@ -1914,45 +1936,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   font-size: clamp(22px, 3vw, 38px);
   font-weight: 900;
   line-height: 1.15;
-}
-
-.home-fashion-photo {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-self: stretch;
-  min-height: 330px;
-  padding: 18px;
-  border: 8px solid rgba(255, 252, 247, .92);
-  border-radius: 30px 34px 28px 36px;
-  background:
-    linear-gradient(180deg, rgba(255, 252, 247, .02), rgba(91, 72, 64, .34)),
-    url("https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80") center / cover no-repeat,
-    linear-gradient(180deg, #f3ded8, #d4e5ec);
-  box-shadow: 0 16px 0 rgba(132, 105, 94, .08), 0 28px 48px rgba(102, 78, 68, .16);
-}
-
-.home-fashion-photo span,
-.home-fashion-photo strong {
-  width: fit-content;
-  max-width: 100%;
-  border-radius: 999px;
-  color: #5d4b45;
-  background: rgba(255, 252, 247, .88);
-  box-shadow: 0 5px 0 rgba(132, 105, 94, .1);
-}
-
-.home-fashion-photo span {
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 950;
-}
-
-.home-fashion-photo strong {
-  margin-top: 8px;
-  padding: 9px 13px;
-  font-size: 18px;
-  line-height: 1.2;
 }
 
 .world-eyebrow {
