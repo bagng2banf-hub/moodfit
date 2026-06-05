@@ -38,7 +38,7 @@ function App() {
   const stored = loadStoredState();
   const [language, setLanguage] = useState(stored.language || null);
   const [session, setSession] = useState(loadSession());
-  const [entryStep, setEntryStep] = useState(session ? "app" : "auth");
+  const [entryStep, setEntryStep] = useState("auth");
   const [activePanel, setActivePanel] = useState("home");
   const [theme, setTheme] = useState(stored.theme || "white");
   const [mood, setMood] = useState(stored.mood || "moodLuxury");
@@ -437,26 +437,9 @@ function AuthScreen({ t, onGuest, onAccount, setLanguage }) {
 
 function SketchHome({ setActivePanel, recommendation, scores, game, mood, t, onEvent }) {
   return (
-    <section className="sketch-home cozy-home panel-view" aria-label="골라줄개 홈">
-      <div className="home-hero-board">
-        <aside className="today-note">
-          <span>오늘의 무드</span>
-          <strong>{t(mood)} 할개</strong>
-          <small>오늘의 날씨 22도 · 흐림</small>
-          <em>{scores.total}점 줄개</em>
-        </aside>
-        <div className="home-logo-copy">
-          <h1>골라줄개</h1>
-          <p>당신의 무드를 정해줄개</p>
-        </div>
-        <GollaJulGaeMascot />
-      </div>
-      <div className="home-play-grid">
-        <FeatureCard title="오늘의 미션" icon={<Check size={20} />} copy="밝은 색 입개 · 옷 하나 등록할개 · 추천 받을개" onClick={() => setActivePanel("ranking")} />
-        <EventCard title="이벤트" label="여름 코디 챌린지 열개" copy="보상은 희귀 선글라스 줄개" onClick={onEvent} />
-        <StyleResultCard title="오늘의 추천 스타일" recommendation={recommendation} scores={scores} onClick={() => setActivePanel("today")} />
-        <FeatureCard title="패션 레벨" icon={<Trophy size={20} />} copy={`Fashion Lv.${Math.floor(game.xp / 180) + 1} · ${game.xp} XP 모을개`} onClick={() => setActivePanel("ranking")} />
-      </div>
+    <section className="sketch-home image-map-home panel-view" aria-label="골라줄개 홈">
+      <img className="sketch-reference" src="/home-main-art.png" alt="골라줄개 메인 화면" />
+      <button className="map-hotspot map-event" onClick={onEvent} type="button" aria-label="이벤트 열개" />
     </section>
   );
 }

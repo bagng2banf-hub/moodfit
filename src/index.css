@@ -504,94 +504,62 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   font-weight: 900;
 }
 .panel-home {
-  background:
-    radial-gradient(circle at 8% 42%, rgba(255,255,255,.86) 0 10%, transparent 11%),
-    radial-gradient(circle at 88% 36%, rgba(255,255,255,.78) 0 14%, transparent 15%),
-    linear-gradient(180deg, #fffaf4 0 18%, #d9edf3 18% 60%, #fff6ef 60%);
+  padding: 20px clamp(12px, 3vw, 36px) 56px;
+  background: #fffaf4;
 }
-.cozy-home {
-  width: min(1320px, calc(100vw - 48px));
+.panel-home .topbar {
+  display: grid;
+}
+.image-map-home {
+  position: relative;
+  width: min(1370px, calc(100vw - 48px));
+  min-height: auto;
   margin: 18px auto 0;
-  padding: 0 0 24px;
-}
-.home-hero-board {
-  position: relative;
-  min-height: 500px;
-  border: 3px solid rgba(132,105,94,.55);
-  border-radius: 30px;
+  padding: 0;
+  aspect-ratio: 1370 / 950;
+  border-radius: 0;
   overflow: hidden;
-  background:
-    linear-gradient(rgba(255,250,244,.22), rgba(255,250,244,.2)),
-    url("/home-cloud-panel.png") center / cover no-repeat;
-  box-shadow: 0 12px 0 rgba(132,105,94,.12);
+  box-shadow: none;
 }
-.today-note {
+.sketch-reference {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+.home-accessible-actions {
   position: absolute;
-  left: 54px;
-  top: 44px;
-  display: grid;
-  gap: 10px;
-  width: 230px;
-  border: 3px solid rgba(132,105,94,.45);
-  border-radius: 22px;
-  padding: 20px 22px;
-  color: #735f55;
-  background: rgba(255,250,244,.84);
+  left: 50%;
+  top: 5%;
+  z-index: 8;
+  display: flex;
+  gap: 12px;
+  transform: translateX(-50%);
 }
-.today-note span,
-.today-note small,
-.today-note em {
-  font-style: normal;
-  font-weight: 900;
+.home-accessible-actions button {
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
-.today-note strong {
-  font-size: 28px;
-}
-.home-logo-copy {
+.map-hotspot {
   position: absolute;
-  left: 29%;
-  top: 42px;
-  text-align: center;
+  z-index: 9;
+  border: 0;
+  border-radius: 18px;
+  background: rgba(255, 244, 232, .02);
+  cursor: pointer;
+  transition: background .16s ease, box-shadow .16s ease, transform .16s ease;
 }
-.home-logo-copy h1 {
-  margin: 0;
-  color: #f8dcc0;
-  font-size: clamp(88px, 10vw, 154px);
-  font-weight: 950;
-  line-height: .9;
-  text-shadow:
-    3px 0 #8d7065,
-    -3px 0 #8d7065,
-    0 3px #8d7065,
-    0 -3px #8d7065,
-    0 10px rgba(255,255,255,.75);
+.map-hotspot:hover,
+.map-hotspot:focus-visible {
+  outline: none;
+  background: rgba(255, 225, 228, .22);
+  box-shadow: 0 0 0 4px rgba(240,167,172,.2);
+  transform: translateY(-2px);
 }
-.home-logo-copy p {
-  margin: 20px 0 0;
-  color: #735f55;
-  border-bottom: 7px solid rgba(240,167,172,.58);
-  font-size: 34px;
-  font-weight: 950;
-}
-.golla-mascot {
-  position: absolute;
-  right: 54px;
-  top: 36px;
-  z-index: 3;
-  width: min(350px, 30vw);
-  height: auto;
-  filter: drop-shadow(0 12px 0 rgba(255,255,255,.55));
-  animation: softFloat 4.6s ease-in-out infinite;
-}
-.home-play-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 22px;
-  margin-top: -210px;
-  padding: 0 64px;
-  position: relative;
-  z-index: 4;
-}
+.map-event { left: 6.5%; top: 66.2%; width: 47%; height: 27%; }
 .event-pop-backdrop {
   position: fixed;
   inset: 0;
