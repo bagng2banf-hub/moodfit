@@ -506,11 +506,15 @@ function V3Home({ setActivePanel, recommendation, scores, game, wardrobe, savedL
           <p className="world-eyebrow">Cloud Village</p>
           <h1>골라줄개</h1>
           <p className="world-tagline">당신의 무드를 정해줄개</p>
-          <MascotBubble text="오늘은 네이비가 주인공일개!" />
+          <AssistantNote tone="brand" text="오늘은 네이비가 주인공일개!" />
           <div className="world-actions">
             <button className="world-primary" onClick={() => setActivePanel("v3-style")} type="button"><Sparkles size={18} />오늘 코디 받을개</button>
             <button className="world-secondary" onClick={() => setActivePanel("v3-closet")} type="button"><Shirt size={18} />옷장 열어볼개</button>
           </div>
+        </div>
+        <div className="home-fashion-photo" role="img" aria-label="파스텔 톤 패션 에디토리얼 모델 사진">
+          <span>Today Editorial</span>
+          <strong>soft casual mood</strong>
         </div>
         <div className="mascot-stage">
           <GollaJulGaeMascot />
@@ -556,10 +560,9 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
 
   return (
     <section className="world-room room-split character-room-v3">
-      <RoomHeader eyebrow="Character Room" title="캐릭터룸" comment="아바타도 오늘 기분 따라 변할개!" />
+      <RoomHeader eyebrow="Character Room" title="캐릭터룸" comment="아바타가 중심이 되는 꾸미기 공간" />
       <div className="avatar-dressing-stage">
         <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
-        <MascotBubble text="머리핀 하나만 바꿔도 느낌 달라질개!" />
       </div>
       <div className="room-panel-v3">
         <h3>꾸미기 슬롯</h3>
@@ -580,7 +583,7 @@ function MagicCloset({ t, wardrobe, wear, addItem }) {
 
   return (
     <section className="world-room magic-closet-v3">
-      <RoomHeader eyebrow="Magic Closet" title="마법 옷장" comment="안 입은 아이템도 다시 빛나게 해줄개!" />
+      <RoomHeader eyebrow="Magic Closet" title="마법 옷장" comment="수집한 옷과 태그가 먼저 보이는 옷장룸" />
       <div className="storybook-closet">
         <aside className="closet-tabs-v3">
           {categoriesKo.map((item) => <button key={item} type="button">{item}</button>)}
@@ -604,7 +607,7 @@ function MagicCloset({ t, wardrobe, wear, addItem }) {
 function StyleStudio({ t, mood, setMood, fit, bodyProfile, recommendation, scores, brief, setBrief, weather, setWeather, schedule, setSchedule, eventType, setEventType, aesthetic, setAesthetic, generateStyling, saveLook }) {
   return (
     <section className="world-room style-studio-v3">
-      <RoomHeader eyebrow="Style Studio" title="스타일 스튜디오" comment="왜 잘 어울리는지도 설명해줄개!" />
+      <RoomHeader eyebrow="Style Studio" title="스타일 스튜디오" comment="날씨와 무드, 옷장 데이터를 합쳐 추천하는 공간" />
       <div className="studio-layout-v3">
         <div className="studio-control-book">
           <label><span>오늘 기분</span><textarea value={brief} placeholder="예: 비 오는 날 카페 데이트, 차분하지만 예쁘게" onChange={(event) => setBrief(event.target.value)} /></label>
@@ -624,7 +627,7 @@ function StyleStudio({ t, mood, setMood, fit, bodyProfile, recommendation, score
         </div>
         <div className="avatar-runway-v3">
           <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
-          <MascotBubble text="이 조합은 꽤 센스 있을개!" />
+          <AssistantNote tone="small" text="이 조합은 꽤 센스 있을개!" />
         </div>
         <StyleResultCard title="오늘의 스타일 결과" recommendation={recommendation} scores={scores} />
       </div>
@@ -636,7 +639,7 @@ function FashionLab({ onUpload, wardrobe }) {
   const latest = wardrobe[0];
   return (
     <section className="world-room fashion-lab-v3">
-      <RoomHeader eyebrow="Fashion Lab" title="패션 분석실" comment="사진 속 분위기까지 읽어볼개!" />
+      <RoomHeader eyebrow="Fashion Lab" title="패션 분석실" comment="업로드한 사진과 분석 결과가 중심인 실험실" />
       <div className="photo-lab-grid-v3">
         <button className="upload-polaroid" onClick={onUpload} type="button">
           <Camera size={34} />
@@ -670,7 +673,7 @@ function HallOfFame({ game, scores, wardrobe, savedLooks }) {
 
   return (
     <section className="world-room hall-v3">
-      <RoomHeader eyebrow="Hall of Fame" title="패션 명예의 전당" comment="오늘도 감각이 성장했을개!" />
+      <RoomHeader eyebrow="Hall of Fame" title="패션 명예의 전당" comment="랭킹, 배지, 챌린지 성장을 한눈에 보는 공간" />
       <div className="hall-layout-v3">
         <div className="trophy-shelf">
           {ranks.map(([name, score], index) => <article key={name}><b>{index + 1}</b><strong>{name}</strong><span>{score}점</span></article>)}
@@ -680,6 +683,7 @@ function HallOfFame({ game, scores, wardrobe, savedLooks }) {
             <span className={index < Math.min(5, game.petLevel) ? "earned" : ""} key={badge}>{badge}</span>
           ))}
         </div>
+        <AssistantNote tone="small decorative" text="이번 주도 멋지게 올라갈개!" />
       </div>
     </section>
   );
@@ -708,7 +712,7 @@ function MoodVillageMap({ setActivePanel, session, game, onEvent }) {
       <aside className="user-passport-v3">
         <strong>{session?.mode === "guest" ? "게스트 스타일러" : "MoodFit 스타일러"}</strong>
         <p>Fashion Lv.{Math.max(1, game.petLevel + 9)} · {game.coins} coins</p>
-        <MascotBubble text="네 취향 기록은 소중히 지켜줄개!" />
+        <AssistantNote tone="brand" text="네 취향 기록은 소중히 지켜줄개!" />
       </aside>
     </section>
   );
@@ -718,13 +722,13 @@ function RoomHeader({ eyebrow, title, comment }) {
   return (
     <header className="room-header-v3">
       <div><p className="world-eyebrow">{eyebrow}</p><h2>{title}</h2></div>
-      <MascotBubble text={comment} />
+      <p className="room-note-v3">{comment}</p>
     </header>
   );
 }
 
-function MascotBubble({ text }) {
-  return <p className="mascot-bubble">{text}</p>;
+function AssistantNote({ text, tone = "small" }) {
+  return <p className={`assistant-note-v3 ${tone}`}>{text}</p>;
 }
 
 function WorldCard({ icon, title, note, children }) {

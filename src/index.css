@@ -1838,13 +1838,54 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   animation: roomSlideIn .38s cubic-bezier(.2, .74, .22, 1);
 }
 
+.world-room > * {
+  position: relative;
+  z-index: 1;
+}
+
+.world-room::before,
+.world-room::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.world-room::before {
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 11% 24%, rgba(255, 255, 255, .9) 0 2.7%, transparent 3%),
+    radial-gradient(circle at 15% 27%, rgba(255, 255, 255, .86) 0 3.4%, transparent 3.7%),
+    radial-gradient(circle at 84% 18%, rgba(255, 255, 255, .82) 0 3.2%, transparent 3.5%),
+    radial-gradient(circle at 88% 21%, rgba(255, 255, 255, .78) 0 2.4%, transparent 2.7%),
+    radial-gradient(circle at 30% 12%, rgba(246, 202, 151, .58) 0 .45%, transparent .6%),
+    radial-gradient(circle at 62% 16%, rgba(230, 151, 165, .48) 0 .45%, transparent .6%),
+    radial-gradient(circle at 76% 72%, rgba(174, 206, 214, .42) 0 .48%, transparent .62%);
+  opacity: .95;
+}
+
+.world-room::after {
+  left: 4%;
+  right: 4%;
+  bottom: -28px;
+  z-index: 0;
+  height: 120px;
+  border-radius: 50% 50% 0 0;
+  background:
+    radial-gradient(circle at 8% 52%, rgba(236, 154, 169, .35) 0 9px, transparent 10px),
+    radial-gradient(circle at 12% 46%, rgba(255, 250, 244, .85) 0 5px, transparent 6px),
+    radial-gradient(circle at 86% 58%, rgba(236, 154, 169, .3) 0 8px, transparent 9px),
+    linear-gradient(90deg, transparent 0 25%, rgba(231, 202, 174, .26) 26% 74%, transparent 75%);
+  opacity: .72;
+}
+
 .v3-home-room {
   padding: clamp(18px, 2.4vw, 28px);
 }
 
 .v3-home-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(250px, 360px);
+  grid-template-columns: minmax(0, .95fr) minmax(260px, 360px) minmax(190px, 260px);
   align-items: center;
   min-height: clamp(390px, 42vw, 520px);
   padding: clamp(24px, 5vw, 72px);
@@ -1875,6 +1916,45 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   line-height: 1.15;
 }
 
+.home-fashion-photo {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-self: stretch;
+  min-height: 330px;
+  padding: 18px;
+  border: 8px solid rgba(255, 252, 247, .92);
+  border-radius: 30px 34px 28px 36px;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, .02), rgba(91, 72, 64, .34)),
+    url("https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80") center / cover no-repeat,
+    linear-gradient(180deg, #f3ded8, #d4e5ec);
+  box-shadow: 0 16px 0 rgba(132, 105, 94, .08), 0 28px 48px rgba(102, 78, 68, .16);
+}
+
+.home-fashion-photo span,
+.home-fashion-photo strong {
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 999px;
+  color: #5d4b45;
+  background: rgba(255, 252, 247, .88);
+  box-shadow: 0 5px 0 rgba(132, 105, 94, .1);
+}
+
+.home-fashion-photo span {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.home-fashion-photo strong {
+  margin-top: 8px;
+  padding: 9px 13px;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
 .world-eyebrow {
   margin: 0 0 10px;
   color: #c78391;
@@ -1886,14 +1966,14 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .mascot-stage {
   position: relative;
-  min-height: 330px;
+  min-height: 300px;
   display: grid;
   place-items: center;
 }
 
 .mascot-stage .golla-mascot {
   position: static;
-  width: min(310px, 90%);
+  width: min(230px, 92%);
   filter: drop-shadow(0 20px 16px rgba(115, 88, 72, .15));
   animation: mascotBreathe 3.8s ease-in-out infinite;
 }
@@ -1907,7 +1987,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   animation: tinyTwinkle 2.5s ease-in-out infinite;
 }
 
-.mascot-bubble {
+.assistant-note-v3,
+.room-note-v3 {
   display: inline-flex;
   align-items: center;
   max-width: 420px;
@@ -1921,6 +2002,27 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   box-shadow: 0 9px 0 rgba(132, 105, 94, .08);
   font-weight: 900;
   line-height: 1.35;
+}
+
+.assistant-note-v3.small {
+  max-width: 280px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 13px;
+  box-shadow: 0 5px 0 rgba(132, 105, 94, .07);
+}
+
+.assistant-note-v3.decorative {
+  grid-column: 1 / -1;
+  justify-self: end;
+  opacity: .82;
+}
+
+.room-note-v3 {
+  max-width: 440px;
+  color: rgba(95, 75, 68, .72);
+  background: rgba(255, 252, 247, .72);
 }
 
 .world-actions {
@@ -2203,6 +2305,20 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   background:
     radial-gradient(circle at 50% 74%, rgba(255, 224, 230, .72) 0 22%, transparent 23%),
     rgba(255, 252, 247, .88);
+}
+
+.avatar-dressing-stage {
+  background:
+    radial-gradient(circle at 50% 74%, rgba(255, 224, 230, .72) 0 22%, transparent 23%),
+    radial-gradient(circle at 18% 20%, rgba(226, 242, 247, .8) 0 11%, transparent 12%),
+    rgba(255, 252, 247, .88);
+}
+
+.avatar-runway-v3 {
+  align-content: center;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, .9), rgba(238, 247, 250, .82)),
+    radial-gradient(circle at 50% 84%, rgba(214, 186, 166, .28) 0 20%, transparent 21%);
 }
 
 .room-panel-v3,
