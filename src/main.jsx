@@ -38,7 +38,7 @@ function App() {
   const [language, setLanguage] = useState(stored.language || null);
   const [session, setSession] = useState(loadSession());
   const [entryStep, setEntryStep] = useState("auth");
-  const [activePanel, setActivePanel] = useState("home");
+  const [activePanel, setActivePanel] = useState("v3-home");
   const [theme, setTheme] = useState(stored.theme || "white");
   const [mood, setMood] = useState(stored.mood || "moodLuxury");
   const [wardrobe, setWardrobe] = useState(stored.wardrobe || seedWardrobe);
@@ -76,6 +76,7 @@ function App() {
   const scores = useMemo(() => scoreOutfit({ fit, weather, mood, eventType }), [fit, weather, mood, eventType]);
   const showToday = activePanel === "today" || activePanel === "all";
   const showAll = activePanel === "all";
+  const activeWorld = activePanel.startsWith("v3-");
 
   function persist(next = {}) {
     localStorage.setItem(
@@ -236,24 +237,61 @@ function App() {
       <div className="ambient" aria-hidden="true" />
       <input ref={fileInputRef} className="hidden-input" type="file" accept="image/*" onChange={scanPhoto} />
       <header className="topbar">
-        <button className="brand sketch-home-button" onClick={() => setActivePanel("home")} type="button">
+        <button className="brand sketch-home-button" onClick={() => setActivePanel("v3-home")} type="button">
           <span className="brand-mark">🐾</span>
           <span><strong>골라줄개</strong><small>당신의 무드를 정해줄개</small></span>
         </button>
         <nav className="nav main-tabs" aria-label="Main">
-          <button className={activePanel === "customize" ? "active" : ""} onClick={() => setActivePanel("customize")} type="button"><UserRound size={16} />캐릭터</button>
-          <button className={activePanel === "wardrobe" ? "active" : ""} onClick={() => setActivePanel("wardrobe")} type="button"><Shirt size={16} />옷장</button>
-          <button className={activePanel === "today" ? "active" : ""} onClick={() => setActivePanel("today")} type="button"><Sparkles size={16} />스타일</button>
-          <button className={activePanel === "photo" ? "active" : ""} onClick={() => setActivePanel("photo")} type="button"><Camera size={16} />사진</button>
-          <button className={activePanel === "ranking" ? "active" : ""} onClick={() => setActivePanel("ranking")} type="button"><Trophy size={16} />랭킹</button>
+          <button className={activePanel === "v3-character" ? "active" : ""} onClick={() => setActivePanel("v3-character")} type="button"><UserRound size={16} />캐릭터</button>
+          <button className={activePanel === "v3-closet" ? "active" : ""} onClick={() => setActivePanel("v3-closet")} type="button"><Shirt size={16} />옷장</button>
+          <button className={activePanel === "v3-style" ? "active" : ""} onClick={() => setActivePanel("v3-style")} type="button"><Sparkles size={16} />스타일</button>
+          <button className={activePanel === "v3-photo" ? "active" : ""} onClick={() => setActivePanel("v3-photo")} type="button"><Camera size={16} />사진</button>
+          <button className={activePanel === "v3-ranking" ? "active" : ""} onClick={() => setActivePanel("v3-ranking")} type="button"><Trophy size={16} />랭킹</button>
+          <button className={activePanel === "v3-map" ? "active" : ""} onClick={() => setActivePanel("v3-map")} type="button"><Trees size={16} />마을지도</button>
         </nav>
         <div className="header-actions">
-          <button className="status-pill" onClick={() => setActivePanel("settings")} type="button"><UserRound size={15} />사용자 정보</button>
+          <button className="status-pill" onClick={() => setActivePanel("v3-map")} type="button"><UserRound size={15} />사용자 정보</button>
           <button className="settings-bubble" onClick={() => setActivePanel("settings")} type="button" aria-label="설정"><Settings size={24} /><span>설정</span></button>
         </div>
       </header>
 
-      {activePanel === "home" && (
+      {activeWorld && (
+        <WorldView
+          activePanel={activePanel}
+          setActivePanel={setActivePanel}
+          t={t}
+          mood={mood}
+          setMood={setMood}
+          fit={fit}
+          bodyProfile={bodyProfile}
+          setBodyProfile={setBodyProfile}
+          persist={persist}
+          wardrobe={wardrobe}
+          wear={wear}
+          addItem={addItem}
+          recommendation={recommendation}
+          scores={scores}
+          brief={brief}
+          setBrief={setBrief}
+          weather={weather}
+          setWeather={setWeather}
+          schedule={schedule}
+          setSchedule={setSchedule}
+          eventType={eventType}
+          setEventType={setEventType}
+          aesthetic={aesthetic}
+          setAesthetic={setAesthetic}
+          generateStyling={generateStyling}
+          saveLook={saveLook}
+          fileInputRef={fileInputRef}
+          game={game}
+          savedLooks={savedLooks}
+          session={session}
+          onEvent={() => setEventOpen(true)}
+        />
+      )}
+
+      {!activeWorld && activePanel === "home" && (
         <SketchHome
           t={t}
           setActivePanel={setActivePanel}
@@ -265,9 +303,9 @@ function App() {
         />
       )}
 
-      {showAll && <ProfileDock t={t} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />}
+      {!activeWorld && showAll && <ProfileDock t={t} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />}
 
-      {showToday && activePanel !== "home" && <section id="studio" className="hero">
+      {!activeWorld && showToday && activePanel !== "home" && <section id="studio" className="hero">
         <section className="hero-copy glass">
           <p className="eyebrow">{t("heroEyebrow")}</p>
           <h1>{t("heroTitle")}</h1>
@@ -318,11 +356,11 @@ function App() {
         </aside>
       </section>}
 
-      {showAll && <GameLayer t={t} game={game} wardrobe={wardrobe} savedLooks={savedLooks} />}
-      {showAll && <FeatureShowcase t={t} />}
-      {showAll && <RealLifeExamples t={t} />}
+      {!activeWorld && showAll && <GameLayer t={t} game={game} wardrobe={wardrobe} savedLooks={savedLooks} />}
+      {!activeWorld && showAll && <FeatureShowcase t={t} />}
+      {!activeWorld && showAll && <RealLifeExamples t={t} />}
 
-      {(activePanel === "wardrobe" || showAll) && <section id="wardrobe" className="wardrobe glass panel-view">
+      {!activeWorld && (activePanel === "wardrobe" || showAll) && <section id="wardrobe" className="wardrobe glass panel-view">
         <div className="section-head">
           <div><p className="eyebrow">{t("wardrobeTitle")}</p><h2>{t("wardrobeLead")}</h2></div>
           <button className="icon-button" onClick={addItem} type="button"><Shirt size={18} />{t("addItem")}</button>
@@ -340,7 +378,7 @@ function App() {
       {composerOpen && <ItemComposer t={t} mood={mood} onClose={() => setComposerOpen(false)} onSubmit={saveDetailedItem} />}
       {eventOpen && <EventPopup onClose={() => setEventOpen(false)} />}
 
-      {(activePanel === "looks" || showAll) && <section id="looks" className="lookbook panel-view">
+      {!activeWorld && (activePanel === "looks" || showAll) && <section id="looks" className="lookbook panel-view">
         {savedLooks.length ? savedLooks.map((look) => (
           <button className="saved-look glass" key={look.id} onClick={() => { setFit(look.fit); setMood(look.mood); showToast(t("loaded")); }} type="button">
             <MiniFit fit={look.fit} />
@@ -350,11 +388,11 @@ function App() {
         )) : <div className="saved-look glass empty">{t("emptyLooks")}</div>}
       </section>}
 
-      {activePanel === "customize" && <CustomizePanel t={t} theme={theme} setTheme={setTheme} mood={mood} setMood={setMood} fit={fit} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />}
+      {!activeWorld && activePanel === "customize" && <CustomizePanel t={t} theme={theme} setTheme={setTheme} mood={mood} setMood={setMood} fit={fit} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />}
 
-      {activePanel === "photo" && <PhotoTryOnPage t={t} onUpload={() => fileInputRef.current?.click()} wardrobe={wardrobe} />}
+      {!activeWorld && activePanel === "photo" && <PhotoTryOnPage t={t} onUpload={() => fileInputRef.current?.click()} wardrobe={wardrobe} />}
 
-      {activePanel === "ranking" && <RankingBoard t={t} game={game} scores={scores} wardrobe={wardrobe} savedLooks={savedLooks} />}
+      {!activeWorld && activePanel === "ranking" && <RankingBoard t={t} game={game} scores={scores} wardrobe={wardrobe} savedLooks={savedLooks} />}
 
       {activePanel === "settings" && <section id="settings" className="settings glass panel-view">
         <div>
@@ -369,7 +407,7 @@ function App() {
         </div>
       </section>}
       {activePanel === "settings" && <TrustSection t={t} />}
-      {showAll && <PlatformLayer t={t} wardrobe={wardrobe} savedLooks={savedLooks} fit={fit} />}
+      {!activeWorld && showAll && <PlatformLayer t={t} wardrobe={wardrobe} savedLooks={savedLooks} fit={fit} />}
       <div className={`toast ${toast ? "show" : ""}`}>{toast}</div>
       {settingsOpen && (
         <SettingsModal
@@ -431,6 +469,275 @@ function AuthScreen({ t, onGuest, onAccount, setLanguage }) {
       </section>
     </main>
   );
+}
+
+function WorldView(props) {
+  const pages = {
+    "v3-home": <V3Home {...props} />,
+    "v3-character": <CharacterRoom {...props} />,
+    "v3-closet": <MagicCloset {...props} />,
+    "v3-style": <StyleStudio {...props} />,
+    "v3-photo": <FashionLab {...props} />,
+    "v3-ranking": <HallOfFame {...props} />,
+    "v3-map": <MoodVillageMap {...props} />,
+  };
+
+  return (
+    <section className="world-view cloud-village" aria-live="polite">
+      <div className="floating-cloud cloud-one" aria-hidden="true" />
+      <div className="floating-cloud cloud-two" aria-hidden="true" />
+      <div className="twinkle-field" aria-hidden="true"><span /> <span /> <span /> <span /></div>
+      {pages[props.activePanel] || pages["v3-home"]}
+    </section>
+  );
+}
+
+function V3Home({ setActivePanel, recommendation, scores, game, wardrobe, savedLooks, weather, fit, onEvent }) {
+  const missions = [
+    ["색 조합 저장하기", "보상 30 XP"],
+    ["안 입은 옷 코디하기", "보상 12 코인"],
+    ["오늘의 추천룩 입혀보기", "보상 배지 조각"],
+  ];
+
+  return (
+    <section className="world-room v3-home-room">
+      <div className="v3-home-hero">
+        <div className="hero-copy-world">
+          <p className="world-eyebrow">Cloud Village</p>
+          <h1>골라줄개</h1>
+          <p className="world-tagline">당신의 무드를 정해줄개</p>
+          <MascotBubble text="오늘은 네이비가 주인공일개!" />
+          <div className="world-actions">
+            <button className="world-primary" onClick={() => setActivePanel("v3-style")} type="button"><Sparkles size={18} />오늘 코디 받을개</button>
+            <button className="world-secondary" onClick={() => setActivePanel("v3-closet")} type="button"><Shirt size={18} />옷장 열어볼개</button>
+          </div>
+        </div>
+        <div className="mascot-stage">
+          <GollaJulGaeMascot />
+          <span className="mascot-heart">♡</span>
+        </div>
+      </div>
+
+      <div className="v3-home-grid">
+        <WorldCard icon={<Check size={20} />} title="데일리 미션" note="가볍게 성장할개">
+          <div className="mission-list-v3">
+            {missions.map(([title, reward]) => <label key={title}><input type="checkbox" /> <span>{title}</span><em>{reward}</em></label>)}
+          </div>
+        </WorldCard>
+        <WorldCard icon={<Sparkles size={20} />} title="오늘의 추천룩" note="센스 있게 골라줄개">
+          <div className="outfit-preview-v3">
+            <MiniFit fit={fit} />
+            <div><strong>{recommendation.name}</strong><p>{recommendation.explanation}</p><b>{scores.total}점</b></div>
+          </div>
+        </WorldCard>
+        <WorldCard icon={<Sun size={20} />} title="날씨 센터" note="하늘까지 봐줄개">
+          <div className="metric-row"><MetricPill label="날씨" value={weather} /><MetricPill label="습도" value="62%" /><MetricPill label="UV" value="보통" /></div>
+          <p className="tiny-copy">비 오는데 흰 운동화는 위험할개!</p>
+        </WorldCard>
+        <WorldCard icon={<Gift size={20} />} title="이벤트 광장" note="보상 챙길개">
+          <EventCard title="Spring Fashion Festival" label="D-7" copy="파스텔 코디로 스카프와 코인을 받을개" onClick={onEvent} />
+        </WorldCard>
+        <WorldCard icon={<Coins size={20} />} title="패션 레벨" note="조금씩 자랄개">
+          <div className="level-card-v3"><strong>Fashion Lv.{Math.max(1, game.petLevel + 9)}</strong><span style={{ "--xp": `${Math.min(100, (game.xp % 1000) / 10)}%` }} /><p>{game.xp} XP · {game.coins} coins</p></div>
+        </WorldCard>
+        <WorldCard icon={<Shirt size={20} />} title="최근 옷장" note="컬렉션 늘어날개">
+          <div className="mini-closet-row">
+            {wardrobe.slice(0, 4).map((item) => <span key={item.id} style={{ "--fabric": item.color }}>{item.name}</span>)}
+          </div>
+          <p className="tiny-copy">저장한 룩 {savedLooks.length}개, 옷장 아이템 {wardrobe.length}개일개</p>
+        </WorldCard>
+      </div>
+    </section>
+  );
+}
+
+function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, persist }) {
+  const parts = ["헤어", "헤어컬러", "눈", "피부톤", "안경", "악세서리", "체형", "포즈"];
+
+  return (
+    <section className="world-room room-split character-room-v3">
+      <RoomHeader eyebrow="Character Room" title="캐릭터룸" comment="아바타도 오늘 기분 따라 변할개!" />
+      <div className="avatar-dressing-stage">
+        <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
+        <MascotBubble text="머리핀 하나만 바꿔도 느낌 달라질개!" />
+      </div>
+      <div className="room-panel-v3">
+        <h3>꾸미기 슬롯</h3>
+        <div className="custom-chip-grid">
+          {parts.map((part, index) => <button key={part} type="button">{part}<span>{index + 1}</span></button>)}
+        </div>
+        <ProfileFields t={t} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} compact />
+        <div className="mood-row-v3">
+          {moods.map((key) => <button key={key} className={mood === key ? "active" : ""} onClick={() => setMood(key)} type="button">{t(key)}</button>)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MagicCloset({ t, wardrobe, wear, addItem }) {
+  const categoriesKo = ["상의", "하의", "신발", "아우터", "가방"];
+
+  return (
+    <section className="world-room magic-closet-v3">
+      <RoomHeader eyebrow="Magic Closet" title="마법 옷장" comment="안 입은 아이템도 다시 빛나게 해줄개!" />
+      <div className="storybook-closet">
+        <aside className="closet-tabs-v3">
+          {categoriesKo.map((item) => <button key={item} type="button">{item}</button>)}
+          <button className="world-primary" onClick={addItem} type="button"><Upload size={16} />옷 등록할개</button>
+        </aside>
+        <div className="collectible-grid">
+          {wardrobe.map((item) => (
+            <button className="collectible-card" key={item.id} onClick={() => wear(item)} type="button">
+              {item.image ? <img src={item.image} alt="" /> : <span className={`fabric pattern-${item.pattern || "plain"}`} style={{ "--fabric": item.color }} />}
+              <strong>{item.name}</strong>
+              <p>{t(item.category)} · {item.season} · {item.pattern || "plain"}</p>
+              <div><em>{item.vibe || "casual"}</em><em>{item.styleCategory || "minimal"}</em></div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StyleStudio({ t, mood, setMood, fit, bodyProfile, recommendation, scores, brief, setBrief, weather, setWeather, schedule, setSchedule, eventType, setEventType, aesthetic, setAesthetic, generateStyling, saveLook }) {
+  return (
+    <section className="world-room style-studio-v3">
+      <RoomHeader eyebrow="Style Studio" title="스타일 스튜디오" comment="왜 잘 어울리는지도 설명해줄개!" />
+      <div className="studio-layout-v3">
+        <div className="studio-control-book">
+          <label><span>오늘 기분</span><textarea value={brief} placeholder="예: 비 오는 날 카페 데이트, 차분하지만 예쁘게" onChange={(event) => setBrief(event.target.value)} /></label>
+          <div className="control-grid-v3">
+            <label><span>날씨</span><input value={weather} onChange={(event) => setWeather(event.target.value)} /></label>
+            <label><span>일정</span><input value={schedule} onChange={(event) => setSchedule(event.target.value)} /></label>
+            <label><span>상황</span><input value={eventType} onChange={(event) => setEventType(event.target.value)} /></label>
+            <label><span>무드</span><input value={aesthetic} onChange={(event) => setAesthetic(event.target.value)} /></label>
+          </div>
+          <div className="mood-row-v3">
+            {moods.map((key) => <button key={key} className={mood === key ? "active" : ""} onClick={() => setMood(key)} type="button">{t(key)}</button>)}
+          </div>
+          <div className="world-actions">
+            <button className="world-primary" onClick={generateStyling} type="button"><Sparkles size={18} />AI 코디 만들개</button>
+            <button className="world-secondary" onClick={saveLook} type="button"><Save size={18} />룩 저장할개</button>
+          </div>
+        </div>
+        <div className="avatar-runway-v3">
+          <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
+          <MascotBubble text="이 조합은 꽤 센스 있을개!" />
+        </div>
+        <StyleResultCard title="오늘의 스타일 결과" recommendation={recommendation} scores={scores} />
+      </div>
+    </section>
+  );
+}
+
+function FashionLab({ onUpload, wardrobe }) {
+  const latest = wardrobe[0];
+  return (
+    <section className="world-room fashion-lab-v3">
+      <RoomHeader eyebrow="Fashion Lab" title="패션 분석실" comment="사진 속 분위기까지 읽어볼개!" />
+      <div className="photo-lab-grid-v3">
+        <button className="upload-polaroid" onClick={onUpload} type="button">
+          <Camera size={34} />
+          <strong>사진 올릴개</strong>
+          <span>컬러 · 핏 · 패턴 · 바이브 분석</span>
+        </button>
+        <div className="analysis-board">
+          <MetricPill label="color" value={latest?.color || "cream"} />
+          <MetricPill label="fit" value={latest?.fitType || "regular"} />
+          <MetricPill label="pattern" value={latest?.pattern || "plain"} />
+          <MetricPill label="style" value={latest?.vibe || "soft casual"} />
+          <p>사진을 올리면 전/후 스타일 제안이 여기 뜰개.</p>
+        </div>
+        <div className="magazine-strip">
+          <span className="fashion-ref ref-one" />
+          <span className="fashion-ref ref-two" />
+          <span className="fashion-ref ref-three" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HallOfFame({ game, scores, wardrobe, savedLooks }) {
+  const ranks = [
+    ["스타일 마스터", scores.total + 4],
+    ["컬러 천재", scores.color],
+    ["비 오는 날 스타일리스트", scores.comfort],
+    ["미니멀 지니어스", Math.max(86, wardrobe.length + savedLooks.length + 78)],
+  ];
+
+  return (
+    <section className="world-room hall-v3">
+      <RoomHeader eyebrow="Hall of Fame" title="패션 명예의 전당" comment="오늘도 감각이 성장했을개!" />
+      <div className="hall-layout-v3">
+        <div className="trophy-shelf">
+          {ranks.map(([name, score], index) => <article key={name}><b>{index + 1}</b><strong>{name}</strong><span>{score}점</span></article>)}
+        </div>
+        <div className="badge-wall-v3">
+          {["Fashion Explorer", "Color Master", "Rainy Day Stylist", "Minimalist Genius", "Closet Collector", "Scarf Friend"].map((badge, index) => (
+            <span className={index < Math.min(5, game.petLevel) ? "earned" : ""} key={badge}>{badge}</span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MoodVillageMap({ setActivePanel, session, game, onEvent }) {
+  const places = [
+    ["이벤트 광장", "축제와 보상이 열릴개", "v3-home", <Gift size={22} />],
+    ["날씨 센터", "습도 UV 바람까지 볼개", "v3-style", <Sun size={22} />],
+    ["스타일 도감", "저장한 룩을 모아둘개", "v3-closet", <Shirt size={22} />],
+    ["미션 보드", "매일 조금씩 성장할개", "v3-home", <Check size={22} />],
+    ["골라줄개 하우스", "마스코트 아이템 꾸밀개", "v3-character", <UserRound size={22} />],
+    ["패션 캘린더", "약속별 코디를 준비할개", "v3-style", <Trees size={22} />],
+  ];
+
+  return (
+    <section className="world-room village-map-v3">
+      <RoomHeader eyebrow="Mood Village Map" title="무드 마을 지도" comment="어디로 갈지 골라줄개!" />
+      <div className="map-grid-v3">
+        {places.map(([title, copy, panel, icon], index) => (
+          <button key={title} className={`map-place place-${index}`} onClick={() => title === "이벤트 광장" ? onEvent() : setActivePanel(panel)} type="button">
+            {icon}<strong>{title}</strong><span>{copy}</span>
+          </button>
+        ))}
+      </div>
+      <aside className="user-passport-v3">
+        <strong>{session?.mode === "guest" ? "게스트 스타일러" : "MoodFit 스타일러"}</strong>
+        <p>Fashion Lv.{Math.max(1, game.petLevel + 9)} · {game.coins} coins</p>
+        <MascotBubble text="네 취향 기록은 소중히 지켜줄개!" />
+      </aside>
+    </section>
+  );
+}
+
+function RoomHeader({ eyebrow, title, comment }) {
+  return (
+    <header className="room-header-v3">
+      <div><p className="world-eyebrow">{eyebrow}</p><h2>{title}</h2></div>
+      <MascotBubble text={comment} />
+    </header>
+  );
+}
+
+function MascotBubble({ text }) {
+  return <p className="mascot-bubble">{text}</p>;
+}
+
+function WorldCard({ icon, title, note, children }) {
+  return (
+    <article className="world-card">
+      <header><span>{icon}</span><div><strong>{title}</strong><small>{note}</small></div></header>
+      {children}
+    </article>
+  );
+}
+
+function MetricPill({ label, value }) {
+  return <span className="metric-pill-v3"><small>{label}</small><b>{value}</b></span>;
 }
 
 function SketchHome({ setActivePanel, recommendation, scores, game, mood, t, onEvent }) {
