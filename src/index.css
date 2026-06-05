@@ -232,12 +232,15 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .moodfit-game .topbar {
   position: relative;
   top: 0;
-  grid-template-columns: minmax(150px, auto) minmax(520px, 1fr) auto;
-  max-width: 1500px;
-  border-radius: 0;
-  border-width: 0 0 3px;
-  background: rgba(255,250,244,.9);
-  box-shadow: none;
+  grid-template-columns: minmax(150px, auto) minmax(560px, 1fr) auto;
+  width: min(1340px, calc(100vw - 48px));
+  max-width: none;
+  min-height: 96px;
+  margin-bottom: 12px;
+  border: 3px solid rgba(132,105,94,.46);
+  border-radius: 26px;
+  background: rgba(255,250,244,.92);
+  box-shadow: 0 8px 0 rgba(132,105,94,.1);
   backdrop-filter: blur(10px);
 }
 .moodfit-game .brand-mark,
@@ -245,15 +248,15 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   color: #80675b;
 }
 .moodfit-game .main-tabs {
-  justify-content: flex-start;
-  gap: 18px;
+  justify-content: center;
+  gap: 14px;
 }
 .moodfit-game .main-tabs button {
-  min-width: 82px;
-  min-height: 92px;
+  min-width: 86px;
+  min-height: 74px;
   flex-direction: column;
   border: 3px solid var(--line);
-  border-radius: 18px;
+  border-radius: 22px;
   background: #fff8ef;
   color: #7b655c;
   box-shadow: 0 7px 0 rgba(133,106,94,.13);
@@ -276,8 +279,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .settings-bubble {
   display: grid;
   place-items: center;
-  width: 84px;
-  height: 84px;
+  width: 74px;
+  height: 74px;
   border: 3px solid var(--line);
   border-radius: 50%;
   color: #796358;
@@ -504,28 +507,33 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   font-weight: 900;
 }
 .panel-home {
-  padding: 20px clamp(12px, 3vw, 36px) 56px;
-  background: #fffaf4;
+  padding: 14px clamp(16px, 3vw, 34px) 42px;
+  background:
+    radial-gradient(circle at 8% 36%, rgba(255,255,255,.8) 0 9%, transparent 10%),
+    radial-gradient(circle at 92% 72%, rgba(255,218,224,.55) 0 10%, transparent 11%),
+    linear-gradient(180deg, #fffaf4 0 24%, #dceff5 24% 72%, #fff5ee 72%);
 }
 .panel-home .topbar {
   display: grid;
 }
 .image-map-home {
   position: relative;
-  width: min(1370px, calc(100vw - 48px));
+  width: min(1340px, calc(100vw - 48px));
   min-height: auto;
-  margin: 18px auto 0;
+  margin: 12px auto 0;
   padding: 0;
   aspect-ratio: 1370 / 950;
-  border-radius: 0;
+  border: 3px solid rgba(132,105,94,.48);
+  border-radius: 30px;
   overflow: hidden;
-  box-shadow: none;
+  background: #fffaf4;
+  box-shadow: 0 12px 0 rgba(132,105,94,.12), 0 24px 70px rgba(132,105,94,.13);
 }
 .sketch-reference {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   user-select: none;
 }
 .home-accessible-actions {
@@ -559,7 +567,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   box-shadow: 0 0 0 4px rgba(240,167,172,.2);
   transform: translateY(-2px);
 }
-.map-event { left: 6.5%; top: 66.2%; width: 47%; height: 27%; }
+.map-event { left: 5.8%; top: 63.8%; width: 47.5%; height: 30%; }
 .event-pop-backdrop {
   position: fixed;
   inset: 0;
