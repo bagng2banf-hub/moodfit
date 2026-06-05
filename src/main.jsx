@@ -12,7 +12,6 @@ import {
   Mail,
   Medal,
   Moon,
-  LayoutGrid,
   Palette,
   Save,
   Search,
@@ -247,10 +246,9 @@ function App() {
           <button className={activePanel === "today" ? "active" : ""} onClick={() => setActivePanel("today")} type="button"><Sparkles size={16} />스타일</button>
           <button className={activePanel === "photo" ? "active" : ""} onClick={() => setActivePanel("photo")} type="button"><Camera size={16} />사진</button>
           <button className={activePanel === "ranking" ? "active" : ""} onClick={() => setActivePanel("ranking")} type="button"><Trophy size={16} />랭킹</button>
-          <button className={activePanel === "all" ? "active" : ""} onClick={() => setActivePanel("all")} type="button"><LayoutGrid size={16} />전체보기</button>
         </nav>
         <div className="header-actions">
-          <button className="status-pill" onClick={() => setActivePanel("all")} type="button"><UserRound size={15} />사용자 정보</button>
+          <button className="status-pill" onClick={() => setActivePanel("settings")} type="button"><UserRound size={15} />사용자 정보</button>
           <button className="settings-bubble" onClick={() => setActivePanel("settings")} type="button" aria-label="설정"><Settings size={24} /><span>설정</span></button>
         </div>
       </header>
@@ -408,7 +406,7 @@ function LanguageScreen({ t, onChoose }) {
 
 function AuthScreen({ t, onGuest, onAccount, setLanguage }) {
   return (
-    <main className="entry-screen">
+    <main className="entry-screen login-world">
       <section className="entry-card auth-card">
         <div className="auth-hero">
           <div className="brand-lockup"><span>MF</span><strong>{t("brand")}</strong></div>

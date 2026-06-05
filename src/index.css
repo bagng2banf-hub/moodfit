@@ -73,16 +73,24 @@ a { color: inherit; text-decoration: none; }
   padding: 22px;
 }
 
+.login-world {
+  background:
+    radial-gradient(circle at 10% 34%, rgba(255,255,255,.82) 0 10%, transparent 11%),
+    radial-gradient(circle at 88% 28%, rgba(255,240,224,.86) 0 11%, transparent 12%),
+    radial-gradient(circle at 86% 88%, rgba(255,218,224,.56) 0 12%, transparent 13%),
+    linear-gradient(180deg, #fffaf4 0 26%, #dceff5 26% 72%, #fff5ee 72%);
+}
+
 .entry-card {
   width: min(1040px, 100%);
   min-height: min(720px, calc(100vh - 44px));
-  border: 1px solid var(--line);
-  border-radius: 38px;
+  border: 3px solid rgba(132,105,94,.48);
+  border-radius: 34px;
   background:
-    linear-gradient(145deg, rgba(255,255,255,.96), rgba(255,255,255,.68)),
+    linear-gradient(145deg, rgba(255,250,244,.94), rgba(255,250,244,.78)),
     linear-gradient(135deg, rgba(255,211,226,.36), rgba(209,239,226,.24));
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(28px);
+  box-shadow: 0 12px 0 rgba(132,105,94,.12), 0 24px 70px rgba(132,105,94,.14);
+  backdrop-filter: blur(16px);
   overflow: hidden;
 }
 
@@ -96,6 +104,9 @@ a { color: inherit; text-decoration: none; }
 .auth-card {
   display: grid;
   grid-template-columns: 1fr minmax(330px, 440px);
+  background:
+    linear-gradient(90deg, rgba(255,250,244,.82), rgba(255,250,244,.92)),
+    url("/home-main-art.png") left center / cover no-repeat;
 }
 
 .auth-hero,
@@ -108,18 +119,19 @@ a { color: inherit; text-decoration: none; }
   flex-direction: column;
   justify-content: center;
   position: relative;
+  min-height: 620px;
 }
 
 .auth-hero::after {
-  content: "골라줄개";
+  content: "입장할개";
   display: grid;
   place-items: center;
   width: min(260px, 62vw);
   min-height: 118px;
   margin-top: 30px;
-  border: 1px solid rgba(223, 143, 170, .28);
+  border: 3px solid rgba(132,105,94,.38);
   border-radius: 58px 62px 52px 66px;
-  color: #6b526b;
+  color: #735f55;
   background:
     radial-gradient(circle at 24% 28%, rgba(255,255,255,.94), transparent 38%),
     linear-gradient(135deg, #fff, #f6edf8 58%, #e9f8f1);
@@ -134,8 +146,30 @@ a { color: inherit; text-decoration: none; }
   flex-direction: column;
   justify-content: center;
   gap: 12px;
-  background: color-mix(in srgb, var(--surface-strong) 70%, transparent);
-  border-left: 1px solid var(--line);
+  background: rgba(255,250,244,.88);
+  border-left: 3px solid rgba(132,105,94,.28);
+}
+
+.login-world .brand-lockup span {
+  background: #8d7265;
+}
+
+.login-world .primary,
+.login-world .secondary,
+.login-world .guest-button,
+.login-world .text-button,
+.login-world input {
+  border: 2px solid rgba(132,105,94,.28);
+}
+
+.login-world .primary {
+  background: #8d7265;
+}
+
+.login-world .secondary,
+.login-world .guest-button {
+  background: rgba(255,248,239,.92);
+  box-shadow: 0 6px 0 rgba(132,105,94,.1);
 }
 
 .brand-lockup { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; font-weight: 900; line-height: 1; }
