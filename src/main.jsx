@@ -492,7 +492,8 @@ function WorldView(props) {
   );
 }
 
-function V3Home({ setActivePanel, recommendation, scores, game, wardrobe, savedLooks, weather, fit, onEvent }) {
+function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, fit, onEvent }) {
+  const season = getSeason();
   const missions = [
     ["색 조합 저장하기", "보상 30 XP"],
     ["안 입은 옷 코디하기", "보상 12 코인"],
@@ -501,22 +502,9 @@ function V3Home({ setActivePanel, recommendation, scores, game, wardrobe, savedL
 
   return (
     <section className="world-room v3-home-room">
-      <div className="v3-home-hero">
-        <div className="hero-copy-world">
-          <p className="world-eyebrow">MoodFit Home</p>
-          <h1>골라줄개</h1>
-          <p className="world-tagline">당신의 무드를 정해줄개</p>
-          <AssistantNote tone="brand" text="오늘은 네이비가 주인공일개!" />
-          <div className="world-actions">
-            <button className="world-primary" onClick={() => setActivePanel("v3-style")} type="button"><Sparkles size={18} />오늘 코디 받을개</button>
-            <button className="world-secondary" onClick={() => setActivePanel("v3-closet")} type="button"><Shirt size={18} />옷장 열어볼개</button>
-          </div>
-        </div>
-        <div className="mascot-stage">
-          <GollaJulGaeMascot />
-          <span className="mascot-heart">♡</span>
-        </div>
-      </div>
+      <figure className="seasonal-hero-banner" key={season}>
+        <img src={`/seasonal-hero-${season}.png`} alt={`골라줄개 ${season} 시즌 히어로`} />
+      </figure>
 
       <div className="v3-home-grid">
         <WorldCard icon={<Check size={20} />} title="데일리 미션" note="가볍게 성장할개">
@@ -738,6 +726,14 @@ function WorldCard({ icon, title, note, children }) {
 
 function MetricPill({ label, value }) {
   return <span className="metric-pill-v3"><small>{label}</small><b>{value}</b></span>;
+}
+
+function getSeason() {
+  const month = new Date().getMonth() + 1;
+  if (month >= 3 && month <= 4) return "spring";
+  if (month >= 5 && month <= 8) return "summer";
+  if (month >= 9 && month <= 11) return "autumn";
+  return "winter";
 }
 
 function SketchHome({ setActivePanel, recommendation, scores, game, mood, t, onEvent }) {

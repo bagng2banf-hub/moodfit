@@ -1880,8 +1880,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   inset: 0;
   z-index: 0;
   background:
-    linear-gradient(180deg, rgba(255, 250, 244, .18), rgba(255, 250, 244, .58));
-  opacity: .9;
+    radial-gradient(circle at 12% 16%, rgba(255, 255, 255, .58) 0 5%, transparent 6%),
+    radial-gradient(circle at 86% 24%, rgba(255, 239, 243, .5) 0 6%, transparent 7%);
+  opacity: .72;
 }
 
 .v3-home-room::after {
@@ -1902,40 +1903,29 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .v3-home-room {
   padding: clamp(18px, 2.4vw, 28px);
   background:
-    linear-gradient(180deg, rgba(255, 251, 245, .68), rgba(255, 248, 239, .76)),
-    url("/sketch-reference-bg.png") center top / cover no-repeat;
+    linear-gradient(180deg, rgba(255, 251, 245, .96), rgba(255, 248, 239, .94));
 }
 
-.v3-home-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(210px, 280px);
-  align-items: center;
-  min-height: clamp(390px, 42vw, 520px);
-  padding: clamp(24px, 5vw, 72px);
-  border: 3px solid rgba(132, 105, 94, .28);
-  border-radius: 30px;
-  background:
-    linear-gradient(90deg, rgba(255, 251, 246, .72), rgba(255, 251, 246, .34) 58%, rgba(255, 251, 246, .78));
+.seasonal-hero-banner {
+  position: relative;
+  width: 100%;
+  margin: 0 0 18px;
+  overflow: hidden;
+  border: 3px solid rgba(132, 105, 94, .26);
+  border-radius: 32px;
+  background: rgba(255, 250, 244, .82);
+  box-shadow: 0 12px 0 rgba(132, 105, 94, .08), 0 26px 54px rgba(116, 91, 78, .12);
+  aspect-ratio: 3 / 1.35;
+  max-height: 560px;
 }
 
-.hero-copy-world h1 {
-  margin: 0;
-  color: #8e7669;
-  font-size: clamp(74px, 12vw, 162px);
-  font-weight: 950;
-  line-height: .94;
-  text-shadow: 0 8px 0 rgba(255, 255, 255, .72), 0 13px 24px rgba(131, 99, 85, .12);
-}
-
-.world-tagline {
-  display: inline-block;
-  margin: 12px 0 16px;
-  padding: 0 8px 7px;
-  border-bottom: 5px solid rgba(238, 154, 164, .58);
-  color: #71584f;
-  font-size: clamp(22px, 3vw, 38px);
-  font-weight: 900;
-  line-height: 1.15;
+.seasonal-hero-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  animation: seasonalFade .46s ease both;
 }
 
 .world-eyebrow {
@@ -2594,6 +2584,11 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+@keyframes seasonalFade {
+  from { opacity: 0; transform: scale(1.012); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 @media (max-width: 1180px) {
   .v3-home-grid,
   .map-grid-v3 {
@@ -2626,13 +2621,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
     margin-top: 10px;
   }
 
-  .v3-home-hero {
-    grid-template-columns: 1fr;
-    padding: 22px;
-  }
-
-  .hero-copy-world h1 {
-    font-size: clamp(56px, 18vw, 92px);
+  .seasonal-hero-banner {
+    aspect-ratio: 3 / 2;
+    border-radius: 24px;
   }
 
   .v3-home-grid,
