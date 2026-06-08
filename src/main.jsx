@@ -507,32 +507,44 @@ function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, f
       </figure>
 
       <div className="v3-home-grid">
-        <WorldCard icon={<Check size={20} />} title="데일리 미션" note="가볍게 성장할개">
-          <div className="mission-list-v3">
-            {missions.map(([title, reward]) => <label key={title}><input type="checkbox" /> <span>{title}</span><em>{reward}</em></label>)}
-          </div>
-        </WorldCard>
-        <WorldCard icon={<Sparkles size={20} />} title="오늘의 추천룩" note="센스 있게 골라줄개">
+        <WorldCard className="home-outfit-card" icon={<Sparkles size={20} />} title="Today's Style Recommendation" note="오늘 뭐 입을지 3초 안에 볼 수 있게">
           <div className="outfit-preview-v3">
             <MiniFit fit={fit} />
-            <div><strong>{recommendation.name}</strong><p>{recommendation.explanation}</p><b>{scores.total}점</b></div>
+            <div>
+              <strong>{recommendation.name}</strong>
+              <p>{recommendation.explanation}</p>
+              <div className="score-strip-v3">
+                <b>{scores.total}점</b>
+                <span>컬러 {scores.color}</span>
+                <span>편안함 {scores.comfort}</span>
+                <span>트렌드 {scores.confidence}</span>
+              </div>
+              <div className="palette-row-v3">
+                {Object.values(fit).filter(Boolean).slice(0, 5).map((item) => <i key={item.id} style={{ "--swatch": item.color }} />)}
+              </div>
+            </div>
           </div>
         </WorldCard>
-        <WorldCard icon={<Sun size={20} />} title="날씨 센터" note="하늘까지 봐줄개">
+        <WorldCard className="home-medium-card" icon={<Sun size={20} />} title="Weather Recommendation" note="날씨에 맞춰 가볍게">
           <div className="metric-row"><MetricPill label="날씨" value={weather} /><MetricPill label="습도" value="62%" /><MetricPill label="UV" value="보통" /></div>
           <p className="tiny-copy">비 오는데 흰 운동화는 위험할개!</p>
         </WorldCard>
-        <WorldCard icon={<Gift size={20} />} title="이벤트 광장" note="보상 챙길개">
-          <EventCard title="Spring Fashion Festival" label="D-7" copy="파스텔 코디로 스카프와 코인을 받을개" onClick={onEvent} />
-        </WorldCard>
-        <WorldCard icon={<Coins size={20} />} title="패션 레벨" note="조금씩 자랄개">
-          <div className="level-card-v3"><strong>Fashion Lv.{Math.max(1, game.petLevel + 9)}</strong><span style={{ "--xp": `${Math.min(100, (game.xp % 1000) / 10)}%` }} /><p>{game.xp} XP · {game.coins} coins</p></div>
-        </WorldCard>
-        <WorldCard icon={<Shirt size={20} />} title="최근 옷장" note="컬렉션 늘어날개">
+        <WorldCard className="home-medium-card" icon={<Shirt size={20} />} title="Wardrobe Summary" note="오늘 활용할 아이템">
           <div className="mini-closet-row">
             {wardrobe.slice(0, 4).map((item) => <span key={item.id} style={{ "--fabric": item.color }}>{item.name}</span>)}
           </div>
-          <p className="tiny-copy">저장한 룩 {savedLooks.length}개, 옷장 아이템 {wardrobe.length}개일개</p>
+          <p className="tiny-copy">저장한 룩 {savedLooks.length}개, 옷장 아이템 {wardrobe.length}개</p>
+        </WorldCard>
+        <WorldCard className="home-small-card" icon={<Check size={20} />} title="Mission" note="오늘의 성장">
+          <div className="mission-list-v3">
+            {missions.slice(0, 2).map(([title, reward]) => <label key={title}><input type="checkbox" /> <span>{title}</span><em>{reward}</em></label>)}
+          </div>
+        </WorldCard>
+        <WorldCard className="home-small-card" icon={<Gift size={20} />} title="Event" note="시즌 보상">
+          <EventCard title="Spring Fashion Festival" label="D-7" copy="파스텔 코디로 스카프와 코인을 받을개" onClick={onEvent} />
+        </WorldCard>
+        <WorldCard className="home-small-card" icon={<Trophy size={20} />} title="Ranking" note="이번 주 감각">
+          <div className="level-card-v3"><strong>Fashion Lv.{Math.max(1, game.petLevel + 9)}</strong><span style={{ "--xp": `${Math.min(100, (game.xp % 1000) / 10)}%` }} /><p>{game.xp} XP · {game.coins} coins</p></div>
         </WorldCard>
       </div>
     </section>
@@ -715,9 +727,9 @@ function AssistantNote({ text, tone = "small" }) {
   return <p className={`assistant-note-v3 ${tone}`}>{text}</p>;
 }
 
-function WorldCard({ icon, title, note, children }) {
+function WorldCard({ className = "", icon, title, note, children }) {
   return (
-    <article className="world-card">
+    <article className={`world-card ${className}`}>
       <header><span>{icon}</span><div><strong>{title}</strong><small>{note}</small></div></header>
       {children}
     </article>

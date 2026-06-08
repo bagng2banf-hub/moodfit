@@ -1,20 +1,22 @@
 :root {
   color-scheme: light;
-  font-family: "Noto Sans KR", "Apple SD Gothic Neo", Pretendard, Inter, system-ui, sans-serif;
-  --display-font: "Noto Sans KR", "Apple SD Gothic Neo", Pretendard, Inter, system-ui, sans-serif;
-  --ink: #2f2a33;
-  --muted: rgba(47, 42, 51, .58);
-  --bg-a: #fffafd;
-  --bg-b: #f3fbf7;
-  --bg-c: #edf2ff;
-  --surface: rgba(255, 255, 255, .72);
-  --surface-strong: rgba(255, 255, 255, .94);
-  --line: rgba(92, 77, 95, .12);
-  --accent: #df8faa;
+  font-family: "Pretendard Rounded", "SUIT Rounded", "Cafe24 Ssurround", "Gmarket Sans", "Noto Sans KR", "Apple SD Gothic Neo", Pretendard, Inter, system-ui, sans-serif;
+  --display-font: "Pretendard Rounded", "SUIT Rounded", "Cafe24 Ssurround", "Gmarket Sans", "Noto Sans KR", "Apple SD Gothic Neo", Pretendard, Inter, system-ui, sans-serif;
+  --ink: #4a403a;
+  --muted: rgba(74, 64, 58, .62);
+  --bg-a: #fafaf8;
+  --bg-b: #fafaf8;
+  --bg-c: #f7fbfd;
+  --surface: rgba(255, 255, 255, .78);
+  --surface-strong: #ffffff;
+  --line: #eee8e2;
+  --accent: #f2bfc4;
+  --accent-soft: #f7d9d9;
+  --accent-blue: #ddebf3;
   --button: #46374b;
   --button-ink: #fffafc;
-  --shadow: 0 24px 70px rgba(102, 77, 112, .13);
-  --soft-shadow: 0 12px 26px rgba(122, 89, 132, .12), inset 0 1px 0 rgba(255,255,255,.74);
+  --shadow: 0 8px 24px rgba(0, 0, 0, .05);
+  --soft-shadow: 0 8px 24px rgba(0, 0, 0, .05), inset 0 1px 0 rgba(255,255,255,.78);
 }
 
 * { box-sizing: border-box; }
@@ -1745,15 +1747,15 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 /* MoodFit V3: Cloud Village */
 .moodfit-game.panel-v3-home,
 .moodfit-game[class*="panel-v3-"] {
-  background:
-    linear-gradient(180deg, #fffaf4 0 18%, #f2f8fb 19% 62%, #fff7ef 100%);
+  background: #fafaf8;
+  color: #4a403a;
 }
 
 .world-view {
   position: relative;
   width: min(1380px, calc(100vw - 44px));
-  margin: 14px auto 0;
-  padding-bottom: 34px;
+  margin: 18px auto 0;
+  padding-bottom: 48px;
   isolation: isolate;
 }
 
@@ -1791,19 +1793,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .cloud-village::before,
 .cloud-village::after,
 .cloud-village .floating-cloud {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  border: 3px solid rgba(132, 105, 94, .2);
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 20% 54%, #fff 0 22%, transparent 23%),
-    radial-gradient(circle at 42% 38%, #fff 0 28%, transparent 29%),
-    radial-gradient(circle at 66% 55%, #fff 0 26%, transparent 27%),
-    linear-gradient(#fff9f3, #fff9f3);
-  box-shadow: 0 16px 34px rgba(144, 111, 92, .08);
-  opacity: .72;
-  animation: cloudDrift 13s ease-in-out infinite;
+  display: none;
 }
 
 .cloud-village::before {
@@ -1838,14 +1828,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 }
 
 .cloud-village .twinkle-field span {
-  position: absolute;
-  width: 13px;
-  height: 13px;
-  transform: rotate(45deg);
-  border: 2px solid rgba(210, 137, 146, .48);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, .68);
-  animation: tinyTwinkle 2.8s ease-in-out infinite;
+  display: none;
 }
 
 .cloud-village .twinkle-field span:nth-child(1) { left: 27%; top: 76px; }
@@ -1856,11 +1839,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .world-room {
   position: relative;
   overflow: hidden;
-  border: 3px solid rgba(132, 105, 94, .38);
+  border: 1px solid #eee8e2;
   border-radius: 34px;
-  background:
-    linear-gradient(180deg, rgba(255, 251, 245, .96), rgba(255, 248, 239, .94));
-  box-shadow: 0 13px 0 rgba(132, 105, 94, .1), 0 28px 70px rgba(132, 105, 94, .13);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .05);
   animation: roomSlideIn .38s cubic-bezier(.2, .74, .22, 1);
 }
 
@@ -1877,53 +1859,37 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 }
 
 .v3-home-room::before {
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(circle at 12% 16%, rgba(255, 255, 255, .58) 0 5%, transparent 6%),
-    radial-gradient(circle at 86% 24%, rgba(255, 239, 243, .5) 0 6%, transparent 7%);
-  opacity: .72;
+  display: none;
 }
 
 .v3-home-room::after {
-  left: 4%;
-  right: 4%;
-  bottom: -28px;
-  z-index: 0;
-  height: 120px;
-  border-radius: 50% 50% 0 0;
-  background:
-    radial-gradient(circle at 8% 52%, rgba(236, 154, 169, .35) 0 9px, transparent 10px),
-    radial-gradient(circle at 12% 46%, rgba(255, 250, 244, .85) 0 5px, transparent 6px),
-    radial-gradient(circle at 86% 58%, rgba(236, 154, 169, .3) 0 8px, transparent 9px),
-    linear-gradient(90deg, transparent 0 25%, rgba(231, 202, 174, .26) 26% 74%, transparent 75%);
-  opacity: .72;
+  display: none;
 }
 
 .v3-home-room {
-  padding: clamp(18px, 2.4vw, 28px);
-  background:
-    linear-gradient(180deg, rgba(255, 251, 245, .96), rgba(255, 248, 239, .94));
+  padding: clamp(24px, 3vw, 40px);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .seasonal-hero-banner {
   position: relative;
   width: 100%;
-  margin: 0 0 18px;
+  height: clamp(450px, 38vw, 550px);
+  margin: 0 0 32px;
   overflow: hidden;
-  border: 3px solid rgba(132, 105, 94, .26);
+  border: 1px solid #eee8e2;
   border-radius: 32px;
-  background: rgba(255, 250, 244, .82);
-  box-shadow: 0 12px 0 rgba(132, 105, 94, .08), 0 26px 54px rgba(116, 91, 78, .12);
-  aspect-ratio: 3 / 1.35;
-  max-height: 560px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .05);
 }
 
 .seasonal-hero-banner img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   animation: seasonalFade .46s ease both;
 }
@@ -2042,7 +2008,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .collectible-card:hover,
 .map-place:hover,
 .world-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
+  border-color: #f7d9d9;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .07);
 }
 
 .world-primary:active,
@@ -2057,56 +2025,75 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .v3-home-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 18px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 0;
 }
 
 .world-card {
-  min-height: 190px;
-  grid-column: span 2;
-  padding: 18px;
-  border: 2px solid rgba(132, 105, 94, .28);
-  border-radius: 26px 28px 24px 30px;
-  background: rgba(255, 252, 247, .9);
-  box-shadow: 0 10px 0 rgba(132, 105, 94, .08), 0 18px 38px rgba(132, 105, 94, .08);
-  transition: transform .18s ease;
+  min-height: 184px;
+  grid-column: span 4;
+  padding: 24px;
+  border: 1px solid #eee8e2;
+  border-radius: 28px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .05);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 
-.world-card:nth-child(2),
-.world-card:nth-child(4) {
-  grid-column: span 2;
+.home-outfit-card {
+  grid-column: span 12;
+  min-height: 280px;
+  padding: clamp(26px, 3vw, 40px);
+  background:
+    linear-gradient(135deg, rgba(247, 217, 217, .38), transparent 38%),
+    linear-gradient(180deg, #ffffff, #ffffff);
+}
+
+.home-medium-card {
+  grid-column: span 6;
+}
+
+.home-small-card {
+  grid-column: span 4;
+  min-height: 160px;
 }
 
 .world-card header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .world-card header > span {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 16px;
-  background: #fff0f3;
-  color: #9a7066;
+  background: #f7d9d9;
+  color: #4a403a;
 }
 
 .world-card strong,
 .collectible-card strong,
 .room-panel-v3 h3 {
-  color: #5f4b44;
+  color: #4a403a;
+}
+
+.world-card header strong {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1.25;
 }
 
 .world-card small,
 .tiny-copy,
 .collectible-card p,
 .map-place span {
-  color: rgba(95, 75, 68, .68);
-  font-weight: 800;
+  color: rgba(74, 64, 58, .62);
+  font-weight: 750;
   line-height: 1.45;
 }
 
@@ -2118,10 +2105,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .mission-list-v3 label {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  min-height: 40px;
-  padding: 8px 10px;
+  min-height: 44px;
+  padding: 8px 12px;
   border-radius: 16px;
-  background: rgba(255, 241, 244, .6);
+  background: #fafaf8;
   font-size: 14px;
 }
 
@@ -2140,23 +2127,71 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .outfit-preview-v3 {
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 28px;
   align-items: center;
 }
 
-.outfit-preview-v3 p {
-  margin: 6px 0;
-  font-size: 13px;
-  line-height: 1.5;
+.home-outfit-card .mini-fit {
+  width: 128px;
+  min-height: 128px;
+  border-radius: 32px;
+  background: linear-gradient(135deg, #f7d9d9, #ddebf3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
 }
 
-.outfit-preview-v3 b {
+.outfit-preview-v3 strong {
+  display: block;
+  font-size: clamp(1.55rem, 3vw, 2.35rem);
+  line-height: 1.16;
+  letter-spacing: 0;
+}
+
+.outfit-preview-v3 p {
+  max-width: 760px;
+  margin: 10px 0 18px;
+  color: rgba(74, 64, 58, .66);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.score-strip-v3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.score-strip-v3 b,
+.score-strip-v3 span {
   display: inline-flex;
+  align-items: center;
+  min-height: 36px;
   padding: 7px 12px;
   border-radius: 999px;
-  color: #7a544e;
-  background: #ffe0e6;
+  color: #4a403a;
+  background: #fafaf8;
+  font-size: .9rem;
+  font-weight: 850;
+}
+
+.score-strip-v3 b {
+  background: #f7d9d9;
+}
+
+.palette-row-v3 {
+  display: flex;
+  gap: 8px;
+}
+
+.palette-row-v3 i {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
 }
 
 .metric-row,
@@ -2176,9 +2211,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   gap: 4px;
   min-height: 58px;
   padding: 10px 12px;
-  border: 2px solid rgba(132, 105, 94, .18);
+  border: 1px solid #eee8e2;
   border-radius: 18px;
-  background: rgba(234, 246, 251, .72);
+  background: #f8fbfd;
 }
 
 .metric-pill-v3 small {
@@ -2187,7 +2222,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 }
 
 .metric-pill-v3 b {
-  color: #5f4b44;
+  color: #4a403a;
   overflow-wrap: anywhere;
 }
 
@@ -2198,9 +2233,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .level-card-v3 span {
   height: 14px;
-  border: 2px solid rgba(132, 105, 94, .24);
+  border: 1px solid #eee8e2;
   border-radius: 999px;
-  background: linear-gradient(90deg, #ff9daf var(--xp), #fffaf4 var(--xp));
+  background: linear-gradient(90deg, #f7d9d9 var(--xp), #fafaf8 var(--xp));
 }
 
 .mini-closet-row {
@@ -2214,12 +2249,12 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   place-items: center;
   min-height: 44px;
   padding: 8px;
-  border: 2px solid rgba(132, 105, 94, .18);
+  border: 1px solid #eee8e2;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--fabric) 34%, #fffaf4);
-  color: #5f4b44;
+  background: color-mix(in srgb, var(--fabric) 22%, #ffffff);
+  color: #4a403a;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 820;
   text-align: center;
 }
 
@@ -2592,13 +2627,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 @media (max-width: 1180px) {
   .v3-home-grid,
   .map-grid-v3 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
   .world-card,
-  .world-card:nth-child(2),
-  .world-card:nth-child(4) {
-    grid-column: span 1;
+  .home-small-card {
+    grid-column: span 3;
+  }
+
+  .home-outfit-card,
+  .home-medium-card {
+    grid-column: span 6;
   }
 
   .studio-layout-v3,
@@ -2622,7 +2661,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   }
 
   .seasonal-hero-banner {
-    aspect-ratio: 3 / 2;
+    height: clamp(330px, 70vw, 460px);
     border-radius: 24px;
   }
 
@@ -2635,6 +2674,27 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   .badge-wall-v3,
   .magazine-strip {
     grid-template-columns: 1fr;
+  }
+
+  .world-card,
+  .home-outfit-card,
+  .home-medium-card,
+  .home-small-card {
+    grid-column: auto;
+  }
+
+  .v3-home-room {
+    padding: 16px;
+  }
+
+  .outfit-preview-v3 {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .home-outfit-card .mini-fit {
+    width: 100%;
+    min-height: 92px;
   }
 
   .room-header-v3 {
