@@ -453,10 +453,6 @@ function App() {
           <span className="brand-mark">🐾</span>
           <span><strong>골라줄개</strong><small>당신의 무드를 정해줄개</small></span>
         </button>
-        <label className="desktop-search">
-          <Search size={16} />
-          <input type="search" placeholder="옷, 무드, 일정 검색" />
-        </label>
         <nav className="nav main-tabs" aria-label="Main">
           <button className={activePanel === "v3-character" ? "active" : ""} onClick={() => setActivePanel("v3-character")} type="button"><UserRound size={16} />캐릭터</button>
           <button className={activePanel === "v3-closet" ? "active" : ""} onClick={() => setActivePanel("v3-closet")} type="button"><Shirt size={16} />옷장</button>
@@ -685,16 +681,21 @@ function AuthScreen({ t, onGuest, onAccount, setLanguage }) {
       <section className="entry-card auth-card">
         <div className="auth-hero pixel-auth-hero">
           <img src="/login-loading-banner.png" alt="골라줄개 로그인 배너" />
+          <div className="landing-slogan">
+            <strong>당신의 무드를 정해줄개</strong>
+            <p>오늘의 코디, 옷장, 무드를 골라줄개와 함께 시작해요.</p>
+          </div>
           <div className="language-options compact-language">
             <button onClick={() => setLanguage("ko")} type="button"><Globe2 />{t("korean")}</button>
             <button onClick={() => setLanguage("en")} type="button"><Globe2 />{t("english")}</button>
           </div>
         </div>
         <form className="auth-form" onSubmit={onAccount}>
-          <p className="eyebrow">{t("accountMode")}</p>
+          <p className="eyebrow">MOODFIT START</p>
+          <h2>골라줄개 시작하기</h2>
           <label><span>아이디</span><input name="username" type="text" autoComplete="username" placeholder="moodfit_id" /></label>
           <label><span>{t("password")}</span><input name="password" type="password" autoComplete="current-password" /></label>
-          <button className="primary" type="submit"><Mail size={16} />로그인</button>
+          <button className="primary start-button" type="submit"><Sparkles size={16} />시작할개</button>
           <button className="secondary" type="submit">회원가입</button>
           <button className="text-button" type="button">{t("resetPassword")}</button>
           <button className="guest-button" onClick={onGuest} type="button">{t("guestMode")}</button>
@@ -728,79 +729,68 @@ function WorldView(props) {
   );
 }
 
-function V3Home({ t, recommendation, scores, game, wardrobe, savedLooks, weather, fit, bodyProfile, mood, onEvent, homeBanner, setHomeBanner, setActivePanel }) {
+function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, fit, onEvent, homeBanner, setHomeBanner }) {
   const banner = mainBannerOptions.find((item) => item.id === homeBanner) || mainBannerOptions[0];
   const missions = [
     ["색 조합 저장하기", "보상 30 XP"],
     ["안 입은 옷 코디하기", "보상 12 코인"],
     ["오늘의 추천룩 입혀보기", "보상 배지 조각"],
   ];
-  const wearing = ["tops", "outerwear", "bottoms", "shoes"].map((slot) => fit[slot]).filter(Boolean);
 
   return (
-    <section className="world-room v3-home-room desktop-home">
-      <aside className="desktop-avatar-panel">
-        <div className="desktop-panel-head">
-          <span>캐릭터</span>
-          <button onClick={() => setActivePanel("v3-character")} type="button">꾸미기</button>
-        </div>
-        <div className="desktop-avatar-stage">
-          <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
-        </div>
-        <div className="character-stat-grid">
-          <MetricPill label="무드" value={t(mood)} />
-          <MetricPill label="패션 Lv." value={Math.max(1, game.petLevel + 9)} />
-          <MetricPill label="코인" value={`${game.coins}개`} />
-        </div>
-      </aside>
+    <section className="world-room v3-home-room">
+      <figure className={`seasonal-hero-banner main-art-banner banner-${banner.id}`} key={banner.id}>
+        <img src={banner.src} alt={`골라줄개 ${banner.label} 메인 배너`} />
+      </figure>
+      <div className="banner-picker" aria-label="메인 배너 선택">
+        {mainBannerOptions.map((item) => (
+          <button className={banner.id === item.id ? "active" : ""} key={item.id} onClick={() => setHomeBanner(item.id)} type="button">
+            {item.label}
+          </button>
+        ))}
+      </div>
 
-      <section className="desktop-center-panel">
-        <div className="desktop-hero-row">
-          <figure className={`seasonal-hero-banner main-art-banner banner-${banner.id}`} key={banner.id}>
-            <img src={banner.src} alt={`골라줄개 ${banner.label} 메인 배너`} />
-          </figure>
-          <div className="banner-picker" aria-label="메인 배너 선택">
-            {mainBannerOptions.map((item) => (
-              <button className={banner.id === item.id ? "active" : ""} key={item.id} onClick={() => setHomeBanner(item.id)} type="button">
-                {item.label}
-              </button>
-            ))}
+      <div className="v3-home-grid">
+        <WorldCard className="home-outfit-card" icon={<Sparkles size={20} />} title="오늘의 스타일 추천" note="오늘 뭐 입을지 3초 안에 볼 수 있게">
+          <div className="outfit-preview-v3">
+            <MiniFit fit={fit} />
+            <div>
+              <strong>{recommendation.name}</strong>
+              <p>{recommendation.explanation}</p>
+              <div className="score-strip-v3">
+                <b>{scores.total}점</b>
+                <span>컬러 {scores.color}</span>
+                <span>편안함 {scores.comfort}</span>
+                <span>트렌드 {scores.confidence}</span>
+              </div>
+              <div className="palette-row-v3">
+                {Object.values(fit).filter(Boolean).slice(0, 5).map((item) => <i key={item.id} style={{ "--swatch": item.color }} />)}
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div className="desktop-info-grid">
-          <WorldCard className="home-outfit-card" icon={<Sparkles size={20} />} title="오늘의 스타일 추천" note="3초 안에 오늘 룩 확인">
-            <strong>{recommendation.name}</strong>
-            <p>{recommendation.explanation}</p>
-            <div className="palette-row-v3">{wearing.map((item) => <i key={item.id} style={{ "--swatch": item.color }} />)}</div>
-          </WorldCard>
-          <WorldCard className="home-score-card" icon={<Trophy size={20} />} title="코디 점수" note="핏·색·편안함">
-            <div className="score-strip-v3"><b>{scores.total}점</b><span>컬러 {scores.color}</span><span>편안함 {scores.comfort}</span></div>
-          </WorldCard>
-          <WorldCard className="home-weather-card" icon={<Sun size={20} />} title="날씨" note="오늘 입기 좋은 기준">
-            <div className="metric-row"><MetricPill label="날씨" value={weather} /><MetricPill label="습도" value="62%" /><MetricPill label="UV" value="보통" /></div>
-          </WorldCard>
-        </div>
-      </section>
-
-      <section className="desktop-bottom-left">
-        <div className="desktop-panel-head">
-          <span>옷장</span>
-          <button onClick={() => setActivePanel("v3-closet")} type="button">전체 보기</button>
-        </div>
-        <div className="desktop-wardrobe-strip">
-          {wardrobe.slice(0, 8).map((item) => <button key={item.id} type="button"><span style={{ "--fabric": item.color }} /> <b>{item.name}</b></button>)}
-        </div>
-      </section>
-
-      <section className="desktop-bottom-right">
+        </WorldCard>
+        <WorldCard className="home-medium-card" icon={<Sun size={20} />} title="날씨 추천" note="날씨에 맞춰 가볍게">
+          <div className="metric-row"><MetricPill label="날씨" value={weather} /><MetricPill label="습도" value="62%" /><MetricPill label="UV" value="보통" /></div>
+          <p className="tiny-copy">비 오는데 흰 운동화는 위험할개!</p>
+        </WorldCard>
+        <WorldCard className="home-medium-card" icon={<Shirt size={20} />} title="옷장 요약" note="오늘 활용할 아이템">
+          <div className="mini-closet-row">
+            {wardrobe.slice(0, 4).map((item) => <span key={item.id} style={{ "--fabric": item.color }}>{item.name}</span>)}
+          </div>
+          <p className="tiny-copy">저장한 룩 {savedLooks.length}개, 옷장 아이템 {wardrobe.length}개</p>
+        </WorldCard>
         <WorldCard className="home-small-card" icon={<Check size={20} />} title="미션" note="오늘의 성장">
-          <div className="mission-list-v3">{missions.map(([title, reward]) => <label key={title}><input type="checkbox" /> <span>{title}</span><em>{reward}</em></label>)}</div>
+          <div className="mission-list-v3">
+            {missions.slice(0, 2).map(([title, reward]) => <label key={title}><input type="checkbox" /> <span>{title}</span><em>{reward}</em></label>)}
+          </div>
         </WorldCard>
         <WorldCard className="home-small-card" icon={<Gift size={20} />} title="이벤트" note="시즌 보상">
-          <EventCard title="봄 패션 페스티벌" label="D-7" copy="코디 저장하면 코인을 받을개" onClick={onEvent} />
+          <EventCard title="봄 패션 페스티벌" label="D-7" copy="파스텔 코디로 스카프와 코인을 받을개" onClick={onEvent} />
         </WorldCard>
-      </section>
+        <WorldCard className="home-small-card" icon={<Trophy size={20} />} title="랭킹" note="이번 주 감각">
+          <div className="level-card-v3"><strong>패션 Lv.{Math.max(1, game.petLevel + 9)}</strong><span style={{ "--xp": `${Math.min(100, (game.xp % 1000) / 10)}%` }} /><p>{game.xp} XP · {game.coins} 코인</p></div>
+        </WorldCard>
+      </div>
     </section>
   );
 }
@@ -2057,10 +2047,10 @@ function avatarVariables(profile) {
   const genderBoost = profile.gender === "male" ? 10 : profile.gender === "female" ? -2 : 0;
   const shoulderBoost = (bodyType === "upper" ? 24 : bodyType === "slim" ? -12 : bodyType === "softCurve" ? 8 : 0) + genderBoost;
   const hipBoost = bodyType === "lower" || bodyType === "softCurve" ? 22 : bodyType === "slim" ? -10 : profile.gender === "male" ? -4 : 0;
-  const heightScale = Math.min(1.06, Math.max(0.94, profile.height / 172));
-  const torsoHeight = 94 + (profile.torsoLength - 54) * 1.2;
-  const waistWidth = 78 + (profile.waist - 27) * 1.8;
-  const legHeight = 74 + (profile.legRatio - 50) * .8 + (profile.legLength - 92) * .62;
+  const heightScale = Math.min(1.13, Math.max(0.9, profile.height / 165));
+  const torsoHeight = 150 + (profile.torsoLength - 54) * 2.2;
+  const waistWidth = 92 + (profile.waist - 27) * 3.1;
+  const legHeight = 104 + (profile.legRatio - 50) * 1.5 + (profile.legLength - 92) * 1.25;
   const skinMap = {
     bright: "#f0b789",
     medium: "#d98b5d",
@@ -2070,11 +2060,11 @@ function avatarVariables(profile) {
   };
   return {
     "--avatar-scale": heightScale,
-    "--avatar-shoulder": `${104 + shoulderBoost * .58 + (profile.shoulder - 42) * 1.2}px`,
-    "--avatar-waist": `${Math.min(104, Math.max(66, waistWidth))}px`,
-    "--avatar-torso": `${Math.min(116, Math.max(82, torsoHeight))}px`,
-    "--avatar-hip": `${104 + hipBoost * .54 + (profile.waist - 27) * .8}px`,
-    "--avatar-leg": `${Math.min(98, Math.max(64, legHeight))}px`,
+    "--avatar-shoulder": `${126 + shoulderBoost + (profile.shoulder - 42) * 2}px`,
+    "--avatar-waist": `${Math.min(140, Math.max(82, waistWidth))}px`,
+    "--avatar-torso": `${Math.min(184, Math.max(132, torsoHeight))}px`,
+    "--avatar-hip": `${130 + hipBoost + (profile.waist - 27) * 1.2}px`,
+    "--avatar-leg": `${Math.min(136, Math.max(96, legHeight))}px`,
     "--avatar-skin": skinMap[profile.skinTone] || skinMap.medium,
   };
 }
