@@ -33,13 +33,13 @@ import "./index.css";
 
 const storageKey = "moodfit-premium-state-v2";
 const fashionCategories = [
-  ["tops", "TOP"],
-  ["bottoms", "BOTTOM"],
-  ["outerwear", "OUTER"],
-  ["shoes", "SHOES"],
-  ["bags", "BAG"],
-  ["accessories", "ACCESSORY"],
-  ["other", "OTHER"],
+  ["tops", "상의"],
+  ["bottoms", "하의"],
+  ["outerwear", "아우터"],
+  ["shoes", "신발"],
+  ["bags", "가방"],
+  ["accessories", "액세서리"],
+  ["other", "기타"],
 ];
 const subcategoryOptions = {
   tops: ["Basic T-Shirt", "Oversized T-Shirt", "Slim Fit T-Shirt", "Graphic T-Shirt", "Long Sleeve T-Shirt", "Oxford Shirt", "Dress Shirt", "Short Sleeve Shirt", "Denim Shirt", "Linen Shirt", "Pullover Hoodie", "Zip-Up Hoodie", "Oversized Hoodie", "Crewneck", "Oversized Crewneck", "Knit Sweater", "Turtleneck", "Cable Knit"],
@@ -55,6 +55,106 @@ const fitOptions = ["Slim Fit", "Regular Fit", "Relaxed Fit", "Oversized", "Wide
 const patternOptions = ["Solid", "Stripe", "Check", "Plaid", "Floral", "Graphic"];
 const neckOptions = ["Round Neck", "V Neck", "Turtleneck", "Collar"];
 const sleeveOptions = ["Short Sleeve", "Long Sleeve", "Sleeveless", "Raglan"];
+const fashionLabelMap = {
+  tops: "상의",
+  bottoms: "하의",
+  outerwear: "아우터",
+  shoes: "신발",
+  bags: "가방",
+  accessories: "액세서리",
+  other: "기타",
+  "Basic T-Shirt": "기본 티셔츠",
+  "Oversized T-Shirt": "오버핏 티셔츠",
+  "Slim Fit T-Shirt": "슬림핏 티셔츠",
+  "Graphic T-Shirt": "그래픽 티셔츠",
+  "Long Sleeve T-Shirt": "긴팔 티셔츠",
+  "Oxford Shirt": "옥스포드 셔츠",
+  "Dress Shirt": "드레스 셔츠",
+  "Short Sleeve Shirt": "반팔 셔츠",
+  "Denim Shirt": "데님 셔츠",
+  "Linen Shirt": "린넨 셔츠",
+  "Pullover Hoodie": "후드티",
+  "Zip-Up Hoodie": "집업 후드",
+  "Oversized Hoodie": "오버핏 후드",
+  Crewneck: "맨투맨",
+  "Oversized Crewneck": "오버핏 맨투맨",
+  "Knit Sweater": "니트",
+  Turtleneck: "터틀넥",
+  "Cable Knit": "케이블 니트",
+  "Skinny Jeans": "스키니 진",
+  "Straight Jeans": "일자 청바지",
+  "Wide Jeans": "와이드 진",
+  "Baggy Jeans": "배기 진",
+  Slacks: "슬랙스",
+  Chinos: "치노 팬츠",
+  "Cargo Pants": "카고 팬츠",
+  Joggers: "조거 팬츠",
+  "Denim Shorts": "데님 반바지",
+  "Athletic Shorts": "운동 반바지",
+  "Casual Shorts": "캐주얼 반바지",
+  "Mini Skirt": "미니 스커트",
+  "Midi Skirt": "미디 스커트",
+  "Long Skirt": "롱 스커트",
+  "Denim Jacket": "데님 재킷",
+  "Leather Jacket": "가죽 재킷",
+  Bomber: "봄버 재킷",
+  Harrington: "해링턴 재킷",
+  "Trench Coat": "트렌치코트",
+  "Long Coat": "롱코트",
+  "Wool Coat": "울 코트",
+  "Short Padding": "숏패딩",
+  "Long Padding": "롱패딩",
+  "Short Cardigan": "숏 가디건",
+  "Long Cardigan": "롱 가디건",
+  Sneakers: "스니커즈",
+  Loafers: "로퍼",
+  Boots: "부츠",
+  Slingback: "슬링백",
+  Sandals: "샌들",
+  "Shoulder Bag": "숄더백",
+  "Tote Bag": "토트백",
+  Backpack: "백팩",
+  "Mini Bag": "미니백",
+  Glasses: "안경",
+  Scarf: "스카프",
+  Necklace: "목걸이",
+  Hat: "모자",
+  "Fashion Item": "패션 아이템",
+  Cotton: "코튼",
+  Linen: "린넨",
+  Denim: "데님",
+  Wool: "울",
+  Cashmere: "캐시미어",
+  Polyester: "폴리에스터",
+  Nylon: "나일론",
+  Leather: "가죽",
+  Corduroy: "코듀로이",
+  Fleece: "플리스",
+  Silk: "실크",
+  "Slim Fit": "슬림핏",
+  "Regular Fit": "레귤러핏",
+  "Relaxed Fit": "릴랙스핏",
+  Oversized: "오버핏",
+  "Wide Fit": "와이드핏",
+  "Baggy Fit": "배기핏",
+  "Cropped Fit": "크롭핏",
+  Solid: "무지",
+  Stripe: "스트라이프",
+  Check: "체크",
+  Plaid: "플래드",
+  Floral: "플라워",
+  Graphic: "그래픽",
+  "Round Neck": "라운드넥",
+  "V Neck": "브이넥",
+  Collar: "카라",
+  "Short Sleeve": "반팔",
+  "Long Sleeve": "긴팔",
+  Sleeveless: "민소매",
+  Raglan: "래글런",
+  "Inner Layer": "이너",
+  "Middle Layer": "미들 레이어",
+  "Outer Layer": "아우터 레이어",
+};
 
 function App() {
   const stored = loadStoredState();
@@ -92,7 +192,8 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
   const [game, setGame] = useState(normalizeGame(stored.game));
-  const [profileName, setProfileName] = useState(stored.profileName || loadSession()?.username || "MoodFit Stylist");
+  const [profileName, setProfileName] = useState(stored.profileName || loadSession()?.username || "무드핏 스타일러");
+  const [profilePhoto, setProfilePhoto] = useState(stored.profilePhoto || "");
   const fileInputRef = useRef(null);
   const t = useMemo(() => createTranslator(language || "ko"), [language]);
   const recommendation = useMemo(
@@ -122,6 +223,7 @@ function App() {
         bodyProfile,
         game,
         profileName,
+        profilePhoto,
         ...next,
       })
     );
@@ -180,7 +282,7 @@ function App() {
       localStorage.setItem(storageKey, JSON.stringify({ ...saved, game: next }));
       return next;
     });
-    showToast(`${reason} +${xp} XP · +${coins} coins`);
+    showToast(`${reason} +${xp} XP · +${coins} 코인`);
   }
 
   function changeProfileName(event) {
@@ -193,7 +295,17 @@ function App() {
     setGame(nextGame);
     setProfileName(nextName);
     persist({ game: nextGame, profileName: nextName });
-    showToast("이름 바꿨을개 · -20 coins");
+    showToast("이름 바꿨을개 · -20 코인");
+  }
+
+  async function changeProfilePhoto(event) {
+    const file = event.target.files?.[0];
+    const image = await readImageFile(file);
+    event.target.value = "";
+    if (!image) return showToast("프로필 사진을 다시 골라줘");
+    setProfilePhoto(image);
+    persist({ profilePhoto: image });
+    showToast("프로필 사진 바꿨을개");
   }
 
   function generateStyling() {
@@ -378,7 +490,9 @@ function App() {
           fileInputRef={fileInputRef}
           game={game}
           profileName={profileName}
+          profilePhoto={profilePhoto}
           onRenameProfile={changeProfileName}
+          onProfilePhoto={changeProfilePhoto}
           savedLooks={savedLooks}
           session={session}
           onEvent={() => setEventOpen(true)}
@@ -605,7 +719,7 @@ function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, f
       </figure>
 
       <div className="v3-home-grid">
-        <WorldCard className="home-outfit-card" icon={<Sparkles size={20} />} title="Today's Style Recommendation" note="오늘 뭐 입을지 3초 안에 볼 수 있게">
+        <WorldCard className="home-outfit-card" icon={<Sparkles size={20} />} title="오늘의 스타일 추천" note="오늘 뭐 입을지 3초 안에 볼 수 있게">
           <div className="outfit-preview-v3">
             <MiniFit fit={fit} />
             <div>
@@ -623,26 +737,26 @@ function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, f
             </div>
           </div>
         </WorldCard>
-        <WorldCard className="home-medium-card" icon={<Sun size={20} />} title="Weather Recommendation" note="날씨에 맞춰 가볍게">
+        <WorldCard className="home-medium-card" icon={<Sun size={20} />} title="날씨 추천" note="날씨에 맞춰 가볍게">
           <div className="metric-row"><MetricPill label="날씨" value={weather} /><MetricPill label="습도" value="62%" /><MetricPill label="UV" value="보통" /></div>
           <p className="tiny-copy">비 오는데 흰 운동화는 위험할개!</p>
         </WorldCard>
-        <WorldCard className="home-medium-card" icon={<Shirt size={20} />} title="Wardrobe Summary" note="오늘 활용할 아이템">
+        <WorldCard className="home-medium-card" icon={<Shirt size={20} />} title="옷장 요약" note="오늘 활용할 아이템">
           <div className="mini-closet-row">
             {wardrobe.slice(0, 4).map((item) => <span key={item.id} style={{ "--fabric": item.color }}>{item.name}</span>)}
           </div>
           <p className="tiny-copy">저장한 룩 {savedLooks.length}개, 옷장 아이템 {wardrobe.length}개</p>
         </WorldCard>
-        <WorldCard className="home-small-card" icon={<Check size={20} />} title="Mission" note="오늘의 성장">
+        <WorldCard className="home-small-card" icon={<Check size={20} />} title="미션" note="오늘의 성장">
           <div className="mission-list-v3">
             {missions.slice(0, 2).map(([title, reward]) => <label key={title}><input type="checkbox" /> <span>{title}</span><em>{reward}</em></label>)}
           </div>
         </WorldCard>
-        <WorldCard className="home-small-card" icon={<Gift size={20} />} title="Event" note="시즌 보상">
-          <EventCard title="Spring Fashion Festival" label="D-7" copy="파스텔 코디로 스카프와 코인을 받을개" onClick={onEvent} />
+        <WorldCard className="home-small-card" icon={<Gift size={20} />} title="이벤트" note="시즌 보상">
+          <EventCard title="봄 패션 페스티벌" label="D-7" copy="파스텔 코디로 스카프와 코인을 받을개" onClick={onEvent} />
         </WorldCard>
-        <WorldCard className="home-small-card" icon={<Trophy size={20} />} title="Ranking" note="이번 주 감각">
-          <div className="level-card-v3"><strong>Fashion Lv.{Math.max(1, game.petLevel + 9)}</strong><span style={{ "--xp": `${Math.min(100, (game.xp % 1000) / 10)}%` }} /><p>{game.xp} XP · {game.coins} coins</p></div>
+        <WorldCard className="home-small-card" icon={<Trophy size={20} />} title="랭킹" note="이번 주 감각">
+          <div className="level-card-v3"><strong>패션 Lv.{Math.max(1, game.petLevel + 9)}</strong><span style={{ "--xp": `${Math.min(100, (game.xp % 1000) / 10)}%` }} /><p>{game.xp} XP · {game.coins} 코인</p></div>
         </WorldCard>
       </div>
     </section>
@@ -654,7 +768,7 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
 
   return (
     <section className="world-room room-split character-room-v3">
-      <RoomHeader eyebrow="Character Room" title="캐릭터룸" comment="아바타가 중심이 되는 꾸미기 공간" />
+      <RoomHeader eyebrow="캐릭터" title="캐릭터룸" comment="아바타가 중심이 되는 꾸미기 공간" />
       <div className="avatar-dressing-stage">
         <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
       </div>
@@ -680,11 +794,11 @@ function MagicCloset({ t, wardrobe, wear, addItem, onEditItem, onArchiveItem, on
 
   return (
     <section className="world-room magic-closet-v3">
-      <RoomHeader eyebrow="Magic Closet" title="마법 옷장" comment="수집한 옷과 태그가 먼저 보이는 옷장룸" />
+      <RoomHeader eyebrow="옷장" title="마법 옷장" comment="수집한 옷과 태그가 먼저 보이는 옷장룸" />
       <div className="wardrobe-analytics-v3">
         <MetricPill label="전체 옷" value={`${analytics.total}개`} />
         <MetricPill label="자주 입는 색" value={analytics.favoriteColor} />
-        <MetricPill label="대표 카테고리" value={analytics.favoriteCategory} />
+        <MetricPill label="대표 카테고리" value={fashionText(analytics.favoriteCategory)} />
         <MetricPill label="예상 가치" value={analytics.valueEstimate} />
         <MetricPill label="30일 미착용" value={`${analytics.unused30}개`} />
         <MetricPill label="보관함" value={`${archivedItems.length}개`} />
@@ -700,8 +814,8 @@ function MagicCloset({ t, wardrobe, wear, addItem, onEditItem, onArchiveItem, on
               <button className="collectible-wear" onClick={() => wear(item)} type="button" disabled={item.archived}>
               {item.image ? <img src={item.image} alt="" /> : <span className={`fabric pattern-${item.pattern || "plain"}`} style={{ "--fabric": item.color }} />}
               <strong>{item.name}</strong>
-              <p>{t(item.category)} · {item.season} · {item.pattern || "plain"}</p>
-              <div><em>{item.vibe || "casual"}</em><em>{item.styleCategory || "minimal"}</em></div>
+              <p>{t(item.category)} · {fashionText(item.subcategory || item.clothingType)} · {fashionText(item.pattern || "Solid")}</p>
+              <div><em>{fashionText(item.fitType || "Regular Fit")}</em><em>{fashionText(item.fabric || "Cotton")}</em></div>
               </button>
               <div className="wardrobe-actions-v3">
                 <button onClick={() => onEditItem(item)} type="button">편집</button>
@@ -731,7 +845,7 @@ function StyleStudio({ t, mood, setMood, fit, bodyProfile, recommendation, score
 
   return (
     <section className="world-room style-studio-v3">
-      <RoomHeader eyebrow="Style Studio" title="스타일 스튜디오" comment="날씨와 무드, 옷장 데이터를 합쳐 추천하는 공간" />
+      <RoomHeader eyebrow="스타일" title="스타일 스튜디오" comment="날씨와 무드, 옷장 데이터를 합쳐 추천하는 공간" />
       <div className="studio-layout-v3">
         <div className="studio-control-book">
           <div className="style-mode-grid-v3">
@@ -766,7 +880,7 @@ function FashionLab({ onUpload, wardrobe }) {
   const latest = wardrobe[0];
   return (
     <section className="world-room fashion-lab-v3">
-      <RoomHeader eyebrow="Fashion Lab" title="패션 분석실" comment="업로드한 사진과 분석 결과가 중심인 실험실" />
+      <RoomHeader eyebrow="사진" title="패션 분석실" comment="업로드한 사진과 분석 결과가 중심인 실험실" />
       <div className="photo-lab-grid-v3">
         <button className="upload-polaroid" onClick={onUpload} type="button">
           <Camera size={34} />
@@ -790,23 +904,25 @@ function FashionLab({ onUpload, wardrobe }) {
   );
 }
 
-function ProfilePage({ t, game, fit, mood, bodyProfile, wardrobe, savedLooks, profileName, onRenameProfile }) {
+function ProfilePage({ t, game, fit, mood, bodyProfile, wardrobe, savedLooks, profileName, profilePhoto, onRenameProfile, onProfilePhoto }) {
   const level = game.level || levelFromXp(game.xp);
   const achievements = buildAchievements({ game, wardrobe, savedLooks });
   const rank = titleForLevel(level);
 
   return (
     <section className="world-room profile-page-v3">
-      <RoomHeader eyebrow="Profile" title="프로필" comment="내 스타일 성장과 보상을 한눈에 보는 공간" />
+      <RoomHeader eyebrow="프로필" title="프로필" comment="내 스타일 성장과 보상을 한눈에 보는 공간" />
       <div className="profile-layout-v3">
         <div className="profile-template-card-v3">
-          <div className="profile-id-photo-v3">
-            <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
-          </div>
+          <label className="profile-id-photo-v3">
+            <input type="file" accept="image/*" onChange={onProfilePhoto} />
+            {profilePhoto ? <img src={profilePhoto} alt="프로필 사진" /> : <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />}
+            <span>사진 변경</span>
+          </label>
           <div className="profile-template-copy-v3">
-            <span>PROFILE CARD</span>
-            <strong>{profileName || "MoodFit Stylist"}</strong>
-            <p>{rank} · Fashion Lv.{level} · {game.streak || 1}일 streak</p>
+            <span>프로필 카드</span>
+            <strong>{profileName || "무드핏 스타일러"}</strong>
+            <p>{rank} · 패션 Lv.{level} · {game.streak || 1}일 연속</p>
             <form className="profile-rename-v3" onSubmit={onRenameProfile}>
               <input name="profileName" placeholder="새 이름" maxLength="18" />
               <button className="secondary" type="submit"><Coins size={15} />20코인 변경</button>
@@ -814,10 +930,10 @@ function ProfilePage({ t, game, fit, mood, bodyProfile, wardrobe, savedLooks, pr
           </div>
         </div>
         <div className="profile-stats-v3">
-          <MetricPill label="Coins" value={`${game.coins}개`} />
+          <MetricPill label="코인" value={`${game.coins}개`} />
           <MetricPill label="XP" value={`${game.xp} XP`} />
-          <MetricPill label="Fashion Rank" value={rank} />
-          <MetricPill label="Favorite Style" value={t(mood)} />
+          <MetricPill label="패션 랭크" value={rank} />
+          <MetricPill label="선호 스타일" value={t(mood)} />
         </div>
         <div className="achievement-grid-v3">
           {achievements.map((item) => <span className={item.unlocked ? "unlocked" : ""} key={item.name}><Medal size={16} />{item.name}</span>)}
@@ -839,19 +955,19 @@ function MissionPage({ award, game }) {
 
   return (
     <section className="world-room mission-page-v3">
-      <RoomHeader eyebrow="Mission" title="데일리 미션" comment="매일 열고 싶은 성장 루프를 만드는 공간" />
+      <RoomHeader eyebrow="미션" title="데일리 미션" comment="매일 열고 싶은 성장 루프를 만드는 공간" />
       <div className="mission-layout-v3">
         <div className="daily-mission-grid-v3">
           {missions.map(([id, title, xp, coins]) => (
             <button key={id} onClick={() => award(title, xp, coins)} type="button">
               <Check size={17} />
               <strong>{title}</strong>
-              <span>+{xp} XP · +{coins} coins</span>
+              <span>+{xp} XP · +{coins} 코인</span>
             </button>
           ))}
         </div>
         <aside className="streak-panel-v3">
-          <strong>Streak Bonus</strong>
+          <strong>연속 접속 보상</strong>
           <p>현재 {game.streak || 1}일 · 오래 열수록 보상이 커져요.</p>
           <div>{streakMilestones.map((day) => <span className={(game.streak || 1) >= day ? "active" : ""} key={day}>{day}일</span>)}</div>
         </aside>
@@ -870,13 +986,13 @@ function HallOfFame({ game, scores, wardrobe, savedLooks }) {
 
   return (
     <section className="world-room hall-v3">
-      <RoomHeader eyebrow="Hall of Fame" title="패션 명예의 전당" comment="랭킹, 배지, 챌린지 성장을 한눈에 보는 공간" />
+      <RoomHeader eyebrow="랭킹" title="패션 명예의 전당" comment="랭킹, 배지, 챌린지 성장을 한눈에 보는 공간" />
       <div className="hall-layout-v3">
         <div className="trophy-shelf">
           {ranks.map(([name, score], index) => <article key={name}><b>{index + 1}</b><strong>{name}</strong><span>{score}점</span></article>)}
         </div>
         <div className="badge-wall-v3">
-          {["Fashion Explorer", "Color Master", "Rainy Day Stylist", "Minimalist Genius", "Closet Collector", "Scarf Friend"].map((badge, index) => (
+          {["패션 탐험가", "컬러 마스터", "비 오는 날 스타일러", "미니멀 천재", "옷장 수집가", "스카프 친구"].map((badge, index) => (
             <span className={index < Math.min(5, game.petLevel) ? "earned" : ""} key={badge}>{badge}</span>
           ))}
         </div>
@@ -898,7 +1014,7 @@ function MoodVillageMap({ setActivePanel, session, game, onEvent }) {
 
   return (
     <section className="world-room village-map-v3">
-      <RoomHeader eyebrow="Mood Village Map" title="무드 마을 지도" comment="어디로 갈지 골라줄개!" />
+      <RoomHeader eyebrow="지도" title="무드 마을 지도" comment="어디로 갈지 골라줄개!" />
       <div className="map-grid-v3">
         {places.map(([title, copy, panel, icon], index) => (
           <button key={title} className={`map-place place-${index}`} onClick={() => title === "이벤트 광장" ? onEvent() : setActivePanel(panel)} type="button">
@@ -908,7 +1024,7 @@ function MoodVillageMap({ setActivePanel, session, game, onEvent }) {
       </div>
       <aside className="user-passport-v3">
         <strong>{session?.mode === "guest" ? "게스트 스타일러" : "MoodFit 스타일러"}</strong>
-        <p>Fashion Lv.{Math.max(1, game.petLevel + 9)} · {game.coins} coins</p>
+        <p>패션 Lv.{Math.max(1, game.petLevel + 9)} · {game.coins} 코인</p>
         <AssistantNote tone="brand" text="네 취향 기록은 소중히 지켜줄개!" />
       </aside>
     </section>
@@ -970,18 +1086,18 @@ function ItemEditor({ item, onClose, onSave }) {
         <button className="close-button" onClick={onClose} type="button"><X size={18} /></button>
         <h3>옷 정보 편집</h3>
         <label><span>이름</span><input name="name" defaultValue={item.name} /></label>
-        <label><span>Category</span><select name="category" defaultValue={item.category}>{fashionCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-        <label><span>Subcategory</span><select name="subcategory" defaultValue={item.subcategory || item.clothingType}>{Object.values(subcategoryOptions).flat().map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-        <label><span>Fit</span><select name="fitType" defaultValue={item.fitType || "Regular Fit"}>{fitOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-        <label><span>Fabric</span><select name="fabric" defaultValue={item.fabric || "Cotton"}>{fabricOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label><span>카테고리</span><select name="category" defaultValue={item.category}>{fashionCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        <label><span>세부 종류</span><select name="subcategory" defaultValue={item.subcategory || item.clothingType}>{Object.values(subcategoryOptions).flat().map((value) => <option key={value} value={value}>{fashionText(value)}</option>)}</select></label>
+        <label><span>핏</span><select name="fitType" defaultValue={item.fitType || "Regular Fit"}>{fitOptions.map((value) => <option key={value} value={value}>{fashionText(value)}</option>)}</select></label>
+        <label><span>소재</span><select name="fabric" defaultValue={item.fabric || "Cotton"}>{fabricOptions.map((value) => <option key={value} value={value}>{fashionText(value)}</option>)}</select></label>
         <label><span>시즌</span><input name="season" defaultValue={item.season} /></label>
         <label><span>무드</span><input name="vibe" defaultValue={item.vibe} /></label>
-        <label><span>패턴</span><select name="pattern" defaultValue={item.pattern || "Solid"}>{patternOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-        <label><span>Neck</span><select name="neckType" defaultValue={item.neckType || inferNeckType(item.subcategory)}>{neckOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-        <label><span>Sleeve</span><select name="sleeveType" defaultValue={item.sleeveType || inferSleeveType(item.subcategory)}>{sleeveOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-        <label><span>Primary</span><input name="primaryColor" type="color" defaultValue={item.primaryColor || item.color || "#eadcc7"} /></label>
-        <label><span>Secondary</span><input name="secondaryColor" type="color" defaultValue={item.secondaryColor || "#ddebf3"} /></label>
-        <label><span>Accent</span><input name="accentColor" type="color" defaultValue={item.accentColor || "#f7d9d9"} /></label>
+        <label><span>패턴</span><select name="pattern" defaultValue={item.pattern || "Solid"}>{patternOptions.map((value) => <option key={value} value={value}>{fashionText(value)}</option>)}</select></label>
+        <label><span>목 형태</span><select name="neckType" defaultValue={item.neckType || inferNeckType(item.subcategory)}>{neckOptions.map((value) => <option key={value} value={value}>{fashionText(value)}</option>)}</select></label>
+        <label><span>소매</span><select name="sleeveType" defaultValue={item.sleeveType || inferSleeveType(item.subcategory)}>{sleeveOptions.map((value) => <option key={value} value={value}>{fashionText(value)}</option>)}</select></label>
+        <label><span>메인 색상</span><input name="primaryColor" type="color" defaultValue={item.primaryColor || item.color || "#eadcc7"} /></label>
+        <label><span>보조 색상</span><input name="secondaryColor" type="color" defaultValue={item.secondaryColor || "#ddebf3"} /></label>
+        <label><span>포인트 색상</span><input name="accentColor" type="color" defaultValue={item.accentColor || "#f7d9d9"} /></label>
         <label><span>스타일</span><input name="styleCategory" defaultValue={item.styleCategory} /></label>
         <button className="primary" type="submit">저장</button>
       </form>
@@ -1218,20 +1334,20 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
         </div>
         <div className="composer-grid">
           <label><span>{t("itemName")}</span><input name="name" placeholder="Cashmere knit, satin blazer" /></label>
-          <label><span>Category</span><select name="category">{fashionCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label><span>Subcategory</span><select name="subcategory">{Object.values(subcategoryOptions).flat().map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <label><span>Season</span><input name="season" placeholder="spring / summer / fall / winter" /></label>
-          <label><span>Primary Color</span><input name="primaryColor" type="color" defaultValue="#eadcc7" /></label>
-          <label><span>Secondary Color</span><input name="secondaryColor" type="color" defaultValue="#ddebf3" /></label>
-          <label><span>Accent Color</span><input name="accentColor" type="color" defaultValue="#f7d9d9" /></label>
+          <label><span>카테고리</span><select name="category">{fashionCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label><span>세부 종류</span><select name="subcategory">{Object.values(subcategoryOptions).flat().map((item) => <option key={item} value={item}>{fashionText(item)}</option>)}</select></label>
+          <label><span>시즌</span><input name="season" placeholder="봄 / 여름 / 가을 / 겨울" /></label>
+          <label><span>메인 색상</span><input name="primaryColor" type="color" defaultValue="#eadcc7" /></label>
+          <label><span>보조 색상</span><input name="secondaryColor" type="color" defaultValue="#ddebf3" /></label>
+          <label><span>포인트 색상</span><input name="accentColor" type="color" defaultValue="#f7d9d9" /></label>
           <label><span>{t("vibe")}</span><input name="vibe" defaultValue={t(mood)} /></label>
           <label><span>{t("occasion")}</span><input name="occasion" placeholder="daily, date, office, campus" /></label>
-          <label className="wide-field"><span>{t("styleCategory")}</span><input name="styleCategory" placeholder="quiet luxury, clean fit, street, cozy" /></label>
-          <label><span>Fabric</span><select name="fabric">{fabricOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <label><span>Pattern</span><select name="pattern">{patternOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <label><span>Neck Type</span><select name="neckType">{neckOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <label><span>Sleeve Type</span><select name="sleeveType">{sleeveOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <label><span>Layer</span><select name="layerSlot"><option>Inner Layer</option><option>Middle Layer</option><option>Outer Layer</option></select></label>
+          <label className="wide-field"><span>{t("styleCategory")}</span><input name="styleCategory" placeholder="꾸안꾸, 미니멀, 스트릿, 포근한 무드" /></label>
+          <label><span>소재</span><select name="fabric">{fabricOptions.map((item) => <option key={item} value={item}>{fashionText(item)}</option>)}</select></label>
+          <label><span>패턴</span><select name="pattern">{patternOptions.map((item) => <option key={item} value={item}>{fashionText(item)}</option>)}</select></label>
+          <label><span>목 형태</span><select name="neckType">{neckOptions.map((item) => <option key={item} value={item}>{fashionText(item)}</option>)}</select></label>
+          <label><span>소매</span><select name="sleeveType">{sleeveOptions.map((item) => <option key={item} value={item}>{fashionText(item)}</option>)}</select></label>
+          <label><span>레이어</span><select name="layerSlot"><option value="Inner Layer">이너</option><option value="Middle Layer">미들 레이어</option><option value="Outer Layer">아우터 레이어</option></select></label>
           <label className="photo-upload wide-field">
             <span><Camera size={18} />{t("upload")}</span>
             <input name="photo" type="file" accept="image/*" />
@@ -1243,7 +1359,7 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
             {fitOptions.map((key) => (
               <label key={key}>
                 <input name="fitType" type="radio" value={key} defaultChecked={key === "Regular Fit"} />
-                <span><Shirt size={16} />{key}</span>
+                <span><Shirt size={16} />{fashionText(key)}</span>
               </label>
             ))}
           </div>
@@ -1420,6 +1536,10 @@ function scoreOutfit({ fit, weather, mood, eventType }) {
 
 function token(value, fallback = "basic") {
   return String(value || fallback).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || fallback;
+}
+
+function fashionText(value) {
+  return fashionLabelMap[value] || value || "";
 }
 
 function inferSubcategory(category, clothingType) {
@@ -1699,7 +1819,7 @@ function PlatformLayer({ t, wardrobe, savedLooks, fit }) {
     {
       title: t("fashionFeedTitle"),
       copy: t("fashionFeedCopy"),
-      stat: strongestCategory,
+      stat: fashionText(strongestCategory),
       visual: <div className="feed-preview">{palette.map((color, index) => <span key={`${color}-${index}`} style={{ "--tone": color }} />)}</div>,
     },
     {
@@ -1774,13 +1894,13 @@ function levelFromXp(xp = 0) {
 }
 
 function titleForLevel(level = 1) {
-  if (level >= 9) return "Runway Director";
-  if (level >= 7) return "Style King";
-  if (level >= 5) return "Color Master";
-  if (level >= 4) return "Trend Master";
-  if (level >= 3) return "Closet Curator";
-  if (level >= 2) return "Fashion Explorer";
-  return "Fashion Beginner";
+  if (level >= 9) return "런웨이 디렉터";
+  if (level >= 7) return "스타일 킹";
+  if (level >= 5) return "컬러 마스터";
+  if (level >= 4) return "트렌드 마스터";
+  if (level >= 3) return "옷장 큐레이터";
+  if (level >= 2) return "패션 탐험가";
+  return "패션 입문자";
 }
 
 function normalizeGame(game = {}) {
@@ -1823,15 +1943,15 @@ function countBy(items, key) {
 function buildAchievements({ game, wardrobe, savedLooks }) {
   const level = game.level || levelFromXp(game.xp);
   return [
-    { name: "Fashion Beginner", unlocked: game.xp >= 100 },
-    { name: "Closet Organizer", unlocked: wardrobe.length >= 5 },
-    { name: "Fashion Explorer", unlocked: level >= 2 },
-    { name: "Closet Curator", unlocked: level >= 3 },
-    { name: "Trend Master", unlocked: level >= 4 },
-    { name: "Color Master", unlocked: level >= 5 },
-    { name: "Weather Expert", unlocked: savedLooks.length >= 2 },
-    { name: "Style King", unlocked: level >= 7 },
-    { name: "100 Outfit Creator", unlocked: savedLooks.length >= 100 },
+    { name: "패션 입문자", unlocked: game.xp >= 100 },
+    { name: "옷장 정리러", unlocked: wardrobe.length >= 5 },
+    { name: "패션 탐험가", unlocked: level >= 2 },
+    { name: "옷장 큐레이터", unlocked: level >= 3 },
+    { name: "트렌드 마스터", unlocked: level >= 4 },
+    { name: "컬러 마스터", unlocked: level >= 5 },
+    { name: "날씨 스타일러", unlocked: savedLooks.length >= 2 },
+    { name: "스타일 킹", unlocked: level >= 7 },
+    { name: "100룩 크리에이터", unlocked: savedLooks.length >= 100 },
   ];
 }
 
