@@ -2446,6 +2446,221 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   font-weight: 900;
 }
 
+.wardrobe-analytics-v3,
+.profile-stats-v3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.collectible-card.is-archived {
+  opacity: .58;
+  background: #fafaf8;
+}
+
+.collectible-wear {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+}
+
+.collectible-wear:disabled {
+  cursor: not-allowed;
+}
+
+.wardrobe-actions-v3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.wardrobe-actions-v3 button {
+  min-height: 34px;
+  border: 1px solid #eee8e2;
+  border-radius: 12px;
+  color: #4a403a;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.wardrobe-actions-v3 button.danger {
+  color: #9a4f4f;
+  background: #fff3f3;
+}
+
+.style-mode-grid-v3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.style-mode-grid-v3 button {
+  min-height: 38px;
+  border: 1px solid #eee8e2;
+  border-radius: 14px;
+  color: #4a403a;
+  background: #fafaf8;
+  font-weight: 850;
+}
+
+.profile-page-v3,
+.mission-page-v3 {
+  padding: clamp(18px, 3vw, 34px);
+}
+
+.profile-layout-v3,
+.mission-layout-v3 {
+  display: grid;
+  grid-template-columns: minmax(280px, .65fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.profile-avatar-card-v3,
+.streak-panel-v3,
+.item-editor-modal,
+.confirm-modal-v3 {
+  border: 1px solid #eee8e2;
+  border-radius: 28px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0,0,0,.05);
+}
+
+.profile-avatar-card-v3 {
+  display: grid;
+  place-items: center;
+  min-height: 520px;
+  padding: 18px;
+}
+
+.profile-avatar-card-v3 strong {
+  font-size: 1.35rem;
+}
+
+.profile-stats-v3 {
+  align-content: start;
+  margin-bottom: 0;
+}
+
+.achievement-grid-v3,
+.daily-mission-grid-v3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.achievement-grid-v3 span,
+.daily-mission-grid-v3 button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 58px;
+  padding: 12px;
+  border: 1px solid #eee8e2;
+  border-radius: 18px;
+  color: rgba(74,64,58,.56);
+  background: #fafaf8;
+  font-weight: 850;
+}
+
+.achievement-grid-v3 span.unlocked,
+.daily-mission-grid-v3 button:hover {
+  color: #4a403a;
+  background: #fff;
+  border-color: #f7d9d9;
+}
+
+.daily-mission-grid-v3 button {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.daily-mission-grid-v3 button span {
+  margin-left: auto;
+  color: #c78391;
+  font-size: 12px;
+}
+
+.streak-panel-v3 {
+  padding: 18px;
+}
+
+.streak-panel-v3 div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.streak-panel-v3 span {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #fafaf8;
+  font-weight: 850;
+}
+
+.streak-panel-v3 span.active {
+  background: #f7d9d9;
+}
+
+.item-editor-modal,
+.confirm-modal-v3 {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  width: min(460px, 100%);
+  padding: 24px;
+}
+
+.confirm-modal-v3 div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.danger-primary {
+  background: #9a4f4f !important;
+}
+
+.bottom-nav-v3 {
+  position: sticky;
+  bottom: 12px;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  width: min(720px, calc(100vw - 24px));
+  margin: 18px auto 0;
+  padding: 8px;
+  border: 1px solid #eee8e2;
+  border-radius: 24px;
+  background: rgba(255,255,255,.88);
+  box-shadow: 0 8px 24px rgba(0,0,0,.07);
+  backdrop-filter: blur(12px);
+}
+
+.bottom-nav-v3 button {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  min-height: 54px;
+  border-radius: 18px;
+  color: rgba(74,64,58,.56);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.bottom-nav-v3 button.active {
+  color: #4a403a;
+  background: #f7d9d9;
+}
+
 .studio-layout-v3 {
   display: grid;
   grid-template-columns: minmax(280px, .9fr) minmax(260px, .7fr) minmax(280px, .8fr);
@@ -2704,6 +2919,26 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
   .room-header-v3 {
     flex-direction: column;
+  }
+
+  .profile-layout-v3,
+  .mission-layout-v3 {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-avatar-card-v3 {
+    min-height: 460px;
+  }
+
+  .bottom-nav-v3 {
+    bottom: 8px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    border-radius: 20px;
+  }
+
+  .bottom-nav-v3 button {
+    min-height: 48px;
+    font-size: 10px;
   }
 
   .avatar-dressing-stage,

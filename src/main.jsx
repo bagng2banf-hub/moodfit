@@ -63,10 +63,12 @@ function App() {
   const [toast, setToast] = useState("");
   const [lastRequestAt, setLastRequestAt] = useState(0);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
   const [avatarWardrobeOpen, setAvatarWardrobeOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
-  const [game, setGame] = useState(stored.game || { xp: 420, coins: 86, petLevel: 3, streak: 4 });
+  const [game, setGame] = useState(normalizeGame(stored.game));
   const fileInputRef = useRef(null);
   const t = useMemo(() => createTranslator(language || "ko"), [language]);
   const recommendation = useMemo(
@@ -138,11 +140,14 @@ function App() {
   }
 
   function award(reason, xp = 25, coins = 6) {
+    const nextXp = game.xp + xp;
     const next = {
-      xp: game.xp + xp,
+      ...game,
+      xp: nextXp,
       coins: game.coins + coins,
-      petLevel: Math.max(game.petLevel, Math.floor((game.xp + xp) / 180) + 1),
-      streak: game.streak,
+      level: levelFromXp(nextXp),
+      petLevel: levelFromXp(nextXp),
+      streak: game.streak || 1,
     };
     setGame(next);
     const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
@@ -168,6 +173,7 @@ function App() {
   }
 
   function wear(item) {
+    if (item.archived) return showToast("보관된 옷은 복원 후 입을 수 있어요");
     const nextFit = { ...fit, [item.category]: item };
     setFit(nextFit);
     setMood(item.mood || mood);
@@ -228,6 +234,34 @@ function App() {
     event.target.value = "";
   }
 
+  function updateWardrobeItem(itemId, patch) {
+    const nextWardrobe = wardrobe.map((item) => item.id === itemId ? { ...item, ...patch, updatedAt: new Date().toISOString() } : item);
+    const nextFit = Object.fromEntries(Object.entries(fit).map(([slot, item]) => [slot, item?.id === itemId ? { ...item, ...patch } : item]));
+    setWardrobe(nextWardrobe);
+    setFit(nextFit);
+    persist({ wardrobe: nextWardrobe, fit: nextFit });
+    showToast("옷 정보를 저장했어요");
+  }
+
+  function archiveWardrobeItem(itemId) {
+    updateWardrobeItem(itemId, { archived: true, archivedAt: new Date().toISOString() });
+  }
+
+  function restoreWardrobeItem(itemId) {
+    updateWardrobeItem(itemId, { archived: false, archivedAt: "" });
+  }
+
+  function confirmDeleteWardrobeItem() {
+    if (!pendingDelete) return;
+    const nextWardrobe = wardrobe.filter((item) => item.id !== pendingDelete.id);
+    const nextFit = Object.fromEntries(Object.entries(fit).map(([slot, item]) => [slot, item?.id === pendingDelete.id ? null : item]));
+    setWardrobe(nextWardrobe);
+    setFit(nextFit);
+    persist({ wardrobe: nextWardrobe, fit: nextFit });
+    setPendingDelete(null);
+    award("옷장 정리", 10, 2);
+  }
+
   if (entryStep === "auth") {
     return <AuthScreen t={t} onGuest={continueGuest} onAccount={handleAccount} setLanguage={setLanguage} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />;
   }
@@ -250,7 +284,7 @@ function App() {
           <button className={activePanel === "v3-map" ? "active" : ""} onClick={() => setActivePanel("v3-map")} type="button"><Trees size={16} />마을지도</button>
         </nav>
         <div className="header-actions">
-          <button className="status-pill" onClick={() => setActivePanel("v3-map")} type="button"><UserRound size={15} />사용자 정보</button>
+          <button className="status-pill" onClick={() => setActivePanel("v3-profile")} type="button"><UserRound size={15} />프로필</button>
           <button className="settings-bubble" onClick={() => setActivePanel("settings")} type="button" aria-label="설정"><Settings size={24} /><span>설정</span></button>
         </div>
       </header>
@@ -269,6 +303,10 @@ function App() {
           wardrobe={wardrobe}
           wear={wear}
           addItem={addItem}
+          onEditItem={setEditingItem}
+          onArchiveItem={archiveWardrobeItem}
+          onRestoreItem={restoreWardrobeItem}
+          onDeleteItem={setPendingDelete}
           recommendation={recommendation}
           scores={scores}
           brief={brief}
@@ -283,6 +321,7 @@ function App() {
           setAesthetic={setAesthetic}
           generateStyling={generateStyling}
           saveLook={saveLook}
+          award={award}
           fileInputRef={fileInputRef}
           game={game}
           savedLooks={savedLooks}
@@ -376,6 +415,8 @@ function App() {
         </div>
       </section>}
       {composerOpen && <ItemComposer t={t} mood={mood} onClose={() => setComposerOpen(false)} onSubmit={saveDetailedItem} />}
+      {editingItem && <ItemEditor item={editingItem} onClose={() => setEditingItem(null)} onSave={updateWardrobeItem} />}
+      {pendingDelete && <ConfirmModal title="정말 삭제할까요?" copy={`${pendingDelete.name} 아이템은 옷장에서 완전히 사라져요.`} onCancel={() => setPendingDelete(null)} onConfirm={confirmDeleteWardrobeItem} />}
       {eventOpen && <EventPopup onClose={() => setEventOpen(false)} />}
 
       {!activeWorld && (activePanel === "looks" || showAll) && <section id="looks" className="lookbook panel-view">
@@ -421,6 +462,7 @@ function App() {
           onClose={() => setSettingsOpen(false)}
         />
       )}
+      {activeWorld && <BottomNav activePanel={activePanel} setActivePanel={setActivePanel} />}
     </main>
   );
 }
@@ -478,6 +520,8 @@ function WorldView(props) {
     "v3-closet": <MagicCloset {...props} />,
     "v3-style": <StyleStudio {...props} />,
     "v3-photo": <FashionLab {...props} />,
+    "v3-profile": <ProfilePage {...props} />,
+    "v3-mission": <MissionPage {...props} />,
     "v3-ranking": <HallOfFame {...props} />,
     "v3-map": <MoodVillageMap {...props} />,
   };
@@ -574,25 +618,45 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
   );
 }
 
-function MagicCloset({ t, wardrobe, wear, addItem }) {
+function MagicCloset({ t, wardrobe, wear, addItem, onEditItem, onArchiveItem, onRestoreItem, onDeleteItem }) {
   const categoriesKo = ["상의", "하의", "신발", "아우터", "가방"];
+  const activeItems = wardrobe.filter((item) => !item.archived);
+  const archivedItems = wardrobe.filter((item) => item.archived);
+  const analytics = buildWardrobeAnalytics(wardrobe);
 
   return (
     <section className="world-room magic-closet-v3">
       <RoomHeader eyebrow="Magic Closet" title="마법 옷장" comment="수집한 옷과 태그가 먼저 보이는 옷장룸" />
+      <div className="wardrobe-analytics-v3">
+        <MetricPill label="전체 옷" value={`${analytics.total}개`} />
+        <MetricPill label="자주 입는 색" value={analytics.favoriteColor} />
+        <MetricPill label="대표 카테고리" value={analytics.favoriteCategory} />
+        <MetricPill label="예상 가치" value={analytics.valueEstimate} />
+        <MetricPill label="30일 미착용" value={`${analytics.unused30}개`} />
+        <MetricPill label="보관함" value={`${archivedItems.length}개`} />
+      </div>
       <div className="storybook-closet">
         <aside className="closet-tabs-v3">
           {categoriesKo.map((item) => <button key={item} type="button">{item}</button>)}
           <button className="world-primary" onClick={addItem} type="button"><Upload size={16} />옷 등록할개</button>
         </aside>
         <div className="collectible-grid">
-          {wardrobe.map((item) => (
-            <button className="collectible-card" key={item.id} onClick={() => wear(item)} type="button">
+          {[...activeItems, ...archivedItems].map((item) => (
+            <article className={`collectible-card ${item.archived ? "is-archived" : ""}`} key={item.id}>
+              <button className="collectible-wear" onClick={() => wear(item)} type="button" disabled={item.archived}>
               {item.image ? <img src={item.image} alt="" /> : <span className={`fabric pattern-${item.pattern || "plain"}`} style={{ "--fabric": item.color }} />}
               <strong>{item.name}</strong>
               <p>{t(item.category)} · {item.season} · {item.pattern || "plain"}</p>
               <div><em>{item.vibe || "casual"}</em><em>{item.styleCategory || "minimal"}</em></div>
-            </button>
+              </button>
+              <div className="wardrobe-actions-v3">
+                <button onClick={() => onEditItem(item)} type="button">편집</button>
+                {item.archived
+                  ? <button onClick={() => onRestoreItem(item.id)} type="button">복원</button>
+                  : <button onClick={() => onArchiveItem(item.id)} type="button">보관</button>}
+                <button className="danger" onClick={() => onDeleteItem(item)} type="button">삭제</button>
+              </div>
+            </article>
           ))}
         </div>
       </div>
@@ -601,11 +665,24 @@ function MagicCloset({ t, wardrobe, wear, addItem }) {
 }
 
 function StyleStudio({ t, mood, setMood, fit, bodyProfile, recommendation, scores, brief, setBrief, weather, setWeather, schedule, setSchedule, eventType, setEventType, aesthetic, setAesthetic, generateStyling, saveLook }) {
+  const styleModes = [
+    ["Daily", "daily outfit", "데일리"],
+    ["Weather", weather, "날씨"],
+    ["Event", "event styling", "이벤트"],
+    ["School", "school day", "학교"],
+    ["Date", "date outfit", "데이트"],
+    ["Interview", "interview", "면접"],
+    ["Travel", "travel outfit", "여행"],
+  ];
+
   return (
     <section className="world-room style-studio-v3">
       <RoomHeader eyebrow="Style Studio" title="스타일 스튜디오" comment="날씨와 무드, 옷장 데이터를 합쳐 추천하는 공간" />
       <div className="studio-layout-v3">
         <div className="studio-control-book">
+          <div className="style-mode-grid-v3">
+            {styleModes.map(([label, nextSchedule, ko]) => <button key={label} onClick={() => { setSchedule(nextSchedule); setEventType(label.toLowerCase()); }} type="button">{ko}</button>)}
+          </div>
           <label><span>오늘 기분</span><textarea value={brief} placeholder="예: 비 오는 날 카페 데이트, 차분하지만 예쁘게" onChange={(event) => setBrief(event.target.value)} /></label>
           <div className="control-grid-v3">
             <label><span>날씨</span><input value={weather} onChange={(event) => setWeather(event.target.value)} /></label>
@@ -659,6 +736,67 @@ function FashionLab({ onUpload, wardrobe }) {
   );
 }
 
+function ProfilePage({ t, game, fit, mood, bodyProfile, wardrobe, savedLooks }) {
+  const level = game.level || levelFromXp(game.xp);
+  const achievements = buildAchievements({ game, wardrobe, savedLooks });
+  const rank = level >= 7 ? "Style King" : level >= 4 ? "Trend Master" : "Fashion Beginner";
+
+  return (
+    <section className="world-room profile-page-v3">
+      <RoomHeader eyebrow="Profile" title="프로필" comment="내 스타일 성장과 보상을 한눈에 보는 공간" />
+      <div className="profile-layout-v3">
+        <div className="profile-avatar-card-v3">
+          <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
+          <strong>Fashion Lv.{level}</strong>
+          <p>{rank} · {game.streak || 1}일 streak</p>
+        </div>
+        <div className="profile-stats-v3">
+          <MetricPill label="Coins" value={`${game.coins}개`} />
+          <MetricPill label="XP" value={`${game.xp} XP`} />
+          <MetricPill label="Fashion Rank" value={rank} />
+          <MetricPill label="Favorite Style" value={t(mood)} />
+        </div>
+        <div className="achievement-grid-v3">
+          {achievements.map((item) => <span className={item.unlocked ? "unlocked" : ""} key={item.name}><Medal size={16} />{item.name}</span>)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MissionPage({ award, game }) {
+  const missions = [
+    ["Upload 1 item", "옷 1개 등록", 35, 8],
+    ["Create 1 outfit", "코디 1개 만들기", 30, 6],
+    ["Get 90+ score", "90점 이상 받기", 45, 10],
+    ["3 day streak", "3일 연속 열기", 60, 14],
+    ["Weather outfit", "날씨 코디 만들기", 40, 9],
+  ];
+  const streakMilestones = [1, 3, 7, 14, 30];
+
+  return (
+    <section className="world-room mission-page-v3">
+      <RoomHeader eyebrow="Mission" title="데일리 미션" comment="매일 열고 싶은 성장 루프를 만드는 공간" />
+      <div className="mission-layout-v3">
+        <div className="daily-mission-grid-v3">
+          {missions.map(([id, title, xp, coins]) => (
+            <button key={id} onClick={() => award(title, xp, coins)} type="button">
+              <Check size={17} />
+              <strong>{title}</strong>
+              <span>+{xp} XP · +{coins} coins</span>
+            </button>
+          ))}
+        </div>
+        <aside className="streak-panel-v3">
+          <strong>Streak Bonus</strong>
+          <p>현재 {game.streak || 1}일 · 오래 열수록 보상이 커져요.</p>
+          <div>{streakMilestones.map((day) => <span className={(game.streak || 1) >= day ? "active" : ""} key={day}>{day}일</span>)}</div>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
 function HallOfFame({ game, scores, wardrobe, savedLooks }) {
   const ranks = [
     ["스타일 마스터", scores.total + 4],
@@ -682,6 +820,22 @@ function HallOfFame({ game, scores, wardrobe, savedLooks }) {
         <AssistantNote tone="small decorative" text="이번 주도 멋지게 올라갈개!" />
       </div>
     </section>
+  );
+}
+
+function BottomNav({ activePanel, setActivePanel }) {
+  const items = [
+    ["v3-home", "Home", <Sun size={18} />],
+    ["v3-closet", "Wardrobe", <Shirt size={18} />],
+    ["v3-style", "Style", <Sparkles size={18} />],
+    ["v3-profile", "Profile", <UserRound size={18} />],
+    ["v3-mission", "Mission", <Check size={18} />],
+    ["v3-ranking", "Ranking", <Trophy size={18} />],
+  ];
+  return (
+    <nav className="bottom-nav-v3" aria-label="Bottom navigation">
+      {items.map(([panel, label, icon]) => <button className={activePanel === panel ? "active" : ""} key={panel} onClick={() => setActivePanel(panel)} type="button">{icon}<span>{label}</span></button>)}
+    </nav>
   );
 }
 
@@ -738,6 +892,50 @@ function WorldCard({ className = "", icon, title, note, children }) {
 
 function MetricPill({ label, value }) {
   return <span className="metric-pill-v3"><small>{label}</small><b>{value}</b></span>;
+}
+
+function ItemEditor({ item, onClose, onSave }) {
+  function submit(event) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    onSave(item.id, {
+      name: sanitizeInput(form.get("name")) || item.name,
+      season: sanitizeInput(form.get("season")) || item.season,
+      vibe: sanitizeInput(form.get("vibe")) || item.vibe,
+      pattern: sanitizeInput(form.get("pattern")) || item.pattern,
+      styleCategory: sanitizeInput(form.get("styleCategory")) || item.styleCategory,
+    });
+    onClose();
+  }
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="옷 편집">
+      <form className="item-editor-modal" onSubmit={submit}>
+        <button className="close-button" onClick={onClose} type="button"><X size={18} /></button>
+        <h3>옷 정보 편집</h3>
+        <label><span>이름</span><input name="name" defaultValue={item.name} /></label>
+        <label><span>시즌</span><input name="season" defaultValue={item.season} /></label>
+        <label><span>무드</span><input name="vibe" defaultValue={item.vibe} /></label>
+        <label><span>패턴</span><input name="pattern" defaultValue={item.pattern || "plain"} /></label>
+        <label><span>스타일</span><input name="styleCategory" defaultValue={item.styleCategory} /></label>
+        <button className="primary" type="submit">저장</button>
+      </form>
+    </div>
+  );
+}
+
+function ConfirmModal({ title, copy, onCancel, onConfirm }) {
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={title}>
+      <section className="confirm-modal-v3">
+        <h3>{title}</h3>
+        <p>{copy}</p>
+        <div>
+          <button className="secondary" onClick={onCancel} type="button">취소</button>
+          <button className="primary danger-primary" onClick={onConfirm} type="button">삭제</button>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function getSeason() {
@@ -1175,8 +1373,8 @@ function GameScorePanel({ t, scores }) {
 }
 
 function GameLayer({ t, game, wardrobe, savedLooks }) {
-  const level = Math.floor(game.xp / 180) + 1;
-  const progress = game.xp % 180;
+  const level = game.level || levelFromXp(game.xp);
+  const progress = Math.min(100, (game.xp / Math.max(100, level * 250)) * 100);
   const missions = [
     ["missionBright", "Color", 30],
     ["missionMonochrome", "Tone", 40],
@@ -1194,7 +1392,7 @@ function GameLayer({ t, game, wardrobe, savedLooks }) {
       </div>
       <div className="game-stats">
         <article><Trophy size={18} /><span>{t("styleLevel")}</span><strong>{level}</strong></article>
-        <article><Sparkles size={18} /><span>{t("fashionXp")}</span><strong>{game.xp}</strong><i style={{ "--xp": `${(progress / 180) * 100}%` }} /></article>
+        <article><Sparkles size={18} /><span>{t("fashionXp")}</span><strong>{game.xp}</strong><i style={{ "--xp": `${progress}%` }} /></article>
         <article><Coins size={18} /><span>{t("styleCoins")}</span><strong>{game.coins}</strong></article>
         <article><UserRound size={18} /><span>{t("petLevel")}</span><strong>{game.petLevel}</strong></article>
       </div>
@@ -1380,6 +1578,62 @@ function detectMood(text, fallback) {
   if (value.includes("cozy") || value.includes("코지")) return "moodCozy";
   if (value.includes("clean") || value.includes("클린")) return "moodClean";
   return fallback;
+}
+
+function levelFromXp(xp = 0) {
+  if (xp >= 1000) return 4 + Math.floor((xp - 1000) / 500);
+  if (xp >= 500) return 3;
+  if (xp >= 250) return 2;
+  if (xp >= 100) return 1;
+  return 1;
+}
+
+function normalizeGame(game = {}) {
+  const xp = Number(game.xp ?? 420);
+  const coins = Number(game.coins ?? 86);
+  const level = Number(game.level) || levelFromXp(xp);
+  return {
+    xp,
+    coins,
+    level,
+    petLevel: Number(game.petLevel) || level,
+    streak: Number(game.streak) || 1,
+  };
+}
+
+function buildWardrobeAnalytics(wardrobe = []) {
+  const active = wardrobe.filter((item) => !item.archived);
+  const colorCounts = countBy(active, "color");
+  const categoryCounts = countBy(active, "category");
+  return {
+    total: active.length,
+    unused30: active.filter((_, index) => index % 3 === 0).length,
+    unused60: active.filter((_, index) => index % 5 === 0).length,
+    mostWorn: active.slice(0, 3).map((item) => item.name).join(", ") || "없음",
+    leastWorn: active.slice(-3).map((item) => item.name).join(", ") || "없음",
+    favoriteColor: Object.entries(colorCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "cream",
+    favoriteCategory: Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "tops",
+    valueEstimate: `${Math.max(1, active.length * 4)}만 원`,
+  };
+}
+
+function countBy(items, key) {
+  return items.reduce((acc, item) => {
+    const value = item[key] || "unknown";
+    acc[value] = (acc[value] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function buildAchievements({ game, wardrobe, savedLooks }) {
+  return [
+    { name: "Fashion Beginner", unlocked: game.xp >= 100 },
+    { name: "Closet Organizer", unlocked: wardrobe.length >= 5 },
+    { name: "Trend Master", unlocked: (game.level || levelFromXp(game.xp)) >= 3 },
+    { name: "Weather Expert", unlocked: savedLooks.length >= 2 },
+    { name: "Style King", unlocked: (game.level || levelFromXp(game.xp)) >= 5 },
+    { name: "100 Outfit Creator", unlocked: savedLooks.length >= 100 },
+  ];
 }
 
 function loadStoredState() {
