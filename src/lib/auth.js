@@ -16,10 +16,11 @@ export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
-export async function signInWithEmail({ email }) {
+export async function signInWithEmail({ email, username }) {
   const session = {
     mode: "account",
     email,
+    username: username || email,
     provider: "email",
     issuedAt: new Date().toISOString(),
   };

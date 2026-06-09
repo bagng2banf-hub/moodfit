@@ -27,11 +27,34 @@ import {
 } from "lucide-react";
 import { createTranslator } from "./i18n";
 import { clearSession, createGuestSession, loadSession, signInWithEmail } from "./lib/auth";
-import { canRequestAi, isValidEmail, sanitizeInput } from "./lib/security";
+import { canRequestAi, sanitizeInput } from "./lib/security";
 import { categories, defaultFit, moods, seedWardrobe, themes } from "./lib/data";
 import "./index.css";
 
 const storageKey = "moodfit-premium-state-v2";
+const fashionCategories = [
+  ["tops", "TOP"],
+  ["bottoms", "BOTTOM"],
+  ["outerwear", "OUTER"],
+  ["shoes", "SHOES"],
+  ["bags", "BAG"],
+  ["accessories", "ACCESSORY"],
+  ["other", "OTHER"],
+];
+const subcategoryOptions = {
+  tops: ["Basic T-Shirt", "Oversized T-Shirt", "Slim Fit T-Shirt", "Graphic T-Shirt", "Long Sleeve T-Shirt", "Oxford Shirt", "Dress Shirt", "Short Sleeve Shirt", "Denim Shirt", "Linen Shirt", "Pullover Hoodie", "Zip-Up Hoodie", "Oversized Hoodie", "Crewneck", "Oversized Crewneck", "Knit Sweater", "Turtleneck", "Cable Knit"],
+  bottoms: ["Skinny Jeans", "Straight Jeans", "Wide Jeans", "Baggy Jeans", "Slacks", "Chinos", "Cargo Pants", "Joggers", "Denim Shorts", "Athletic Shorts", "Casual Shorts", "Mini Skirt", "Midi Skirt", "Long Skirt"],
+  outerwear: ["Denim Jacket", "Leather Jacket", "Bomber", "Harrington", "Trench Coat", "Long Coat", "Wool Coat", "Short Padding", "Long Padding", "Short Cardigan", "Long Cardigan"],
+  shoes: ["Sneakers", "Loafers", "Boots", "Slingback", "Sandals"],
+  bags: ["Shoulder Bag", "Tote Bag", "Backpack", "Mini Bag"],
+  accessories: ["Glasses", "Scarf", "Necklace", "Hat"],
+  other: ["Fashion Item"],
+};
+const fabricOptions = ["Cotton", "Linen", "Denim", "Wool", "Cashmere", "Polyester", "Nylon", "Leather", "Corduroy", "Fleece", "Silk"];
+const fitOptions = ["Slim Fit", "Regular Fit", "Relaxed Fit", "Oversized", "Wide Fit", "Baggy Fit", "Cropped Fit"];
+const patternOptions = ["Solid", "Stripe", "Check", "Plaid", "Floral", "Graphic"];
+const neckOptions = ["Round Neck", "V Neck", "Turtleneck", "Collar"];
+const sleeveOptions = ["Short Sleeve", "Long Sleeve", "Sleeveless", "Raglan"];
 
 function App() {
   const stored = loadStoredState();
@@ -69,6 +92,7 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
   const [game, setGame] = useState(normalizeGame(stored.game));
+  const [profileName, setProfileName] = useState(stored.profileName || loadSession()?.username || "MoodFit Stylist");
   const fileInputRef = useRef(null);
   const t = useMemo(() => createTranslator(language || "ko"), [language]);
   const recommendation = useMemo(
@@ -97,6 +121,7 @@ function App() {
         aesthetic,
         bodyProfile,
         game,
+        profileName,
         ...next,
       })
     );
@@ -117,11 +142,11 @@ function App() {
   async function handleAccount(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const email = sanitizeInput(form.get("email")) || "hello@moodfit.local";
+    const username = sanitizeInput(form.get("username")) || "moodfit";
     const password = String(form.get("password") || "");
-    if (!isValidEmail(email)) return showToast(t("invalidEmail"));
+    if (username.length < 3) return showToast("아이디는 3글자 이상 입력해줘");
     if (password && password.length < 8) return showToast(t("invalidPassword"));
-    const nextSession = await signInWithEmail({ email });
+    const nextSession = await signInWithEmail({ email: `${username}@moodfit.local`, username });
     setSession(nextSession);
     setEntryStep("app");
     showToast(t("mockSession"));
@@ -140,19 +165,35 @@ function App() {
   }
 
   function award(reason, xp = 25, coins = 6) {
-    const nextXp = game.xp + xp;
-    const next = {
-      ...game,
-      xp: nextXp,
-      coins: game.coins + coins,
-      level: levelFromXp(nextXp),
-      petLevel: levelFromXp(nextXp),
-      streak: game.streak || 1,
-    };
-    setGame(next);
-    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
-    localStorage.setItem(storageKey, JSON.stringify({ ...saved, game: next }));
-    showToast(`${reason} +${xp} XP`);
+    setGame((current) => {
+      const safe = normalizeGame(current);
+      const nextXp = safe.xp + xp;
+      const next = {
+        ...safe,
+        xp: nextXp,
+        coins: safe.coins + coins,
+        level: levelFromXp(nextXp),
+        petLevel: levelFromXp(nextXp),
+        streak: safe.streak || 1,
+      };
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+      localStorage.setItem(storageKey, JSON.stringify({ ...saved, game: next }));
+      return next;
+    });
+    showToast(`${reason} +${xp} XP · +${coins} coins`);
+  }
+
+  function changeProfileName(event) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const nextName = sanitizeInput(form.get("profileName"));
+    if (!nextName) return showToast("바꿀 이름을 입력해줘");
+    if (game.coins < 20) return showToast("이름 변경에는 20코인이 필요해");
+    const nextGame = { ...game, coins: game.coins - 20 };
+    setGame(nextGame);
+    setProfileName(nextName);
+    persist({ game: nextGame, profileName: nextName });
+    showToast("이름 바꿨을개 · -20 coins");
   }
 
   function generateStyling() {
@@ -189,19 +230,31 @@ function App() {
     const form = new FormData(event.currentTarget);
     const category = categories[wardrobe.length % categories.length];
     const selectedCategory = form.get("category") || category;
+    const subcategory = sanitizeInput(form.get("subcategory")) || inferSubcategory(selectedCategory, form.get("clothingType"));
+    const fabric = sanitizeInput(form.get("fabric")) || inferFabric(subcategory, form.get("pattern"));
+    const fitType = form.get("fitType") || "Regular Fit";
+    const primaryColor = sanitizeInput(form.get("primaryColor")) || sanitizeInput(form.get("color")) || ["#eadcc7", "#101010", "#46627d", "#f5f1e9", "#8c5a38"][wardrobe.length % 5];
     const item = {
       id: crypto.randomUUID(),
       name: sanitizeInput(form.get("name")) || `${t("scannedItem")} ${wardrobe.length + 1}`,
       category: selectedCategory,
+      subcategory,
+      fabric,
       mood,
       season: sanitizeInput(form.get("season")) || "all",
-      color: sanitizeInput(form.get("color")) || ["#eadcc7", "#101010", "#46627d", "#f5f1e9", "#8c5a38"][wardrobe.length % 5],
+      color: primaryColor,
+      primaryColor,
+      secondaryColor: sanitizeInput(form.get("secondaryColor")) || "",
+      accentColor: sanitizeInput(form.get("accentColor")) || "",
       vibe: sanitizeInput(form.get("vibe")) || "editorial",
       occasion: sanitizeInput(form.get("occasion")) || eventType,
       styleCategory: sanitizeInput(form.get("styleCategory")) || aesthetic,
-      fitType: form.get("fitType") || "regularFit",
-      clothingType: form.get("clothingType") || "blazer",
-      pattern: "plain",
+      fitType,
+      clothingType: subcategory,
+      pattern: sanitizeInput(form.get("pattern")) || "Solid",
+      neckType: sanitizeInput(form.get("neckType")) || inferNeckType(subcategory),
+      sleeveType: sanitizeInput(form.get("sleeveType")) || inferSleeveType(subcategory),
+      layer: sanitizeInput(form.get("layerSlot")) || inferLayer(selectedCategory),
       image: await readImageFile(form.get("photo")),
       checklist: {
         clean: form.has("clean"),
@@ -324,6 +377,8 @@ function App() {
           award={award}
           fileInputRef={fileInputRef}
           game={game}
+          profileName={profileName}
+          onRenameProfile={changeProfileName}
           savedLooks={savedLooks}
           session={session}
           onEvent={() => setEventOpen(true)}
@@ -462,7 +517,6 @@ function App() {
           onClose={() => setSettingsOpen(false)}
         />
       )}
-      {activeWorld && <BottomNav activePanel={activePanel} setActivePanel={setActivePanel} />}
     </main>
   );
 }
@@ -500,10 +554,10 @@ function AuthScreen({ t, onGuest, onAccount, setLanguage }) {
         </div>
         <form className="auth-form" onSubmit={onAccount}>
           <p className="eyebrow">{t("accountMode")}</p>
-          <label><span>{t("email")}</span><input name="email" type="email" autoComplete="email" /></label>
+          <label><span>아이디</span><input name="username" type="text" autoComplete="username" placeholder="moodfit_id" /></label>
           <label><span>{t("password")}</span><input name="password" type="password" autoComplete="current-password" /></label>
-          <button className="primary" type="submit"><Mail size={16} />{t("signIn")}</button>
-          <button className="secondary" type="button">{t("socialLogin")}</button>
+          <button className="primary" type="submit"><Mail size={16} />로그인</button>
+          <button className="secondary" type="submit">회원가입</button>
           <button className="text-button" type="button">{t("resetPassword")}</button>
           <button className="guest-button" onClick={onGuest} type="button">{t("guestMode")}</button>
           <p className="notice">{t("secureNotice")}</p>
@@ -736,19 +790,28 @@ function FashionLab({ onUpload, wardrobe }) {
   );
 }
 
-function ProfilePage({ t, game, fit, mood, bodyProfile, wardrobe, savedLooks }) {
+function ProfilePage({ t, game, fit, mood, bodyProfile, wardrobe, savedLooks, profileName, onRenameProfile }) {
   const level = game.level || levelFromXp(game.xp);
   const achievements = buildAchievements({ game, wardrobe, savedLooks });
-  const rank = level >= 7 ? "Style King" : level >= 4 ? "Trend Master" : "Fashion Beginner";
+  const rank = titleForLevel(level);
 
   return (
     <section className="world-room profile-page-v3">
       <RoomHeader eyebrow="Profile" title="프로필" comment="내 스타일 성장과 보상을 한눈에 보는 공간" />
       <div className="profile-layout-v3">
-        <div className="profile-avatar-card-v3">
-          <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
-          <strong>Fashion Lv.{level}</strong>
-          <p>{rank} · {game.streak || 1}일 streak</p>
+        <div className="profile-template-card-v3">
+          <div className="profile-id-photo-v3">
+            <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
+          </div>
+          <div className="profile-template-copy-v3">
+            <span>PROFILE CARD</span>
+            <strong>{profileName || "MoodFit Stylist"}</strong>
+            <p>{rank} · Fashion Lv.{level} · {game.streak || 1}일 streak</p>
+            <form className="profile-rename-v3" onSubmit={onRenameProfile}>
+              <input name="profileName" placeholder="새 이름" maxLength="18" />
+              <button className="secondary" type="submit"><Coins size={15} />20코인 변경</button>
+            </form>
+          </div>
         </div>
         <div className="profile-stats-v3">
           <MetricPill label="Coins" value={`${game.coins}개`} />
@@ -823,22 +886,6 @@ function HallOfFame({ game, scores, wardrobe, savedLooks }) {
   );
 }
 
-function BottomNav({ activePanel, setActivePanel }) {
-  const items = [
-    ["v3-home", "Home", <Sun size={18} />],
-    ["v3-closet", "Wardrobe", <Shirt size={18} />],
-    ["v3-style", "Style", <Sparkles size={18} />],
-    ["v3-profile", "Profile", <UserRound size={18} />],
-    ["v3-mission", "Mission", <Check size={18} />],
-    ["v3-ranking", "Ranking", <Trophy size={18} />],
-  ];
-  return (
-    <nav className="bottom-nav-v3" aria-label="Bottom navigation">
-      {items.map(([panel, label, icon]) => <button className={activePanel === panel ? "active" : ""} key={panel} onClick={() => setActivePanel(panel)} type="button">{icon}<span>{label}</span></button>)}
-    </nav>
-  );
-}
-
 function MoodVillageMap({ setActivePanel, session, game, onEvent }) {
   const places = [
     ["이벤트 광장", "축제와 보상이 열릴개", "v3-home", <Gift size={22} />],
@@ -900,9 +947,19 @@ function ItemEditor({ item, onClose, onSave }) {
     const form = new FormData(event.currentTarget);
     onSave(item.id, {
       name: sanitizeInput(form.get("name")) || item.name,
+      category: sanitizeInput(form.get("category")) || item.category,
+      subcategory: sanitizeInput(form.get("subcategory")) || item.subcategory,
+      fitType: sanitizeInput(form.get("fitType")) || item.fitType,
+      fabric: sanitizeInput(form.get("fabric")) || item.fabric,
       season: sanitizeInput(form.get("season")) || item.season,
       vibe: sanitizeInput(form.get("vibe")) || item.vibe,
       pattern: sanitizeInput(form.get("pattern")) || item.pattern,
+      neckType: sanitizeInput(form.get("neckType")) || item.neckType,
+      sleeveType: sanitizeInput(form.get("sleeveType")) || item.sleeveType,
+      primaryColor: sanitizeInput(form.get("primaryColor")) || item.primaryColor,
+      secondaryColor: sanitizeInput(form.get("secondaryColor")) || item.secondaryColor,
+      accentColor: sanitizeInput(form.get("accentColor")) || item.accentColor,
+      color: sanitizeInput(form.get("primaryColor")) || item.color,
       styleCategory: sanitizeInput(form.get("styleCategory")) || item.styleCategory,
     });
     onClose();
@@ -913,9 +970,18 @@ function ItemEditor({ item, onClose, onSave }) {
         <button className="close-button" onClick={onClose} type="button"><X size={18} /></button>
         <h3>옷 정보 편집</h3>
         <label><span>이름</span><input name="name" defaultValue={item.name} /></label>
+        <label><span>Category</span><select name="category" defaultValue={item.category}>{fashionCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        <label><span>Subcategory</span><select name="subcategory" defaultValue={item.subcategory || item.clothingType}>{Object.values(subcategoryOptions).flat().map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label><span>Fit</span><select name="fitType" defaultValue={item.fitType || "Regular Fit"}>{fitOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label><span>Fabric</span><select name="fabric" defaultValue={item.fabric || "Cotton"}>{fabricOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
         <label><span>시즌</span><input name="season" defaultValue={item.season} /></label>
         <label><span>무드</span><input name="vibe" defaultValue={item.vibe} /></label>
-        <label><span>패턴</span><input name="pattern" defaultValue={item.pattern || "plain"} /></label>
+        <label><span>패턴</span><select name="pattern" defaultValue={item.pattern || "Solid"}>{patternOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label><span>Neck</span><select name="neckType" defaultValue={item.neckType || inferNeckType(item.subcategory)}>{neckOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label><span>Sleeve</span><select name="sleeveType" defaultValue={item.sleeveType || inferSleeveType(item.subcategory)}>{sleeveOptions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label><span>Primary</span><input name="primaryColor" type="color" defaultValue={item.primaryColor || item.color || "#eadcc7"} /></label>
+        <label><span>Secondary</span><input name="secondaryColor" type="color" defaultValue={item.secondaryColor || "#ddebf3"} /></label>
+        <label><span>Accent</span><input name="accentColor" type="color" defaultValue={item.accentColor || "#f7d9d9"} /></label>
         <label><span>스타일</span><input name="styleCategory" defaultValue={item.styleCategory} /></label>
         <button className="primary" type="submit">저장</button>
       </form>
@@ -1152,12 +1218,20 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
         </div>
         <div className="composer-grid">
           <label><span>{t("itemName")}</span><input name="name" placeholder="Cashmere knit, satin blazer" /></label>
-          <label><span>{t("category")}</span><select name="category">{categories.map((item) => <option key={item} value={item}>{t(item)}</option>)}</select></label>
-          <label><span>{t("season")}</span><input name="season" placeholder="spring / summer / fall / winter" /></label>
-          <label><span>{t("color")}</span><input name="color" type="color" defaultValue="#eadcc7" /></label>
+          <label><span>Category</span><select name="category">{fashionCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label><span>Subcategory</span><select name="subcategory">{Object.values(subcategoryOptions).flat().map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+          <label><span>Season</span><input name="season" placeholder="spring / summer / fall / winter" /></label>
+          <label><span>Primary Color</span><input name="primaryColor" type="color" defaultValue="#eadcc7" /></label>
+          <label><span>Secondary Color</span><input name="secondaryColor" type="color" defaultValue="#ddebf3" /></label>
+          <label><span>Accent Color</span><input name="accentColor" type="color" defaultValue="#f7d9d9" /></label>
           <label><span>{t("vibe")}</span><input name="vibe" defaultValue={t(mood)} /></label>
           <label><span>{t("occasion")}</span><input name="occasion" placeholder="daily, date, office, campus" /></label>
           <label className="wide-field"><span>{t("styleCategory")}</span><input name="styleCategory" placeholder="quiet luxury, clean fit, street, cozy" /></label>
+          <label><span>Fabric</span><select name="fabric">{fabricOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+          <label><span>Pattern</span><select name="pattern">{patternOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+          <label><span>Neck Type</span><select name="neckType">{neckOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+          <label><span>Sleeve Type</span><select name="sleeveType">{sleeveOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+          <label><span>Layer</span><select name="layerSlot"><option>Inner Layer</option><option>Middle Layer</option><option>Outer Layer</option></select></label>
           <label className="photo-upload wide-field">
             <span><Camera size={18} />{t("upload")}</span>
             <input name="photo" type="file" accept="image/*" />
@@ -1166,21 +1240,10 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
         <div className="option-block">
           <strong>{t("fitType")}</strong>
           <div className="icon-options">
-            {["regularFit", "slimFit", "oversizedFit", "croppedFit", "wideFit"].map((key) => (
+            {fitOptions.map((key) => (
               <label key={key}>
-                <input name="fitType" type="radio" value={key} defaultChecked={key === "regularFit"} />
-                <span><Shirt size={16} />{t(key)}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-        <div className="option-block">
-          <strong>{t("clothingType")}</strong>
-          <div className="icon-options">
-            {["knit", "shirt", "blazer", "denim", "skirt", "sneakers"].map((key) => (
-              <label key={key}>
-                <input name="clothingType" type="radio" value={key} defaultChecked={key === "blazer"} />
-                <span><Sparkles size={16} />{t(key)}</span>
+                <input name="fitType" type="radio" value={key} defaultChecked={key === "Regular Fit"} />
+                <span><Shirt size={16} />{key}</span>
               </label>
             ))}
           </div>
@@ -1204,19 +1267,23 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
 
 function FashionAvatar({ fit, mood, bodyProfile, t }) {
   const avatarStyle = avatarVariables(bodyProfile);
+  const topVisual = clothingVisuals(fit.tops, "tops");
+  const outerVisual = clothingVisuals(fit.outerwear, "outerwear");
+  const bottomVisual = clothingVisuals(fit.bottoms, "bottoms");
+  const shoeVisual = clothingVisuals(fit.shoes, "shoes");
   const label = (slot, part) => `${t(part)} · ${fit[slot]?.name || t(slot)}`;
   return (
     <div className={`fashion-avatar ${mood} body-${bodyProfile.bodyType}`} style={avatarStyle}>
       <i className="avatar-glow" />
       <i className="head" /><i className="neck" />
-      <i className="torso wear-part" data-tooltip={label("tops", "partTops")} style={{ "--cloth": fit.tops?.color }} />
-      <i className="outer left wear-part" data-tooltip={label("outerwear", "partOuterwear")} style={{ "--cloth": fit.outerwear?.color }} />
-      <i className="outer right wear-part" data-tooltip={label("outerwear", "partOuterwear")} style={{ "--cloth": fit.outerwear?.color }} />
+      <i className={topVisual.className} data-tooltip={label("tops", "partTops")} style={topVisual.style} />
+      <i className={outerVisual.leftClassName} data-tooltip={label("outerwear", "partOuterwear")} style={outerVisual.style} />
+      <i className={outerVisual.rightClassName} data-tooltip={label("outerwear", "partOuterwear")} style={outerVisual.style} />
       <i className="arm left" /><i className="arm right" />
-      <i className="bottom wear-part" data-tooltip={label("bottoms", "partBottoms")} style={{ "--cloth": fit.bottoms?.color }} />
+      <i className={bottomVisual.className} data-tooltip={label("bottoms", "partBottoms")} style={bottomVisual.style} />
       <i className="leg left" /><i className="leg right" />
-      <i className="shoe left wear-part" data-tooltip={label("shoes", "partShoes")} style={{ "--cloth": fit.shoes?.color }} />
-      <i className="shoe right wear-part" data-tooltip={label("shoes", "partShoes")} style={{ "--cloth": fit.shoes?.color }} />
+      <i className={shoeVisual.leftClassName} data-tooltip={label("shoes", "partShoes")} style={shoeVisual.style} />
+      <i className={shoeVisual.rightClassName} data-tooltip={label("shoes", "partShoes")} style={shoeVisual.style} />
       <i className="floor" />
     </div>
   );
@@ -1349,6 +1416,124 @@ function scoreOutfit({ fit, weather, mood, eventType }) {
   const confidence = Math.max(58, Math.min(98, 70 + coverageBonus + (moodText.includes("luxury") || moodText.includes("chic") ? 9 : 5) + (eventText ? 5 : 0)));
   const total = Math.round((color + comfort + confidence) / 3);
   return { total, color, comfort, confidence, patternWarning };
+}
+
+function token(value, fallback = "basic") {
+  return String(value || fallback).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || fallback;
+}
+
+function inferSubcategory(category, clothingType) {
+  const text = String(clothingType || "").toLowerCase();
+  if (text.includes("hood")) return "Pullover Hoodie";
+  if (text.includes("shirt")) return "Basic T-Shirt";
+  if (text.includes("jean")) return "Straight Jeans";
+  if (text.includes("coat")) return "Long Coat";
+  if (text.includes("jacket")) return "Denim Jacket";
+  return subcategoryOptions[category]?.[0] || "Fashion Item";
+}
+
+function inferFabric(subcategory, pattern) {
+  const text = `${subcategory || ""} ${pattern || ""}`.toLowerCase();
+  if (text.includes("denim") || text.includes("jeans")) return "Denim";
+  if (text.includes("leather")) return "Leather";
+  if (text.includes("wool") || text.includes("coat")) return "Wool";
+  if (text.includes("linen")) return "Linen";
+  if (text.includes("fleece") || text.includes("hoodie")) return "Fleece";
+  if (text.includes("knit") || text.includes("turtleneck")) return "Cashmere";
+  return "Cotton";
+}
+
+function inferNeckType(subcategory) {
+  const text = String(subcategory || "").toLowerCase();
+  if (text.includes("turtleneck")) return "Turtleneck";
+  if (text.includes("shirt")) return "Collar";
+  if (text.includes("v neck")) return "V Neck";
+  return "Round Neck";
+}
+
+function inferSleeveType(subcategory) {
+  const text = String(subcategory || "").toLowerCase();
+  if (text.includes("short sleeve") || text.includes("shorts")) return "Short Sleeve";
+  if (text.includes("sleeveless")) return "Sleeveless";
+  return "Long Sleeve";
+}
+
+function inferLayer(category) {
+  if (category === "outerwear") return "Outer Layer";
+  if (category === "tops") return "Inner Layer";
+  return "Base Layer";
+}
+
+function clothingVisuals(item = {}, slot = "tops") {
+  const subcategory = item?.subcategory || item?.clothingType || inferSubcategory(slot, "");
+  const fitType = item?.fitType || "Regular Fit";
+  const fabric = item?.fabric || inferFabric(subcategory, item?.pattern);
+  const pattern = item?.pattern || "Solid";
+  const primary = item?.primaryColor || item?.color || "#eadcc7";
+  const secondary = item?.secondaryColor || colorMixFallback(primary, "#ffffff");
+  const accent = item?.accentColor || "#f7d9d9";
+  const typeClass = `garment-type-${token(subcategory)}`;
+  const fitClass = `garment-fit-${token(fitType)}`;
+  const fabricClass = `garment-fabric-${token(fabric)}`;
+  const patternClass = `garment-pattern-${token(pattern)}`;
+  const neckClass = `neck-${token(item?.neckType || inferNeckType(subcategory))}`;
+  const sleeveClass = `sleeve-${token(item?.sleeveType || inferSleeveType(subcategory))}`;
+  const base = `wear-part ${fitClass} ${fabricClass} ${typeClass} ${patternClass} ${neckClass} ${sleeveClass}`;
+  const dims = visualDimensions({ slot, subcategory, fitType, fabric });
+  const style = {
+    "--cloth": primary,
+    "--cloth-secondary": secondary,
+    "--cloth-accent": accent,
+    ...dims,
+  };
+
+  if (slot === "outerwear") return { leftClassName: `outer left ${base}`, rightClassName: `outer right ${base}`, style };
+  if (slot === "bottoms") return { className: `bottom ${base}`, style };
+  if (slot === "shoes") return { leftClassName: `shoe left ${base}`, rightClassName: `shoe right ${base}`, style };
+  return { className: `torso ${base}`, style };
+}
+
+function visualDimensions({ slot, subcategory, fitType, fabric }) {
+  const sub = String(subcategory || "").toLowerCase();
+  const fit = String(fitType || "").toLowerCase();
+  const fab = String(fabric || "").toLowerCase();
+  const oversized = fit.includes("oversized");
+  const slim = fit.includes("slim") || sub.includes("skinny");
+  const wide = fit.includes("wide") || fit.includes("baggy") || sub.includes("wide") || sub.includes("baggy") || sub.includes("cargo");
+  const cropped = fit.includes("cropped") || sub.includes("short cardigan");
+  const puffy = fab.includes("fleece") || fab.includes("wool") || fab.includes("padding") || sub.includes("padding");
+  const stiff = fab.includes("denim") || fab.includes("leather") || fab.includes("corduroy");
+
+  if (slot === "bottoms") {
+    return {
+      "--bottom-width": slim ? "104px" : wide ? "172px" : "138px",
+      "--bottom-height": sub.includes("shorts") || sub.includes("skirt") ? "72px" : wide ? "118px" : "96px",
+      "--leg-opening": slim ? "22px" : wide ? "58px" : "38px",
+    };
+  }
+  if (slot === "outerwear") {
+    return {
+      "--outer-width": oversized || wide ? "98px" : slim ? "66px" : "82px",
+      "--outer-height": sub.includes("long") || sub.includes("trench") ? "252px" : sub.includes("padding") ? "214px" : "192px",
+      "--sleeve-volume": puffy ? "1.18" : stiff ? ".98" : "1",
+    };
+  }
+  if (slot === "shoes") {
+    return {
+      "--shoe-width": sub.includes("boot") ? "76px" : sub.includes("sandal") ? "58px" : "68px",
+      "--shoe-height": sub.includes("boot") ? "34px" : "23px",
+    };
+  }
+  return {
+    "--top-width": oversized || wide ? "174px" : slim ? "112px" : "140px",
+    "--top-height": cropped ? "118px" : oversized ? "188px" : puffy ? "178px" : "154px",
+    "--top-radius": stiff ? "28px 28px 20px 20px" : puffy ? "58px 58px 38px 38px" : "42px 42px 26px 26px",
+    "--shoulder-drop": oversized ? "18px" : slim ? "-3px" : "6px",
+  };
+}
+
+function colorMixFallback(color, fallback) {
+  return color && color !== fallback ? fallback : "#ddebf3";
 }
 
 function GameScorePanel({ t, scores }) {
@@ -1588,6 +1773,16 @@ function levelFromXp(xp = 0) {
   return 1;
 }
 
+function titleForLevel(level = 1) {
+  if (level >= 9) return "Runway Director";
+  if (level >= 7) return "Style King";
+  if (level >= 5) return "Color Master";
+  if (level >= 4) return "Trend Master";
+  if (level >= 3) return "Closet Curator";
+  if (level >= 2) return "Fashion Explorer";
+  return "Fashion Beginner";
+}
+
 function normalizeGame(game = {}) {
   const xp = Number(game.xp ?? 420);
   const coins = Number(game.coins ?? 86);
@@ -1626,12 +1821,16 @@ function countBy(items, key) {
 }
 
 function buildAchievements({ game, wardrobe, savedLooks }) {
+  const level = game.level || levelFromXp(game.xp);
   return [
     { name: "Fashion Beginner", unlocked: game.xp >= 100 },
     { name: "Closet Organizer", unlocked: wardrobe.length >= 5 },
-    { name: "Trend Master", unlocked: (game.level || levelFromXp(game.xp)) >= 3 },
+    { name: "Fashion Explorer", unlocked: level >= 2 },
+    { name: "Closet Curator", unlocked: level >= 3 },
+    { name: "Trend Master", unlocked: level >= 4 },
+    { name: "Color Master", unlocked: level >= 5 },
     { name: "Weather Expert", unlocked: savedLooks.length >= 2 },
-    { name: "Style King", unlocked: (game.level || levelFromXp(game.xp)) >= 5 },
+    { name: "Style King", unlocked: level >= 7 },
     { name: "100 Outfit Creator", unlocked: savedLooks.length >= 100 },
   ];
 }

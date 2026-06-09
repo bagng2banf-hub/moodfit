@@ -123,6 +123,10 @@ a { color: inherit; text-decoration: none; }
   min-height: 620px;
 }
 
+.auth-form .secondary {
+  color: #735f55;
+}
+
 .auth-hero::after {
   content: "입장할개";
   display: grid;
@@ -823,27 +827,200 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .neck { top: 110px; width: 36px; height: 42px; border-radius: 16px; background: var(--avatar-skin, #d98b5d); }
 .torso {
   top: 140px;
-  width: min(var(--avatar-shoulder, 126px), 158px);
-  height: var(--avatar-torso, 160px);
-  border-radius: 48px 48px 28px 28px;
+  width: var(--top-width, min(var(--avatar-shoulder, 126px), 158px));
+  height: var(--top-height, var(--avatar-torso, 160px));
+  border-radius: var(--top-radius, 48px 48px 28px 28px);
   clip-path: polygon(7% 0, 93% 0, calc(50% + var(--avatar-waist, 92px) / 2) 100%, calc(50% - var(--avatar-waist, 92px) / 2) 100%);
   background: linear-gradient(135deg, var(--cloth), color-mix(in srgb, var(--cloth) 70%, white));
   z-index: 4;
 }
-.outer { top: 132px; width: clamp(66px, calc(var(--avatar-shoulder, 126px) * .52), 86px); height: calc(var(--avatar-torso, 160px) + 46px); background: var(--cloth); z-index: 5; filter: drop-shadow(0 22px 24px rgba(0,0,0,.18)); }
+.outer { top: 132px; width: var(--outer-width, clamp(66px, calc(var(--avatar-shoulder, 126px) * .52), 86px)); height: var(--outer-height, calc(var(--avatar-torso, 160px) + 46px)); background: var(--cloth); z-index: 5; filter: drop-shadow(0 22px 24px rgba(0,0,0,.18)); }
 .outer.left { border-radius: 46px 12px 36px 24px; transform: translateX(clamp(-124px, calc(var(--avatar-shoulder, 126px) * -.78), -92px)) rotate(4deg); }
 .outer.right { border-radius: 12px 46px 24px 36px; transform: translateX(clamp(28px, calc(var(--avatar-shoulder, 126px) * .25), 46px)) rotate(-4deg); }
 .arm { top: 160px; width: 26px; height: calc(var(--avatar-torso, 160px) + 28px); border-radius: 999px; background: linear-gradient(color-mix(in srgb, var(--avatar-skin, #d98b5d) 86%, white), color-mix(in srgb, var(--avatar-skin, #d98b5d) 78%, black)); z-index: 3; }
 .arm.left { transform: translateX(clamp(-108px, calc(var(--avatar-shoulder, 126px) * -.68), -82px)) rotate(10deg); }
 .arm.right { transform: translateX(clamp(62px, calc(var(--avatar-shoulder, 126px) * .5), 86px)) rotate(-10deg); }
-.bottom { top: calc(132px + var(--avatar-torso, 160px)); width: min(var(--avatar-hip, 130px), 158px); height: 88px; border-radius: 18px 18px 34px 34px; background: var(--cloth); z-index: 6; }
+.bottom { top: calc(132px + var(--avatar-torso, 160px)); width: var(--bottom-width, min(var(--avatar-hip, 130px), 158px)); height: var(--bottom-height, 88px); border-radius: 18px 18px 34px 34px; background: var(--cloth); z-index: 6; }
 .leg { top: calc(204px + var(--avatar-torso, 160px)); width: 32px; height: var(--avatar-leg, 118px); border-radius: 999px; background: linear-gradient(color-mix(in srgb, var(--avatar-skin, #d98b5d) 88%, white), color-mix(in srgb, var(--avatar-skin, #d98b5d) 78%, black)); }
 .leg.left { transform: translateX(-43px) rotate(2deg); }
 .leg.right { transform: translateX(12px) rotate(-2deg); }
-.shoe { top: calc(200px + var(--avatar-torso, 160px) + var(--avatar-leg, 118px)); width: 72px; height: 24px; border-radius: 999px; background: var(--cloth); z-index: 7; }
+.shoe { top: calc(200px + var(--avatar-torso, 160px) + var(--avatar-leg, 118px)); width: var(--shoe-width, 72px); height: var(--shoe-height, 24px); border-radius: 999px; background: var(--cloth); z-index: 7; }
 .shoe.left { transform: translateX(-70px); }
 .shoe.right { transform: translateX(12px); }
 .floor { top: calc(220px + var(--avatar-torso, 160px) + var(--avatar-leg, 118px)); width: 260px; height: 34px; border-radius: 50%; background: rgba(0,0,0,.22); filter: blur(12px); }
+
+.wear-part {
+  --cloth-secondary: #ffffff;
+  --cloth-accent: #f7d9d9;
+  border: 1px solid color-mix(in srgb, var(--cloth) 72%, #4a403a 18%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.52), 0 18px 32px rgba(74,64,58,.12);
+}
+
+.torso::before,
+.torso::after,
+.outer::after,
+.bottom::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.garment-fit-oversized.torso,
+.garment-fit-relaxed-fit.torso,
+.garment-fit-baggy-fit.torso {
+  transform: translateX(-50%) translateY(var(--shoulder-drop, 10px));
+  clip-path: polygon(0 8%, 100% 8%, 88% 100%, 12% 100%);
+}
+
+.garment-fit-slim-fit.torso {
+  clip-path: polygon(14% 0, 86% 0, calc(50% + var(--avatar-waist, 92px) / 2.65) 100%, calc(50% - var(--avatar-waist, 92px) / 2.65) 100%);
+}
+
+.garment-fit-cropped-fit.torso {
+  height: 112px;
+}
+
+.garment-fabric-fleece,
+.garment-fabric-wool,
+.garment-fabric-cashmere {
+  filter: drop-shadow(0 16px 20px rgba(119,92,80,.14));
+}
+
+.garment-fabric-denim,
+.garment-fabric-leather,
+.garment-fabric-corduroy {
+  border-width: 2px;
+  box-shadow: inset 0 -9px 0 color-mix(in srgb, var(--cloth) 72%, #4a403a 16%), 0 18px 32px rgba(74,64,58,.13);
+}
+
+.garment-type-pullover-hoodie.torso::before,
+.garment-type-zip-up-hoodie.torso::before,
+.garment-type-oversized-hoodie.torso::before {
+  left: 50%;
+  top: -30px;
+  width: 78px;
+  height: 58px;
+  border: 1px solid color-mix(in srgb, var(--cloth) 72%, #4a403a 18%);
+  border-radius: 44px 44px 24px 24px;
+  background: radial-gradient(circle at 50% 28%, var(--cloth-secondary), transparent 34%), var(--cloth);
+  transform: translateX(-50%);
+  z-index: -1;
+}
+
+.garment-type-zip-up-hoodie.torso::after {
+  left: 50%;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: rgba(74,64,58,.32);
+}
+
+.garment-type-dress-shirt.torso,
+.garment-type-oxford-shirt.torso,
+.garment-type-linen-shirt.torso,
+.garment-type-denim-shirt.torso {
+  border-radius: 22px 22px 20px 20px;
+  clip-path: polygon(10% 0, 90% 0, 94% 100%, 6% 100%);
+}
+
+.garment-type-dress-shirt.torso::before,
+.garment-type-oxford-shirt.torso::before,
+.neck-collar.torso::before {
+  left: 50%;
+  top: 0;
+  width: 56px;
+  height: 28px;
+  background:
+    linear-gradient(135deg, transparent 0 48%, var(--cloth-secondary) 49% 100%) left / 50% 100% no-repeat,
+    linear-gradient(225deg, transparent 0 48%, var(--cloth-secondary) 49% 100%) right / 50% 100% no-repeat;
+  transform: translateX(-50%);
+}
+
+.neck-turtleneck.torso::before,
+.garment-type-turtleneck.torso::before {
+  left: 50%;
+  top: -18px;
+  width: 48px;
+  height: 32px;
+  border-radius: 18px 18px 8px 8px;
+  background: var(--cloth);
+  transform: translateX(-50%);
+}
+
+.garment-type-graphic-t-shirt.torso::after,
+.garment-pattern-graphic.torso::after {
+  left: 50%;
+  top: 52px;
+  width: 42px;
+  height: 34px;
+  border-radius: 14px;
+  background: radial-gradient(circle at 50% 50%, var(--cloth-accent) 0 38%, transparent 39%);
+  transform: translateX(-50%);
+}
+
+.garment-pattern-stripe {
+  background-image: repeating-linear-gradient(0deg, transparent 0 13px, color-mix(in srgb, var(--cloth-secondary) 70%, transparent) 13px 20px), linear-gradient(135deg, var(--cloth), color-mix(in srgb, var(--cloth) 70%, white));
+}
+
+.garment-pattern-check,
+.garment-pattern-plaid {
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 18px, color-mix(in srgb, var(--cloth-secondary) 74%, transparent) 18px 24px),
+    repeating-linear-gradient(0deg, transparent 0 18px, color-mix(in srgb, var(--cloth-accent) 62%, transparent) 18px 24px),
+    linear-gradient(135deg, var(--cloth), color-mix(in srgb, var(--cloth) 72%, white));
+}
+
+.garment-pattern-floral {
+  background-image:
+    radial-gradient(circle at 24% 28%, var(--cloth-accent) 0 5px, transparent 6px),
+    radial-gradient(circle at 68% 58%, var(--cloth-secondary) 0 5px, transparent 6px),
+    linear-gradient(135deg, var(--cloth), color-mix(in srgb, var(--cloth) 72%, white));
+}
+
+.garment-type-skinny-jeans.bottom,
+.garment-fit-slim-fit.bottom {
+  clip-path: polygon(20% 0, 80% 0, calc(50% + var(--leg-opening, 22px)) 100%, calc(50% - var(--leg-opening, 22px)) 100%);
+}
+
+.garment-type-wide-jeans.bottom,
+.garment-type-baggy-jeans.bottom,
+.garment-type-cargo-pants.bottom,
+.garment-fit-wide-fit.bottom,
+.garment-fit-baggy-fit.bottom {
+  clip-path: polygon(4% 0, 96% 0, calc(50% + var(--leg-opening, 58px)) 100%, calc(50% - var(--leg-opening, 58px)) 100%);
+}
+
+.garment-type-cargo-pants.bottom::after {
+  left: 22%;
+  right: 22%;
+  top: 44%;
+  height: 28px;
+  border-left: 18px solid color-mix(in srgb, var(--cloth) 74%, #4a403a 14%);
+  border-right: 18px solid color-mix(in srgb, var(--cloth) 74%, #4a403a 14%);
+}
+
+.garment-type-mini-skirt.bottom,
+.garment-type-midi-skirt.bottom,
+.garment-type-long-skirt.bottom {
+  border-radius: 18px 18px 48px 48px;
+  clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
+}
+
+.garment-type-trench-coat.outer,
+.garment-type-long-coat.outer,
+.garment-type-wool-coat.outer,
+.garment-type-long-padding.outer,
+.garment-type-long-cardigan.outer {
+  border-radius: 38px 38px 48px 48px;
+}
+
+.garment-type-leather-jacket.outer {
+  background: linear-gradient(140deg, color-mix(in srgb, var(--cloth) 80%, #1e1715), var(--cloth));
+}
+
+.garment-type-boots.shoe {
+  border-radius: 18px 18px 10px 10px;
+}
 .mood-moodStreet .fashion-avatar,
 .mood-moodLuxury .fashion-avatar,
 .mood-moodCozy .fashion-avatar,
@@ -2523,6 +2700,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 }
 
 .profile-avatar-card-v3,
+.profile-template-card-v3,
 .streak-panel-v3,
 .item-editor-modal,
 .confirm-modal-v3 {
@@ -2530,6 +2708,104 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   border-radius: 28px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(0,0,0,.05);
+}
+
+.profile-template-card-v3 {
+  position: relative;
+  display: grid;
+  grid-template-columns: 178px 1fr;
+  align-items: center;
+  gap: 22px;
+  min-height: 270px;
+  padding: 22px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.94), rgba(255,255,255,.78)),
+    repeating-linear-gradient(0deg, transparent 0 12px, rgba(151,46,58,.045) 12px 13px);
+}
+
+.profile-template-card-v3::before,
+.profile-template-card-v3::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(151,46,58,.32);
+  border-radius: 22px;
+  pointer-events: none;
+}
+
+.profile-template-card-v3::after {
+  inset: 18px;
+  border-color: rgba(151,46,58,.18);
+}
+
+.profile-id-photo-v3 {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: start center;
+  width: 150px;
+  height: 150px;
+  border: 3px solid rgba(151,46,58,.38);
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(145deg, #fff8f8, #f3e7e7);
+}
+
+.profile-id-photo-v3 .fashion-avatar {
+  margin-top: -6px;
+  transform: scale(.31);
+  transform-origin: 50% 0;
+  animation: none;
+}
+
+.profile-template-copy-v3 {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.profile-template-copy-v3 span {
+  color: #a85e68;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .08em;
+}
+
+.profile-template-copy-v3 strong {
+  display: block;
+  margin-top: 7px;
+  color: #9b3349;
+  font-size: clamp(28px, 3.5vw, 42px);
+  line-height: 1.08;
+}
+
+.profile-template-copy-v3 p {
+  margin: 8px 0 16px;
+  color: #735f55;
+  font-weight: 850;
+}
+
+.profile-rename-v3 {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto;
+  gap: 8px;
+  max-width: 460px;
+}
+
+.profile-rename-v3 input {
+  min-height: 42px;
+  border: 1px solid #eee8e2;
+  border-radius: 14px;
+  padding: 0 12px;
+  color: #4a403a;
+  background: #ffffff;
+  font-weight: 850;
+}
+
+.profile-rename-v3 button {
+  min-height: 42px;
+  white-space: nowrap;
 }
 
 .profile-avatar-card-v3 {
@@ -2625,40 +2901,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .danger-primary {
   background: #9a4f4f !important;
-}
-
-.bottom-nav-v3 {
-  position: sticky;
-  bottom: 12px;
-  z-index: 20;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 6px;
-  width: min(720px, calc(100vw - 24px));
-  margin: 18px auto 0;
-  padding: 8px;
-  border: 1px solid #eee8e2;
-  border-radius: 24px;
-  background: rgba(255,255,255,.88);
-  box-shadow: 0 8px 24px rgba(0,0,0,.07);
-  backdrop-filter: blur(12px);
-}
-
-.bottom-nav-v3 button {
-  display: grid;
-  place-items: center;
-  gap: 2px;
-  min-height: 54px;
-  border-radius: 18px;
-  color: rgba(74,64,58,.56);
-  background: transparent;
-  font-size: 11px;
-  font-weight: 850;
-}
-
-.bottom-nav-v3 button.active {
-  color: #4a403a;
-  background: #f7d9d9;
 }
 
 .studio-layout-v3 {
@@ -2928,17 +3170,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
   .profile-avatar-card-v3 {
     min-height: 460px;
-  }
-
-  .bottom-nav-v3 {
-    bottom: 8px;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    border-radius: 20px;
-  }
-
-  .bottom-nav-v3 button {
-    min-height: 48px;
-    font-size: 10px;
   }
 
   .avatar-dressing-stage,
