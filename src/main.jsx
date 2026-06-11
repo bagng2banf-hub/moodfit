@@ -861,10 +861,11 @@ function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, f
 }
 
 function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, persist }) {
+  const profile = normalizeBodyProfile(bodyProfile);
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
   const updateProfile = (patch) => {
-    const next = { ...bodyProfile, ...patch };
+    const next = normalizeBodyProfile({ ...profile, ...patch });
     setBodyProfile(next);
     persist({ bodyProfile: next });
   };
@@ -883,14 +884,21 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
       <div className="room-panel-v3">
         <h3>아바타 커스터마이징</h3>
         <div className="avatar-studio-tools">
-          <Segment label="성별" items={[["female", "여성"], ["male", "남성"], ["neutral", "뉴트럴"]]} value={bodyProfile.gender} onChange={(value) => updateProfile({ gender: value })} />
-          <Segment label="체형" items={[["slim", "슬림"], ["regular", "레귤러"], ["curvy", "커브"], ["athletic", "애슬레틱"]]} value={bodyProfile.bodyType} onChange={(value) => updateProfile({ bodyType: value })} />
-          <Segment label="포즈" items={[["standing", "스탠딩"], ["walking", "워킹"], ["mirror", "거울"], ["bag", "쇼핑백"], ["sitting", "시팅"]]} value={bodyProfile.pose} onChange={(value) => updateProfile({ pose: value })} />
-          <Segment label="표정" items={[["happy", "해피"], ["confident", "자신감"], ["calm", "차분"], ["excited", "반짝"], ["cute", "러블리"]]} value={bodyProfile.expression} onChange={(value) => updateProfile({ expression: value })} />
-          <Segment label="헤어" items={[["short", "숏"], ["medium", "미디엄"], ["long", "롱"], ["wavy", "웨이브"], ["straight", "스트레이트"], ["ponytail", "포니테일"], ["bangs", "앞머리"]]} value={bodyProfile.hairStyle} onChange={(value) => updateProfile({ hairStyle: value })} />
-          <Segment label="헤어 컬러" items={[["black", "블랙"], ["brown", "브라운"], ["blonde", "블론드"], ["ash", "애쉬"]]} value={bodyProfile.hairColor} onChange={(value) => updateProfile({ hairColor: value })} />
-          <Segment label="얼굴" items={[["round", "라운드"], ["softSquare", "소프트"], ["heart", "하트"], ["oval", "오벌"]]} value={bodyProfile.faceShape} onChange={(value) => updateProfile({ faceShape: value })} />
-          <Segment label="눈" items={[["dot", "도트"], ["smile", "스마일"], ["calm", "차분"], ["star", "반짝"]]} value={bodyProfile.eyeStyle} onChange={(value) => updateProfile({ eyeStyle: value })} />
+          <Segment label="성별" items={[["female", "여성"], ["male", "남성"], ["neutral", "뉴트럴"]]} value={profile.gender} onChange={(value) => updateProfile({ gender: value })} />
+          <Segment label="체형 프리셋" items={[["slim", "슬림"], ["regular", "레귤러"], ["curvy", "커브"], ["athletic", "애슬레틱"]]} value={profile.bodyType} onChange={(value) => updateProfile(bodyPreset(value))} />
+          <Segment label="포즈" items={[["standing", "정면"], ["walking", "워킹"], ["mirror", "거울"], ["bag", "쇼핑백"]]} value={profile.pose} onChange={(value) => updateProfile({ pose: value })} />
+          <Segment label="표정" items={[["happy", "해피"], ["confident", "자신감"], ["calm", "차분"], ["excited", "반짝"], ["cute", "러블리"]]} value={profile.expression} onChange={(value) => updateProfile({ expression: value })} />
+          <Segment label="얼굴" items={[["round", "라운드"], ["softSquare", "소프트"], ["heart", "하트"], ["oval", "오벌"]]} value={profile.faceShape} onChange={(value) => updateProfile({ faceShape: value })} />
+          <Segment label="눈" items={[["dot", "도트"], ["smile", "스마일"], ["calm", "차분"], ["star", "반짝"]]} value={profile.eyeStyle} onChange={(value) => updateProfile({ eyeStyle: value })} />
+          <Segment label="헤어" items={[["short", "숏"], ["medium", "미디엄"], ["long", "롱"], ["wavy", "웨이브"], ["straight", "스트레이트"], ["ponytail", "포니테일"], ["bangs", "앞머리"]]} value={profile.hairStyle} onChange={(value) => updateProfile({ hairStyle: value })} />
+          <Segment label="헤어 컬러" items={[["black", "블랙"], ["brown", "브라운"], ["blonde", "블론드"], ["ash", "애쉬"]]} value={profile.hairColor} onChange={(value) => updateProfile({ hairColor: value })} />
+          <Segment label="피부톤" items={[["bright", "밝음"], ["medium", "보통"], ["warm", "웜"], ["cool", "쿨"], ["deep", "딥"]]} value={profile.skinTone} onChange={(value) => updateProfile({ skinTone: value })} />
+          <RangeControl label="키" min="140" max="200" value={profile.height} onChange={(value) => updateProfile({ height: Number(value) })} />
+          <RangeControl label="다리 길이" min="70" max="125" value={profile.legLength} onChange={(value) => updateProfile({ legLength: Number(value) })} />
+          <RangeControl label="팔 길이" min="70" max="120" value={profile.armLength} onChange={(value) => updateProfile({ armLength: Number(value) })} />
+          <RangeControl label="어깨 너비" min="30" max="58" value={profile.shoulderWidth} onChange={(value) => updateProfile({ shoulderWidth: Number(value), shoulder: Number(value) })} />
+          <RangeControl label="허리 너비" min="22" max="44" value={profile.waistWidth} onChange={(value) => updateProfile({ waistWidth: Number(value), waist: Number(value) })} />
+          <RangeControl label="골반 너비" min="32" max="62" value={profile.hipWidth} onChange={(value) => updateProfile({ hipWidth: Number(value) })} />
           <RangeControl label="줌" min="86" max="118" value={zoom} onChange={(value) => setZoom(Number(value))} />
         </div>
         <div className="mood-row-v3">
@@ -1614,18 +1622,16 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
   const rightArm = pose === "bag" ? "rotate(-16 174 172)" : "";
   const expressionClass = `avatar-expression-${profile.expression || "happy"}`;
   const title = [top.name, outer.name, bottom.name, shoes.name].filter(Boolean).join(" · ") || "MoodFit avatar";
-  const bodyShape = {
-    slim: { shoulder: 36, waist: 50, hip: 62, arm: 19, leg: 24 },
-    regular: { shoulder: 46, waist: 62, hip: 72, arm: 22, leg: 28 },
-    curvy: { shoulder: 44, waist: 66, hip: 88, arm: 24, leg: 31 },
-    athletic: { shoulder: 58, waist: 64, hip: 72, arm: 25, leg: 29 },
-  }[profile.bodyType] || { shoulder: 46, waist: 62, hip: 72, arm: 22, leg: 28 };
   const genderShape = profile.gender === "male" ? 6 : profile.gender === "female" ? -2 : 0;
-  const shoulder = bodyShape.shoulder + genderShape;
-  const waist = bodyShape.waist + (profile.waist - 27) * 1.2;
-  const hip = bodyShape.hip + (profile.waist - 27) * 1.1;
-  const torsoTop = 136;
-  const torsoBottom = 278;
+  const heightShift = (profile.height - 165) * 0.55;
+  const headScale = Math.max(0.86, Math.min(1.08, 1 - (profile.height - 165) * 0.003));
+  const shoulder = Math.max(38, Math.min(82, profile.shoulderWidth * 1.55 + genderShape));
+  const waist = Math.max(42, Math.min(104, profile.waistWidth * 2.05));
+  const hip = Math.max(58, Math.min(124, profile.hipWidth * 1.75));
+  const torsoBottom = Math.max(248, Math.min(306, 270 + (profile.torsoLength - 54) * 1.45 + heightShift * 0.18));
+  const legEnd = Math.max(354, Math.min(408, 362 + (profile.legLength - 92) * 0.95 + heightShift));
+  const armEnd = Math.max(238, Math.min(322, 252 + (profile.armLength - 88) * 0.95 + heightShift * 0.25));
+  const headYOffset = Math.max(-12, Math.min(10, -heightShift * 0.22));
   const leftShoulder = 135 - shoulder;
   const rightShoulder = 135 + shoulder;
   const leftWaist = 135 - waist / 2;
@@ -1633,11 +1639,11 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
   const leftHip = 135 - hip / 2;
   const rightHip = 135 + hip / 2;
   const facePath = {
-    round: "M112 75 C119 55 152 48 170 63 C185 77 184 109 173 127 C160 147 125 148 111 128 C101 112 102 89 112 75Z",
-    softSquare: "M112 75 C119 57 152 50 170 64 C184 75 184 109 175 128 C164 147 123 148 111 128 C102 110 102 89 112 75Z",
-    heart: "M112 75 C121 54 153 49 171 65 C187 80 181 113 168 130 C154 148 128 148 113 130 C101 114 101 90 112 75Z",
-    oval: "M113 72 C121 52 154 48 171 64 C188 81 183 116 169 134 C155 151 128 151 113 134 C99 116 101 88 113 72Z",
-  }[profile.faceShape] || "M112 75 C119 55 152 48 170 63 C185 77 184 109 173 127 C160 147 125 148 111 128 C101 112 102 89 112 75Z";
+    round: "M112 72 C120 54 151 49 169 63 C187 78 184 111 172 128 C158 147 125 147 112 128 C101 112 101 88 112 72Z",
+    softSquare: "M112 73 C121 56 153 51 170 65 C184 78 183 111 175 129 C163 148 123 148 111 129 C102 111 102 89 112 73Z",
+    heart: "M112 73 C121 53 153 49 171 65 C187 81 181 114 168 130 C154 148 128 148 113 130 C101 114 101 90 112 73Z",
+    oval: "M113 69 C122 51 154 48 171 64 C188 82 183 118 169 135 C155 151 128 151 113 135 C99 118 101 87 113 69Z",
+  }[profile.faceShape] || "M112 72 C120 54 151 49 169 63 C187 78 184 111 172 128 C158 147 125 147 112 128 C101 112 101 88 112 72Z";
   const eyes = {
     dot: <><circle cx="126" cy="101" r="3.2" fill="#4a403a" /><circle cx="158" cy="101" r="3.2" fill="#4a403a" /></>,
     smile: <><path d="M121 101 Q126 96 132 101" fill="none" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /><path d="M153 101 Q158 96 164 101" fill="none" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /></>,
@@ -1653,11 +1659,11 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
   }[profile.expression] || "M132 117 Q144 128 157 117";
   const torsoPath = `M${leftShoulder} 156 C${leftShoulder + 16} 142 122 137 136 137 C152 137 ${rightShoulder - 16} 142 ${rightShoulder} 156 L${rightWaist} ${torsoBottom} C151 288 120 288 ${leftWaist} ${torsoBottom}Z`;
   const outerPath = isCoat
-    ? `M${leftShoulder - 14} 154 C101 137 116 138 136 151 C153 137 173 138 ${rightShoulder + 14} 154 L${rightHip + 26} 338 C170 350 105 350 ${leftHip - 26} 338Z`
+    ? `M${leftShoulder - 14} 154 C101 137 116 138 136 151 C153 137 173 138 ${rightShoulder + 14} 154 L${rightHip + 26} ${Math.min(346, torsoBottom + 62)} C170 350 105 350 ${leftHip - 26} ${Math.min(346, torsoBottom + 62)}Z`
     : `M${leftShoulder - 12} 158 C100 139 116 139 136 153 C154 139 174 139 ${rightShoulder + 12} 158 L${rightWaist + 18} 270 C169 286 102 286 ${leftWaist - 18} 270Z`;
   const pantsPath = isWide
-    ? `M${leftHip} 276 H${rightHip} L${rightHip + 20} 374 C177 382 159 382 144 374 L136 304 L126 374 C111 382 92 382 ${leftHip - 20} 374Z`
-    : `M${leftHip + 8} 276 H${rightHip - 8} L${rightHip + 4} 374 C162 381 149 381 137 374 L135 304 L130 374 C118 381 104 381 ${leftHip - 4} 374Z`;
+    ? `M${leftHip} ${torsoBottom - 2} H${rightHip} L${rightHip + 20} ${legEnd} C177 ${legEnd + 8} 159 ${legEnd + 8} 144 ${legEnd} L136 ${torsoBottom + 26} L126 ${legEnd} C111 ${legEnd + 8} 92 ${legEnd + 8} ${leftHip - 20} ${legEnd}Z`
+    : `M${leftHip + 8} ${torsoBottom - 2} H${rightHip - 8} L${rightHip + 4} ${legEnd} C162 ${legEnd + 7} 149 ${legEnd + 7} 137 ${legEnd} L135 ${torsoBottom + 26} L130 ${legEnd} C118 ${legEnd + 7} 104 ${legEnd + 7} ${leftHip - 4} ${legEnd}Z`;
   const skirtPath = `M${leftHip} 276 C120 287 151 287 ${rightHip} 276 L${rightHip + 20} 342 C158 356 112 356 ${leftHip - 20} 342Z`;
 
   return (
@@ -1672,35 +1678,37 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
           <feDropShadow dx="0" dy="12" stdDeviation="8" floodColor="#6d574f" floodOpacity=".16" />
         </filter>
       </defs>
-      <ellipse cx="135" cy="404" rx="92" ry="16" fill="rgba(74,64,58,.14)" />
+      <ellipse cx="135" cy="414" rx="92" ry="16" fill="rgba(74,64,58,.14)" />
       <g filter={`url(#${svgId}-shadow)`}>
-        <path d="M107 101 C112 78 127 66 144 69 C166 72 180 91 174 118 L102 118 C101 112 102 106 107 101Z" fill={hair} />
-        {(profile.hairStyle === "long" || profile.hairStyle === "wavy" || profile.hairStyle === "straight") && <path d="M92 105 C93 68 118 47 143 51 C176 56 190 90 184 151 C178 177 158 185 135 181 C111 185 91 170 92 105Z" fill={hair} opacity=".96" />}
-        {profile.hairStyle === "ponytail" && <path d="M178 104 C207 118 205 170 182 193 C181 160 176 130 164 110Z" fill={hair} />}
-        <path d={facePath} fill={`url(#${svgId}-skin)`} />
-        <path d="M109 82 C125 58 158 55 176 79 C165 74 148 75 132 80 C122 84 115 87 109 82Z" fill={hair} />
-        {profile.hairStyle === "bangs" && <path d="M111 80 C126 68 153 64 177 82 C156 84 139 92 120 101Z" fill={hair} />}
-        <rect x="126" y="130" width="24" height="30" rx="10" fill={skin} />
-        <g className="svg-face">
-          {eyes}
-          <path d="M142 104 Q139 111 143 112" fill="none" stroke="#9b6d5f" strokeWidth="2" strokeLinecap="round" />
-          <path d={smilePath} fill="none" stroke="#8b5f54" strokeWidth="3" strokeLinecap="round" />
-          {profile.expression === "cute" && <><circle cx="116" cy="113" r="5" fill="#f0a7a9" opacity=".55" /><circle cx="168" cy="113" r="5" fill="#f0a7a9" opacity=".55" /></>}
+        <g transform={`translate(135 ${headYOffset}) scale(${headScale}) translate(-135 0)`}>
+          <path d="M107 101 C112 78 127 66 144 69 C166 72 180 91 174 118 L102 118 C101 112 102 106 107 101Z" fill={hair} />
+          {(profile.hairStyle === "long" || profile.hairStyle === "wavy" || profile.hairStyle === "straight") && <path d="M92 105 C93 68 118 47 143 51 C176 56 190 90 184 151 C178 177 158 185 135 181 C111 185 91 170 92 105Z" fill={hair} opacity=".96" />}
+          {profile.hairStyle === "ponytail" && <path d="M178 104 C207 118 205 170 182 193 C181 160 176 130 164 110Z" fill={hair} />}
+          <path d={facePath} fill={`url(#${svgId}-skin)`} />
+          <path d="M109 82 C125 58 158 55 176 79 C165 74 148 75 132 80 C122 84 115 87 109 82Z" fill={hair} />
+          {profile.hairStyle === "bangs" && <path d="M111 80 C126 68 153 64 177 82 C156 84 139 92 120 101Z" fill={hair} />}
+          <g className="svg-face">
+            {eyes}
+            <path d="M142 104 Q139 111 143 112" fill="none" stroke="#9b6d5f" strokeWidth="2" strokeLinecap="round" />
+            <path d={smilePath} fill="none" stroke="#8b5f54" strokeWidth="3" strokeLinecap="round" />
+            {profile.expression === "cute" && <><circle cx="116" cy="113" r="5" fill="#f0a7a9" opacity=".55" /><circle cx="168" cy="113" r="5" fill="#f0a7a9" opacity=".55" /></>}
+          </g>
         </g>
+        <rect x="126" y="130" width="24" height="30" rx="10" fill={skin} />
         {isHoodie && <path d="M102 158 C106 133 128 125 148 131 C166 136 176 148 178 165 L160 178 C151 164 125 162 112 178Z" fill={topColor} opacity=".92" />}
         <path d={torsoPath} fill={topColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" />
         {isShirt && <path d="M118 151 L136 169 L154 151 M136 169 L136 273" fill="none" stroke="#ffffff" strokeOpacity=".78" strokeWidth="4" strokeLinecap="round" />}
         {top.pattern === "Stripe" && <g opacity=".55" stroke="#fff" strokeWidth="5"><path d="M99 184 H176" /><path d="M97 218 H178" /><path d="M97 252 H176" /></g>}
         {outerColor && <path d={outerPath} fill={outerColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" opacity=".9" />}
-        <g transform={leftArm}><path d={`M${leftShoulder} 163 C${leftShoulder - 16} 188 ${leftShoulder - 20} 224 ${leftShoulder - 18} 268 C${leftShoulder - 17} 282 ${leftShoulder - 1} 283 ${leftShoulder + 4} 270 C${leftShoulder + 12} 236 ${leftShoulder + 17} 199 ${leftShoulder + 22} 170Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
-        <g transform={rightArm}><path d={`M${rightShoulder} 163 C${rightShoulder + 18} 188 ${rightShoulder + 24} 224 ${rightShoulder + 21} 268 C${rightShoulder + 20} 282 ${rightShoulder + 4} 283 ${rightShoulder - 1} 270 C${rightShoulder - 9} 236 ${rightShoulder - 14} 199 ${rightShoulder - 21} 170Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
+        <g transform={leftArm}><path d={`M${leftShoulder} 163 C${leftShoulder - 16} 188 ${leftShoulder - 20} ${armEnd - 34} ${leftShoulder - 18} ${armEnd} C${leftShoulder - 17} ${armEnd + 14} ${leftShoulder - 1} ${armEnd + 15} ${leftShoulder + 4} ${armEnd + 2} C${leftShoulder + 12} ${armEnd - 32} ${leftShoulder + 17} 199 ${leftShoulder + 22} 170Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
+        <g transform={rightArm}><path d={`M${rightShoulder} 163 C${rightShoulder + 18} 188 ${rightShoulder + 24} ${armEnd - 34} ${rightShoulder + 21} ${armEnd} C${rightShoulder + 20} ${armEnd + 14} ${rightShoulder + 4} ${armEnd + 15} ${rightShoulder - 1} ${armEnd + 2} C${rightShoulder - 9} ${armEnd - 32} ${rightShoulder - 14} 199 ${rightShoulder - 21} 170Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
         {isSkirt
           ? <path d={skirtPath} fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
           : <path d={pantsPath} fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />}
-        <g transform={leftLeg}><path d="M104 340 C112 346 122 346 130 340 L128 387 C120 393 108 393 99 386Z" fill={skin} /></g>
-        <g transform={rightLeg}><path d="M142 340 C150 346 160 346 168 340 L175 386 C166 393 154 393 146 387Z" fill={skin} /></g>
-        <path d="M86 382 C105 376 122 378 133 391 C124 403 93 403 79 393Z" fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
-        <path d="M139 391 C151 378 169 376 188 382 L195 393 C181 403 150 403 139 391Z" fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
+        <g transform={leftLeg}><path d={`M104 ${legEnd - 34} C112 ${legEnd - 28} 122 ${legEnd - 28} 130 ${legEnd - 34} L128 ${legEnd + 13} C120 ${legEnd + 19} 108 ${legEnd + 19} 99 ${legEnd + 12}Z`} fill={skin} /></g>
+        <g transform={rightLeg}><path d={`M142 ${legEnd - 34} C150 ${legEnd - 28} 160 ${legEnd - 28} 168 ${legEnd - 34} L175 ${legEnd + 12} C166 ${legEnd + 19} 154 ${legEnd + 19} 146 ${legEnd + 13}Z`} fill={skin} /></g>
+        <path d={`M86 ${legEnd + 8} C105 ${legEnd + 2} 122 ${legEnd + 4} 133 ${legEnd + 17} C124 ${legEnd + 29} 93 ${legEnd + 29} 79 ${legEnd + 19}Z`} fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
+        <path d={`M139 ${legEnd + 17} C151 ${legEnd + 4} 169 ${legEnd + 2} 188 ${legEnd + 8} L195 ${legEnd + 19} C181 ${legEnd + 29} 150 ${legEnd + 29} 139 ${legEnd + 17}Z`} fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
         {bag.id && <path d="M198 221 C223 227 229 270 210 292 C193 285 188 244 198 221Z" fill={bag.color || "#8c5a38"} stroke="#6d574f" strokeOpacity=".25" strokeWidth="2" />}
         {accessory.id && <path d="M121 142 Q136 156 153 142" fill="none" stroke={accessory.color || "#d8d8d6"} strokeWidth="5" strokeLinecap="round" />}
       </g>
@@ -2271,12 +2279,21 @@ function loadStoredState() {
 function normalizeBodyProfile(profile = {}) {
   const bodyTypeMap = { balanced: "regular", upper: "athletic", lower: "curvy", softCurve: "curvy" };
   const hairStyleMap = { bob: "medium", wave: "wavy" };
+  const bodyType = bodyTypeMap[profile.bodyType] || profile.bodyType || "regular";
+  const shoulderWidth = Number(profile.shoulderWidth ?? profile.shoulder) || (bodyType === "athletic" ? 50 : bodyType === "slim" ? 36 : 42);
+  const waistWidth = Number(profile.waistWidth ?? profile.waist) || (bodyType === "curvy" ? 31 : bodyType === "slim" ? 24 : 28);
+  const hipWidth = Number(profile.hipWidth) || (bodyType === "curvy" ? 52 : bodyType === "slim" ? 36 : 42);
+  const armLength = Number(profile.armLength) || 90;
   return {
     gender: profile.gender || "neutral",
-    bodyType: bodyTypeMap[profile.bodyType] || profile.bodyType || "regular",
+    bodyType,
     height: Number(profile.height) || 165,
-    shoulder: Number(profile.shoulder) || 42,
-    waist: Number(profile.waist) || 27,
+    shoulder: shoulderWidth,
+    waist: waistWidth,
+    shoulderWidth,
+    waistWidth,
+    hipWidth,
+    armLength,
     torsoLength: Number(profile.torsoLength) || 54,
     legLength: Number(profile.legLength) || 92,
     legRatio: Number(profile.legRatio) || 52,
@@ -2288,6 +2305,16 @@ function normalizeBodyProfile(profile = {}) {
     pose: profile.pose || "standing",
     expression: profile.expression || "happy",
   };
+}
+
+function bodyPreset(type) {
+  const presets = {
+    slim: { bodyType: "slim", height: 170, shoulderWidth: 36, waistWidth: 24, hipWidth: 36, armLength: 88, legLength: 102, torsoLength: 52, legRatio: 55 },
+    regular: { bodyType: "regular", height: 165, shoulderWidth: 42, waistWidth: 28, hipWidth: 42, armLength: 90, legLength: 94, torsoLength: 54, legRatio: 52 },
+    curvy: { bodyType: "curvy", height: 164, shoulderWidth: 42, waistWidth: 31, hipWidth: 52, armLength: 90, legLength: 94, torsoLength: 54, legRatio: 51 },
+    athletic: { bodyType: "athletic", height: 172, shoulderWidth: 50, waistWidth: 29, hipWidth: 42, armLength: 94, legLength: 98, torsoLength: 55, legRatio: 53 },
+  };
+  return normalizeBodyProfile(presets[type] || presets.regular);
 }
 
 function readImageFile(file) {
