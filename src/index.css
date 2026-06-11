@@ -313,15 +313,15 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .moodfit-game .topbar {
   position: relative;
   top: 0;
-  grid-template-columns: minmax(150px, auto) minmax(560px, 1fr) auto;
+  grid-template-columns: minmax(170px, 220px) minmax(0, 1fr) auto;
   width: min(1340px, calc(100vw - 48px));
   max-width: none;
-  min-height: 96px;
+  min-height: 76px;
   margin-bottom: 12px;
-  border: 3px solid rgba(132,105,94,.46);
-  border-radius: 26px;
+  border: 1px solid rgba(132,105,94,.26);
+  border-radius: 24px;
   background: rgba(255,250,244,.92);
-  box-shadow: 0 8px 0 rgba(132,105,94,.1);
+  box-shadow: 0 10px 28px rgba(132,105,94,.1);
   backdrop-filter: blur(10px);
 }
 .moodfit-game .brand-mark,
@@ -330,17 +330,22 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 }
 .moodfit-game .main-tabs {
   justify-content: center;
-  gap: 14px;
+  gap: 8px;
+  padding: 2px;
 }
 .moodfit-game .main-tabs button {
-  min-width: 86px;
-  min-height: 74px;
-  flex-direction: column;
-  border: 3px solid var(--line);
-  border-radius: 22px;
-  background: #fff8ef;
+  min-width: 0;
+  min-height: 42px;
+  flex: 0 1 auto;
+  flex-direction: row;
+  border: 1px solid rgba(132,105,94,.18);
+  border-radius: 16px;
+  padding: 9px 11px;
+  background: rgba(255,248,239,.82);
   color: #7b655c;
-  box-shadow: 0 7px 0 rgba(133,106,94,.13);
+  box-shadow: none;
+  font-size: 12px;
+  white-space: nowrap;
 }
 .moodfit-game .main-tabs button:nth-child(2),
 .moodfit-game .main-tabs button:nth-child(5) { background: #fff0df; }
@@ -348,7 +353,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .moodfit-game .main-tabs button:nth-child(4) { background: #eaf6fb; }
 .moodfit-game .main-tabs button.active,
 .moodfit-game .main-tabs button:hover {
-  transform: translateY(-4px) rotate(-1deg);
+  transform: translateY(-1px);
   background: #ffe0e4;
   color: #6d554b;
 }
@@ -358,16 +363,18 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   gap: 14px;
 }
 .settings-bubble {
-  display: grid;
-  place-items: center;
-  width: 74px;
-  height: 74px;
-  border: 3px solid var(--line);
-  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 82px;
+  height: 42px;
+  border: 1px solid rgba(132,105,94,.18);
+  border-radius: 16px;
   color: #796358;
   background: #fffaf3;
   font-weight: 900;
-  box-shadow: 0 7px 0 rgba(133,106,94,.13);
+  box-shadow: none;
 }
 .settings-bubble span {
   font-size: 13px;
@@ -927,6 +934,190 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .eyes-smile .head::after { background: radial-gradient(ellipse at 18% 20%, transparent 0 5px, #4a403a 6px 7px, transparent 8px), radial-gradient(ellipse at 82% 20%, transparent 0 5px, #4a403a 6px 7px, transparent 8px), radial-gradient(ellipse at 50% 78%, transparent 0 9px, #8b5f54 10px 11px, transparent 12px); }
 .eyes-calm .head::after { background: linear-gradient(#4a403a,#4a403a) 10px 9px / 14px 2px no-repeat, linear-gradient(#4a403a,#4a403a) 44px 9px / 14px 2px no-repeat, radial-gradient(ellipse at 50% 78%, transparent 0 9px, #8b5f54 10px 11px, transparent 12px); }
 .eyes-star .head::after { background: radial-gradient(circle at 18% 18%, #4a403a 0 4px, transparent 5px), radial-gradient(circle at 82% 18%, #4a403a 0 4px, transparent 5px), radial-gradient(circle at 25% 10%, #fff 0 1px, transparent 2px), radial-gradient(circle at 75% 10%, #fff 0 1px, transparent 2px), radial-gradient(ellipse at 50% 78%, transparent 0 9px, #8b5f54 10px 11px, transparent 12px); }
+
+/* Modern human fashion avatar */
+.fashion-avatar {
+  width: 246px;
+  height: 520px;
+}
+
+.svg-avatar {
+  display: block;
+  width: min(280px, 100%);
+  height: auto;
+  max-height: 520px;
+  overflow: visible;
+  animation: avatarIdle 4.2s ease-in-out infinite;
+}
+
+.profile-id-photo-v3 .svg-avatar {
+  width: 132px;
+  max-height: none;
+  transform: translateY(4px);
+}
+
+.avatar-studio-stage .fashion-avatar {
+  scale: var(--studio-zoom, 1);
+  transform: rotateY(var(--studio-rotate, 0deg));
+}
+
+.fashion-avatar .head {
+  top: 18px;
+  width: 74px;
+  height: 86px;
+  border-radius: 50% 50% 46% 46%;
+  z-index: 14;
+}
+
+.fashion-avatar .head::before,
+.fashion-avatar .head::after {
+  display: none;
+}
+
+.hair-back {
+  top: 8px;
+  width: 94px;
+  height: 112px;
+  border-radius: 52px 52px 34px 34px;
+  background: var(--avatar-hair, #6d4b3f);
+  z-index: 10;
+  box-shadow: 0 14px 20px rgba(74,64,58,.11);
+}
+
+.hair-front {
+  top: 6px;
+  width: 82px;
+  height: 46px;
+  border-radius: 42px 42px 18px 18px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--avatar-hair, #6d4b3f) 88%, white), var(--avatar-hair, #6d4b3f));
+  z-index: 16;
+}
+
+.face-layer {
+  top: 54px;
+  width: 48px;
+  height: 24px;
+  z-index: 18;
+  background:
+    radial-gradient(circle at 16% 20%, #4a403a 0 3px, transparent 4px),
+    radial-gradient(circle at 84% 20%, #4a403a 0 3px, transparent 4px),
+    radial-gradient(ellipse at 50% 80%, transparent 0 7px, #8b5f54 8px 9px, transparent 10px);
+}
+
+.expression-confident .face-layer {
+  background:
+    linear-gradient(#4a403a,#4a403a) 2px 5px / 13px 2px no-repeat,
+    linear-gradient(#4a403a,#4a403a) 33px 5px / 13px 2px no-repeat,
+    radial-gradient(ellipse at 50% 78%, transparent 0 7px, #8b5f54 8px 9px, transparent 10px);
+}
+
+.expression-calm .face-layer,
+.eyes-calm .face-layer {
+  background:
+    linear-gradient(#4a403a,#4a403a) 2px 7px / 13px 2px no-repeat,
+    linear-gradient(#4a403a,#4a403a) 33px 7px / 13px 2px no-repeat,
+    radial-gradient(ellipse at 50% 80%, transparent 0 7px, #8b5f54 8px 9px, transparent 10px);
+}
+
+.expression-excited .face-layer,
+.eyes-star .face-layer {
+  background:
+    radial-gradient(circle at 16% 20%, #4a403a 0 3px, transparent 4px),
+    radial-gradient(circle at 84% 20%, #4a403a 0 3px, transparent 4px),
+    radial-gradient(circle at 22% 8%, #fff 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 8%, #fff 0 1px, transparent 2px),
+    radial-gradient(ellipse at 50% 80%, transparent 0 7px, #8b5f54 8px 9px, transparent 10px);
+}
+
+.expression-cute .face-layer {
+  background:
+    radial-gradient(circle at 16% 20%, #4a403a 0 3px, transparent 4px),
+    radial-gradient(circle at 84% 20%, #4a403a 0 3px, transparent 4px),
+    radial-gradient(circle at 0 55%, #f2a8aa 0 5px, transparent 6px),
+    radial-gradient(circle at 100% 55%, #f2a8aa 0 5px, transparent 6px),
+    radial-gradient(ellipse at 50% 80%, transparent 0 7px, #8b5f54 8px 9px, transparent 10px);
+}
+
+.hair-short .hair-back { height: 74px; border-radius: 48px 48px 26px 26px; }
+.hair-long .hair-back,
+.hair-wavy .hair-back,
+.hair-straight .hair-back { height: 168px; width: 104px; border-radius: 54px 54px 42px 42px; }
+.hair-wavy .hair-back { box-shadow: -15px 42px 0 -22px var(--avatar-hair), 15px 42px 0 -22px var(--avatar-hair), 0 14px 20px rgba(74,64,58,.11); }
+.hair-ponytail .hair-back::after {
+  content: "";
+  position: absolute;
+  right: -22px;
+  top: 42px;
+  width: 36px;
+  height: 92px;
+  border-radius: 28px;
+  background: var(--avatar-hair);
+}
+.hair-bangs .hair-front { height: 58px; border-radius: 42px 42px 26px 26px; }
+.hair-color-black { --avatar-hair: #2f2927; }
+.hair-color-brown { --avatar-hair: #6d4b3f; }
+.hair-color-blonde { --avatar-hair: #c9a06b; }
+.hair-color-ash { --avatar-hair: #83756f; }
+
+.fashion-avatar .neck { top: 94px; width: 28px; height: 48px; z-index: 4; }
+.fashion-avatar .torso {
+  top: 130px;
+  width: var(--top-width, min(var(--avatar-shoulder, 116px), 146px));
+  height: var(--top-height, var(--avatar-torso, 156px));
+  border-radius: var(--top-radius, 34px 34px 22px 22px);
+  clip-path: polygon(12% 0, 88% 0, calc(50% + var(--avatar-waist, 88px) / 2) 100%, calc(50% - var(--avatar-waist, 88px) / 2) 100%);
+}
+.fashion-avatar .arm { top: 148px; width: 24px; height: calc(var(--avatar-torso, 156px) + 26px); z-index: 5; }
+.fashion-avatar .arm.left { transform: translateX(-82px) rotate(5deg); }
+.fashion-avatar .arm.right { transform: translateX(58px) rotate(-5deg); }
+.fashion-avatar .bottom { top: calc(126px + var(--avatar-torso, 156px)); }
+.fashion-avatar .leg { top: calc(198px + var(--avatar-torso, 156px)); width: 29px; }
+.fashion-avatar .leg.left { transform: translateX(-38px); }
+.fashion-avatar .leg.right { transform: translateX(9px); }
+.fashion-avatar .shoe { top: calc(190px + var(--avatar-torso, 156px) + var(--avatar-leg, 104px)); }
+.fashion-avatar .floor { top: calc(214px + var(--avatar-torso, 156px) + var(--avatar-leg, 104px)); }
+
+.body-slim { --avatar-waist: 78px; }
+.body-curvy { --avatar-hip: 152px; --avatar-waist: 98px; }
+.body-athletic { --avatar-shoulder: 150px; }
+.pose-walking .leg.left { transform: translateX(-42px) rotate(-5deg); }
+.pose-walking .leg.right { transform: translateX(13px) rotate(6deg); }
+.pose-bag .arm.right { transform: translateX(68px) rotate(-18deg); }
+.pose-mirror .arm.left { transform: translateX(-88px) rotate(-16deg); }
+.pose-sitting .fashion-avatar,
+.pose-sitting { --avatar-leg: 82px; }
+
+.avatar-bag {
+  top: 230px;
+  width: 44px;
+  height: 58px;
+  border: 2px solid color-mix(in srgb, var(--cloth) 68%, #4a403a 20%);
+  border-radius: 16px 16px 22px 22px;
+  background: var(--cloth);
+  transform: translateX(82px) rotate(-4deg);
+  z-index: 12;
+}
+
+.avatar-bag::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  top: -14px;
+  height: 20px;
+  border: 2px solid color-mix(in srgb, var(--cloth) 68%, #4a403a 20%);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+}
+
+.avatar-accessory {
+  top: 106px;
+  width: 62px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--cloth);
+  z-index: 20;
+}
 
 .wear-part {
   --cloth-secondary: #ffffff;
@@ -2046,6 +2237,66 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   gap: 10px;
 }
 
+.view-switch {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  min-height: 42px;
+  padding: 4px;
+  border: 1px solid #eee8e2;
+  border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 8px 24px rgba(0,0,0,.05);
+}
+
+.view-switch button {
+  min-width: 58px;
+  border-radius: 999px;
+  color: #6c554d;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.view-switch button.active {
+  color: #4a403a;
+  background: #f7d9d9;
+}
+
+.moodfit-game.view-mobile {
+  max-width: 430px;
+  margin: 0 auto;
+  border-inline: 1px solid rgba(132,105,94,.18);
+  box-shadow: 0 0 60px rgba(132,105,94,.16);
+}
+
+.moodfit-game.view-mobile .topbar {
+  grid-template-columns: 1fr;
+}
+
+.moodfit-game.view-mobile .main-tabs {
+  justify-content: flex-start;
+  overflow-x: auto;
+}
+
+.moodfit-game.view-mobile .header-actions {
+  justify-content: space-between;
+}
+
+.moodfit-game.view-mobile .seasonal-hero-banner {
+  height: 230px;
+}
+
+.moodfit-game.view-mobile .v3-home-grid,
+.moodfit-game.view-mobile .character-room-v3,
+.moodfit-game.view-mobile .studio-layout-v3,
+.moodfit-game.view-mobile .storybook-closet,
+.moodfit-game.view-mobile .profile-layout-v3,
+.moodfit-game.view-mobile .mission-layout-v3,
+.moodfit-game.view-mobile .shop-grid-v3 {
+  grid-template-columns: 1fr;
+}
+
 .cloud-village::before,
 .cloud-village::after,
 .cloud-village .floating-cloud {
@@ -2610,6 +2861,61 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
     rgba(255, 252, 247, .88);
 }
 
+.avatar-studio-stage {
+  position: relative;
+  overflow: hidden;
+}
+
+.studio-stage-actions {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.studio-stage-actions button,
+.avatar-studio-tools .segment button {
+  min-height: 36px;
+  border: 1px solid #eee8e2;
+  border-radius: 999px;
+  color: #4a403a;
+  background: rgba(255,255,255,.82);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.avatar-studio-tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 500px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.avatar-studio-tools .segment {
+  align-items: start;
+  justify-content: start;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #eee8e2;
+  border-radius: 18px;
+  background: #fffaf7;
+}
+
+.avatar-studio-tools .segment span {
+  width: 100%;
+  color: #8c7a6b;
+}
+
+.avatar-studio-tools .range-control {
+  grid-column: 1 / -1;
+  background: #fffaf7;
+}
+
 .avatar-runway-v3 {
   align-content: center;
   background:
@@ -3014,6 +3320,12 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   border-color: #f7d9d9;
 }
 
+.daily-mission-grid-v3 button.completed {
+  color: #6f8169;
+  border-color: rgba(155,191,157,.55);
+  background: #f2faf1;
+}
+
 .daily-mission-grid-v3 button {
   justify-content: flex-start;
   text-align: left;
@@ -3044,6 +3356,76 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .streak-panel-v3 span.active {
   background: #f7d9d9;
+}
+
+.shop-page-v3 {
+  padding: clamp(18px, 3vw, 34px);
+}
+
+.shop-balance-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 18px 20px;
+  border: 1px solid #eee8e2;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0,0,0,.05);
+}
+
+.shop-balance-card span,
+.shop-balance-card p {
+  color: #8c7a6b;
+  font-weight: 850;
+}
+
+.shop-balance-card strong {
+  display: block;
+  margin-top: 4px;
+  color: #4a403a;
+  font-size: 2rem;
+}
+
+.shop-grid-v3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.shop-grid-v3 article {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #eee8e2;
+  border-radius: 26px;
+  background: #fffaf4;
+  box-shadow: 0 8px 24px rgba(0,0,0,.05);
+}
+
+.shop-grid-v3 article.owned {
+  background: #f4fbf3;
+}
+
+.shop-item-preview {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 22px;
+  color: #7a554f;
+  background: linear-gradient(145deg, #f7d9d9, #ddebf3);
+}
+
+.shop-grid-v3 strong {
+  color: #4a403a;
+  font-size: 1.05rem;
+}
+
+.shop-grid-v3 p {
+  min-height: 44px;
+  margin: 0;
 }
 
 .item-editor-modal,

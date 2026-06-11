@@ -32,6 +32,7 @@ import { categories, defaultFit, moods, seedWardrobe, themes } from "./lib/data"
 import "./index.css";
 
 const storageKey = "moodfit-premium-state-v2";
+const assetPath = (fileName) => `${import.meta.env.BASE_URL}${fileName.replace(/^\//, "")}`;
 const fashionCategories = [
   ["tops", "상의"],
   ["bottoms", "하의"],
@@ -56,8 +57,15 @@ const patternOptions = ["Solid", "Stripe", "Check", "Plaid", "Floral", "Graphic"
 const neckOptions = ["Round Neck", "V Neck", "Turtleneck", "Collar"];
 const sleeveOptions = ["Short Sleeve", "Long Sleeve", "Sleeveless", "Raglan"];
 const mainBannerOptions = [
-  { id: "dressing", label: "드레스룸", src: "/main-banner-dressing.png" },
-  { id: "closet", label: "옷장룸", src: "/main-banner-closet.png" },
+  { id: "dressing", label: "드레스룸", src: assetPath("main-banner-dressing.png") },
+  { id: "closet", label: "옷장룸", src: assetPath("main-banner-closet.png") },
+];
+const shopItems = [
+  { id: "pose-walk", name: "런웨이 포즈", type: "pose", value: "walking", price: 45, copy: "살짝 걷는 듯한 자연스러운 포즈" },
+  { id: "pose-bag", name: "쇼핑백 포즈", type: "pose", value: "bag", price: 55, copy: "외출룩이 더 살아나는 포즈" },
+  { id: "hair-wavy", name: "웨이브 헤어", type: "hairStyle", value: "wavy", price: 35, copy: "부드러운 패션 일러스트 헤어" },
+  { id: "hair-ash", name: "애쉬 헤어 컬러", type: "hairColor", value: "ash", price: 30, copy: "차분한 애쉬 브라운 톤" },
+  { id: "face-confident", name: "자신감 표정", type: "expression", value: "confident", price: 25, copy: "오늘 코디가 더 멋져 보이는 표정" },
 ];
 const fashionLabelMap = {
   tops: "상의",
@@ -200,6 +208,7 @@ function App() {
   const [profileName, setProfileName] = useState(stored.profileName || loadSession()?.username || "무드핏 스타일러");
   const [profilePhoto, setProfilePhoto] = useState(stored.profilePhoto || "");
   const [homeBanner, setHomeBanner] = useState(stored.homeBanner || "dressing");
+  const [viewMode, setViewMode] = useState(stored.viewMode || "desktop");
   const fileInputRef = useRef(null);
   const t = useMemo(() => createTranslator(language || "ko"), [language]);
   const recommendation = useMemo(
@@ -237,6 +246,7 @@ function App() {
         profileName,
         profilePhoto,
         homeBanner,
+        viewMode,
         ...next,
       })
     );
@@ -279,9 +289,16 @@ function App() {
     showToast.timer = window.setTimeout(() => setToast(""), 2200);
   }
 
-  function award(reason, xp = 25, coins = 6) {
+  function award(reason, xp = 25, coins = 6, rewardKey = "") {
+    const today = new Date().toISOString().slice(0, 10);
+    const completedKey = rewardKey ? `${today}:${rewardKey}` : "";
+    if (completedKey && game.completedMissions?.includes(completedKey)) {
+      showToast("이미 오늘 보상을 받았을개");
+      return;
+    }
     setGame((current) => {
       const safe = normalizeGame(current);
+      if (completedKey && safe.completedMissions.includes(completedKey)) return safe;
       const nextXp = safe.xp + xp;
       const next = {
         ...safe,
@@ -290,12 +307,25 @@ function App() {
         level: levelFromXp(nextXp),
         petLevel: levelFromXp(nextXp),
         streak: safe.streak || 1,
+        completedMissions: completedKey ? [...safe.completedMissions, completedKey] : safe.completedMissions,
       };
       const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
       localStorage.setItem(storageKey, JSON.stringify({ ...saved, game: next }));
       return next;
     });
     showToast(`${reason} +${xp} XP · +${coins} 코인`);
+  }
+
+  function buyShopItem(item) {
+    const safe = normalizeGame(game);
+    if (safe.ownedShopItems.includes(item.id)) return showToast("이미 갖고 있는 아이템일개");
+    if (safe.coins < item.price) return showToast(`${item.price - safe.coins}코인이 더 필요할개`);
+    const nextGame = { ...safe, coins: safe.coins - item.price, ownedShopItems: [...safe.ownedShopItems, item.id] };
+    const nextProfile = { ...bodyProfile, [item.type]: item.value };
+    setGame(nextGame);
+    setBodyProfile(nextProfile);
+    persist({ game: nextGame, bodyProfile: nextProfile });
+    showToast(`${item.name} 장착했을개 · -${item.price} 코인`);
   }
 
   function changeProfileName(event) {
@@ -444,8 +474,13 @@ function App() {
     return <AuthScreen t={t} onGuest={continueGuest} onAccount={handleAccount} setLanguage={setLanguage} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />;
   }
 
+  function changeViewMode(nextMode) {
+    setViewMode(nextMode);
+    persist({ viewMode: nextMode });
+  }
+
   return (
-    <main className={`app moodfit-game theme-${theme} mood-${mood} panel-${activePanel}`}>
+    <main className={`app moodfit-game theme-${theme} mood-${mood} panel-${activePanel} view-${viewMode}`}>
       <div className="ambient" aria-hidden="true" />
       <input ref={fileInputRef} className="hidden-input" type="file" accept="image/*" onChange={scanPhoto} />
       <header className="topbar">
@@ -459,9 +494,14 @@ function App() {
           <button className={activePanel === "v3-style" ? "active" : ""} onClick={() => setActivePanel("v3-style")} type="button"><Sparkles size={16} />스타일</button>
           <button className={activePanel === "v3-photo" ? "active" : ""} onClick={() => setActivePanel("v3-photo")} type="button"><Camera size={16} />사진</button>
           <button className={activePanel === "v3-ranking" ? "active" : ""} onClick={() => setActivePanel("v3-ranking")} type="button"><Trophy size={16} />랭킹</button>
+          <button className={activePanel === "v3-shop" ? "active" : ""} onClick={() => setActivePanel("v3-shop")} type="button"><Gift size={16} />상점</button>
           <button className={activePanel === "v3-map" ? "active" : ""} onClick={() => setActivePanel("v3-map")} type="button"><Trees size={16} />마을지도</button>
         </nav>
         <div className="header-actions">
+          <div className="view-switch" aria-label="화면 버전 선택">
+            <button className={viewMode === "desktop" ? "active" : ""} onClick={() => changeViewMode("desktop")} type="button">PC</button>
+            <button className={viewMode === "mobile" ? "active" : ""} onClick={() => changeViewMode("mobile")} type="button">모바일</button>
+          </div>
           <button className="status-pill" onClick={() => setActivePanel("v3-profile")} type="button"><UserRound size={15} />프로필</button>
           <button className="settings-bubble" onClick={() => setActivePanel("settings")} type="button" aria-label="설정"><Settings size={24} /><span>설정</span></button>
         </div>
@@ -502,6 +542,7 @@ function App() {
           award={award}
           fileInputRef={fileInputRef}
           game={game}
+          buyShopItem={buyShopItem}
           profileName={profileName}
           profilePhoto={profilePhoto}
           homeBanner={homeBanner}
@@ -651,7 +692,7 @@ function App() {
       )}
       {routeLoading && (
         <div className="route-loading" aria-live="polite">
-          <img src="/transition-loading.png" alt="로딩 중" />
+          <img src={assetPath("transition-loading.png")} alt="로딩 중" />
         </div>
       )}
     </main>
@@ -680,7 +721,7 @@ function AuthScreen({ t, onGuest, onAccount, setLanguage }) {
     <main className="entry-screen login-world">
       <section className="entry-card auth-card">
         <div className="auth-hero pixel-auth-hero">
-          <img src="/login-loading-banner.png" alt="골라줄개 로그인 배너" />
+          <img src={assetPath("login-loading-banner.png")} alt="골라줄개 로그인 배너" />
           <div className="landing-slogan">
             <strong>당신의 무드를 정해줄개</strong>
             <p>오늘의 코디, 옷장, 무드를 골라줄개와 함께 시작해요.</p>
@@ -716,6 +757,7 @@ function WorldView(props) {
     "v3-profile": <ProfilePage {...props} />,
     "v3-mission": <MissionPage {...props} />,
     "v3-ranking": <HallOfFame {...props} />,
+    "v3-shop": <CoinShop {...props} />,
     "v3-map": <MoodVillageMap {...props} />,
   };
 
@@ -796,22 +838,45 @@ function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, f
 }
 
 function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, persist }) {
-  const parts = ["헤어", "헤어컬러", "눈", "피부톤", "안경", "악세서리", "체형", "포즈"];
+  const [zoom, setZoom] = useState(100);
+  const [rotation, setRotation] = useState(0);
+  const updateProfile = (patch) => {
+    const next = { ...bodyProfile, ...patch };
+    setBodyProfile(next);
+    persist({ bodyProfile: next });
+  };
 
   return (
     <section className="world-room room-split character-room-v3">
-      <RoomHeader eyebrow="캐릭터" title="캐릭터룸" comment="아바타가 중심이 되는 꾸미기 공간" />
-      <div className="avatar-dressing-stage">
+      <RoomHeader eyebrow="캐릭터" title="아바타 스튜디오" comment="사람 형태의 패션 모델을 취향대로 만드는 공간" />
+      <div className="avatar-dressing-stage avatar-studio-stage" style={{ "--studio-zoom": zoom / 100, "--studio-rotate": `${rotation}deg` }}>
         <FashionAvatar fit={fit} mood={mood} bodyProfile={bodyProfile} t={t} />
+        <div className="studio-stage-actions">
+          <button type="button" onClick={() => setRotation((value) => value - 8)}>왼쪽</button>
+          <button type="button" onClick={() => setRotation(0)}>정면</button>
+          <button type="button" onClick={() => setRotation((value) => value + 8)}>오른쪽</button>
+        </div>
       </div>
       <div className="room-panel-v3">
-        <h3>꾸미기 슬롯</h3>
-        <div className="custom-chip-grid">
-          {parts.map((part, index) => <button key={part} type="button">{part}<span>{index + 1}</span></button>)}
+        <h3>아바타 커스터마이징</h3>
+        <div className="avatar-studio-tools">
+          <Segment label="성별" items={[["female", "여성"], ["male", "남성"], ["neutral", "뉴트럴"]]} value={bodyProfile.gender} onChange={(value) => updateProfile({ gender: value })} />
+          <Segment label="체형" items={[["slim", "슬림"], ["regular", "레귤러"], ["curvy", "커브"], ["athletic", "애슬레틱"]]} value={bodyProfile.bodyType} onChange={(value) => updateProfile({ bodyType: value })} />
+          <Segment label="포즈" items={[["standing", "스탠딩"], ["walking", "워킹"], ["mirror", "거울"], ["bag", "쇼핑백"], ["sitting", "시팅"]]} value={bodyProfile.pose} onChange={(value) => updateProfile({ pose: value })} />
+          <Segment label="표정" items={[["happy", "해피"], ["confident", "자신감"], ["calm", "차분"], ["excited", "반짝"], ["cute", "러블리"]]} value={bodyProfile.expression} onChange={(value) => updateProfile({ expression: value })} />
+          <Segment label="헤어" items={[["short", "숏"], ["medium", "미디엄"], ["long", "롱"], ["wavy", "웨이브"], ["straight", "스트레이트"], ["ponytail", "포니테일"], ["bangs", "앞머리"]]} value={bodyProfile.hairStyle} onChange={(value) => updateProfile({ hairStyle: value })} />
+          <Segment label="헤어 컬러" items={[["black", "블랙"], ["brown", "브라운"], ["blonde", "블론드"], ["ash", "애쉬"]]} value={bodyProfile.hairColor} onChange={(value) => updateProfile({ hairColor: value })} />
+          <Segment label="얼굴" items={[["round", "라운드"], ["softSquare", "소프트"], ["heart", "하트"], ["oval", "오벌"]]} value={bodyProfile.faceShape} onChange={(value) => updateProfile({ faceShape: value })} />
+          <Segment label="눈" items={[["dot", "도트"], ["smile", "스마일"], ["calm", "차분"], ["star", "반짝"]]} value={bodyProfile.eyeStyle} onChange={(value) => updateProfile({ eyeStyle: value })} />
+          <RangeControl label="줌" min="86" max="118" value={zoom} onChange={(value) => setZoom(Number(value))} />
         </div>
-        <ProfileFields t={t} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} compact />
         <div className="mood-row-v3">
           {moods.map((key) => <button key={key} className={mood === key ? "active" : ""} onClick={() => setMood(key)} type="button">{t(key)}</button>)}
+        </div>
+        <div className="world-actions">
+          <button className="world-secondary" type="button">즐겨입는 룩 저장</button>
+          <button className="world-secondary" type="button">스냅샷 찍기</button>
+          <button className="world-primary" type="button">비교 모드</button>
         </div>
       </div>
     </section>
@@ -987,13 +1052,14 @@ function ProfilePage({ t, game, fit, mood, bodyProfile, wardrobe, savedLooks, pr
 
 function MissionPage({ award, game }) {
   const missions = [
-    ["Upload 1 item", "옷 1개 등록", 35, 8],
-    ["Create 1 outfit", "코디 1개 만들기", 30, 6],
-    ["Get 90+ score", "90점 이상 받기", 45, 10],
-    ["3 day streak", "3일 연속 열기", 60, 14],
-    ["Weather outfit", "날씨 코디 만들기", 40, 9],
+    ["upload-item", "옷 1개 등록", 35, 8],
+    ["create-outfit", "코디 1개 만들기", 30, 6],
+    ["score-90", "90점 이상 받기", 45, 10],
+    ["three-day", "3일 연속 열기", 60, 14],
+    ["weather-outfit", "날씨 코디 만들기", 40, 9],
   ];
   const streakMilestones = [1, 3, 7, 14, 30];
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <section className="world-room mission-page-v3">
@@ -1001,10 +1067,10 @@ function MissionPage({ award, game }) {
       <div className="mission-layout-v3">
         <div className="daily-mission-grid-v3">
           {missions.map(([id, title, xp, coins]) => (
-            <button key={id} onClick={() => award(title, xp, coins)} type="button">
+            <button className={game.completedMissions?.includes(`${today}:${id}`) ? "completed" : ""} key={id} onClick={() => award(title, xp, coins, id)} type="button">
               <Check size={17} />
               <strong>{title}</strong>
-              <span>+{xp} XP · +{coins} 코인</span>
+              <span>{game.completedMissions?.includes(`${today}:${id}`) ? "완료" : `+${xp} XP · +${coins} 코인`}</span>
             </button>
           ))}
         </div>
@@ -1013,6 +1079,36 @@ function MissionPage({ award, game }) {
           <p>현재 {game.streak || 1}일 · 오래 열수록 보상이 커져요.</p>
           <div>{streakMilestones.map((day) => <span className={(game.streak || 1) >= day ? "active" : ""} key={day}>{day}일</span>)}</div>
         </aside>
+      </div>
+    </section>
+  );
+}
+
+function CoinShop({ game, buyShopItem }) {
+  return (
+    <section className="world-room shop-page-v3">
+      <RoomHeader eyebrow="상점" title="코인 상점" comment="모은 코인으로 아바타 포즈, 헤어, 표정을 해금하는 공간" />
+      <div className="shop-balance-card">
+        <div>
+          <span>보유 코인</span>
+          <strong>{game.coins}개</strong>
+        </div>
+        <p>미션을 완료하고 코인을 모아 아바타 아이템을 살 수 있을개.</p>
+      </div>
+      <div className="shop-grid-v3">
+        {shopItems.map((item) => {
+          const owned = game.ownedShopItems?.includes(item.id);
+          return (
+            <article className={owned ? "owned" : ""} key={item.id}>
+              <div className={`shop-item-preview preview-${item.type}`}><Sparkles size={22} /></div>
+              <strong>{item.name}</strong>
+              <p>{item.copy}</p>
+              <button className="world-primary" onClick={() => buyShopItem(item)} type="button">
+                {owned ? "보유중" : `${item.price} 코인`}
+              </button>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
@@ -1165,7 +1261,7 @@ function ConfirmModal({ title, copy, onCancel, onConfirm }) {
 function SketchHome({ setActivePanel, recommendation, scores, game, mood, t, onEvent }) {
   return (
     <section className="sketch-home image-map-home panel-view" aria-label="골라줄개 홈">
-      <img className="sketch-reference" src="/main-banner-closet.png" alt="골라줄개 메인 화면" />
+      <img className="sketch-reference" src={assetPath("main-banner-closet.png")} alt="골라줄개 메인 화면" />
       <button className="map-hotspot map-event" onClick={onEvent} type="button" aria-label="이벤트 열개" />
     </section>
   );
@@ -1327,11 +1423,10 @@ function ProfileFields({ t, bodyProfile, setBodyProfile, persist, compact = fals
         ["none", t("none")],
       ]} value={bodyProfile.gender} onChange={(value) => update({ gender: value })} />
       <Segment label={t("bodyType")} items={[
-        ["balanced", t("balanced")],
-        ["slim", t("slim")],
-        ["upper", t("upper")],
-        ["lower", t("lower")],
-        ["softCurve", t("softCurve")],
+        ["slim", "슬림"],
+        ["regular", "레귤러"],
+        ["curvy", "커브"],
+        ["athletic", "애슬레틱"],
       ]} value={bodyProfile.bodyType} onChange={(value) => update({ bodyType: value })} />
       <Segment label={t("skinTone")} items={[
         ["bright", t("bright")],
@@ -1347,9 +1442,12 @@ function ProfileFields({ t, bodyProfile, setBodyProfile, persist, compact = fals
         ["oval", "오벌"],
       ]} value={bodyProfile.faceShape} onChange={(value) => update({ faceShape: value })} />
       <Segment label="헤어" items={[
-        ["bob", "보브"],
         ["short", "숏"],
-        ["wave", "웨이브"],
+        ["medium", "미디엄"],
+        ["long", "롱"],
+        ["wavy", "웨이브"],
+        ["straight", "스트레이트"],
+        ["ponytail", "포니테일"],
         ["bangs", "앞머리"],
       ]} value={bodyProfile.hairStyle} onChange={(value) => update({ hairStyle: value })} />
       <Segment label="눈" items={[
@@ -1369,6 +1467,7 @@ function ProfileFields({ t, bodyProfile, setBodyProfile, persist, compact = fals
 }
 
 function ItemComposer({ t, mood, onClose, onSubmit }) {
+  const [category, setCategory] = useState("tops");
   const checklist = [
     ["clean", t("checklistClean")],
     ["fit", t("checklistFit")],
@@ -1384,15 +1483,15 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
           <button className="round-button" onClick={onClose} type="button" aria-label={t("cancel")}><X size={18} /></button>
         </div>
         <div className="composer-grid">
-          <label><span>{t("itemName")}</span><input name="name" placeholder="Cashmere knit, satin blazer" /></label>
-          <label><span>카테고리</span><select name="category">{fashionCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label><span>세부 종류</span><select name="subcategory">{Object.values(subcategoryOptions).flat().map((item) => <option key={item} value={item}>{fashionText(item)}</option>)}</select></label>
+          <label><span>{t("itemName")}</span><input name="name" placeholder="예: 아이보리 니트, 블랙 블레이저" /></label>
+          <label><span>카테고리</span><select name="category" value={category} onChange={(event) => setCategory(event.target.value)}>{fashionCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label><span>세부 종류</span><select name="subcategory">{(subcategoryOptions[category] || subcategoryOptions.other).map((item) => <option key={item} value={item}>{fashionText(item)}</option>)}</select></label>
           <label><span>시즌</span><input name="season" placeholder="봄 / 여름 / 가을 / 겨울" /></label>
           <label><span>메인 색상</span><input name="primaryColor" type="color" defaultValue="#eadcc7" /></label>
           <label><span>보조 색상</span><input name="secondaryColor" type="color" defaultValue="#ddebf3" /></label>
           <label><span>포인트 색상</span><input name="accentColor" type="color" defaultValue="#f7d9d9" /></label>
           <label><span>{t("vibe")}</span><input name="vibe" defaultValue={t(mood)} /></label>
-          <label><span>{t("occasion")}</span><input name="occasion" placeholder="daily, date, office, campus" /></label>
+          <label><span>{t("occasion")}</span><input name="occasion" placeholder="데일리, 데이트, 출근, 캠퍼스" /></label>
           <label className="wide-field"><span>{t("styleCategory")}</span><input name="styleCategory" placeholder="꾸안꾸, 미니멀, 스트릿, 포근한 무드" /></label>
           <label><span>소재</span><select name="fabric">{fabricOptions.map((item) => <option key={item} value={item}>{fashionText(item)}</option>)}</select></label>
           <label><span>패턴</span><select name="pattern">{patternOptions.map((item) => <option key={item} value={item}>{fashionText(item)}</option>)}</select></label>
@@ -1433,26 +1532,77 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
 }
 
 function FashionAvatar({ fit, mood, bodyProfile, t }) {
-  const avatarStyle = avatarVariables(bodyProfile);
-  const topVisual = clothingVisuals(fit.tops, "tops");
-  const outerVisual = clothingVisuals(fit.outerwear, "outerwear");
-  const bottomVisual = clothingVisuals(fit.bottoms, "bottoms");
-  const shoeVisual = clothingVisuals(fit.shoes, "shoes");
-  const label = (slot, part) => `${t(part)} · ${fit[slot]?.name || t(slot)}`;
+  const profile = normalizeBodyProfile(bodyProfile);
+  const skin = avatarVariables(profile)["--avatar-skin"];
+  const hair = avatarVariables(profile)["--avatar-hair"];
+  const top = fit.tops || {};
+  const outer = fit.outerwear || {};
+  const bottom = fit.bottoms || {};
+  const shoes = fit.shoes || {};
+  const bag = fit.bags || {};
+  const accessory = fit.accessories || {};
+  const topColor = top.color || top.primaryColor || "#eadcc7";
+  const outerColor = outer.color || outer.primaryColor || "";
+  const bottomColor = bottom.color || bottom.primaryColor || "#6d7f91";
+  const shoeColor = shoes.color || shoes.primaryColor || "#f5f1e9";
+  const isHoodie = /hood/i.test(top.subcategory || top.clothingType || "");
+  const isShirt = /shirt|oxford|dress|linen/i.test(top.subcategory || top.clothingType || "");
+  const isCoat = /coat|padding|cardigan/i.test(outer.subcategory || outer.clothingType || "");
+  const isSkirt = /skirt/i.test(bottom.subcategory || bottom.clothingType || "");
+  const isWide = /wide|baggy|cargo/i.test(bottom.subcategory || bottom.clothingType || bottom.fitType || "");
+  const pose = profile.pose || "standing";
+  const leftLeg = pose === "walking" ? "rotate(-5 112 300)" : "";
+  const rightLeg = pose === "walking" ? "rotate(6 158 300)" : "";
+  const leftArm = pose === "mirror" ? "rotate(-18 96 172)" : "";
+  const rightArm = pose === "bag" ? "rotate(-16 174 172)" : "";
+  const expressionClass = `avatar-expression-${profile.expression || "happy"}`;
+  const title = [top.name, outer.name, bottom.name, shoes.name].filter(Boolean).join(" · ") || "MoodFit avatar";
+
   return (
-    <div className={`fashion-avatar ${mood} body-${bodyProfile.bodyType} face-${bodyProfile.faceShape} hair-${bodyProfile.hairStyle} eyes-${bodyProfile.eyeStyle}`} style={avatarStyle}>
-      <i className="avatar-glow" />
-      <i className="head" /><i className="neck" />
-      <i className={topVisual.className} data-tooltip={label("tops", "partTops")} style={topVisual.style} />
-      <i className={outerVisual.leftClassName} data-tooltip={label("outerwear", "partOuterwear")} style={outerVisual.style} />
-      <i className={outerVisual.rightClassName} data-tooltip={label("outerwear", "partOuterwear")} style={outerVisual.style} />
-      <i className="arm left" /><i className="arm right" />
-      <i className={bottomVisual.className} data-tooltip={label("bottoms", "partBottoms")} style={bottomVisual.style} />
-      <i className="leg left" /><i className="leg right" />
-      <i className={shoeVisual.leftClassName} data-tooltip={label("shoes", "partShoes")} style={shoeVisual.style} />
-      <i className={shoeVisual.rightClassName} data-tooltip={label("shoes", "partShoes")} style={shoeVisual.style} />
-      <i className="floor" />
-    </div>
+    <svg className={`fashion-avatar svg-avatar ${mood} gender-${profile.gender} body-${profile.bodyType} pose-${pose} ${expressionClass}`} viewBox="0 0 270 430" role="img" aria-label={title}>
+      <title>{title}</title>
+      <defs>
+        <linearGradient id="avatarSkin" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor={colorMixFallback(skin, "#ffffff")} />
+          <stop offset="100%" stopColor={skin} />
+        </linearGradient>
+        <filter id="softAvatarShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="12" stdDeviation="8" floodColor="#6d574f" floodOpacity=".16" />
+        </filter>
+      </defs>
+      <ellipse cx="135" cy="404" rx="92" ry="16" fill="rgba(74,64,58,.14)" />
+      <g filter="url(#softAvatarShadow)">
+        <path d="M107 101 C112 78 127 66 144 69 C166 72 180 91 174 118 L102 118 C101 112 102 106 107 101Z" fill={hair} />
+        {(profile.hairStyle === "long" || profile.hairStyle === "wavy" || profile.hairStyle === "straight") && <path d="M92 105 C93 68 118 47 143 51 C176 56 190 90 184 151 C178 177 158 185 135 181 C111 185 91 170 92 105Z" fill={hair} opacity=".96" />}
+        {profile.hairStyle === "ponytail" && <path d="M178 104 C207 118 205 170 182 193 C181 160 176 130 164 110Z" fill={hair} />}
+        <path d="M112 74 C118 55 152 47 170 63 C185 76 185 108 174 126 C161 146 124 147 111 127 C101 111 102 88 112 74Z" fill="url(#avatarSkin)" />
+        <path d="M109 82 C125 58 158 55 176 79 C165 74 148 75 132 80 C122 84 115 87 109 82Z" fill={hair} />
+        {profile.hairStyle === "bangs" && <path d="M111 80 C126 68 153 64 177 82 C156 84 139 92 120 101Z" fill={hair} />}
+        <rect x="126" y="130" width="24" height="30" rx="10" fill={skin} />
+        <g className="svg-face">
+          <circle cx="126" cy="101" r="3.2" fill="#4a403a" />
+          <circle cx="158" cy="101" r="3.2" fill="#4a403a" />
+          <path d={profile.expression === "confident" ? "M132 119 Q144 123 156 116" : profile.expression === "calm" ? "M133 118 Q144 120 155 118" : "M132 117 Q144 128 157 117"} fill="none" stroke="#8b5f54" strokeWidth="3" strokeLinecap="round" />
+          {profile.expression === "cute" && <><circle cx="116" cy="113" r="5" fill="#f0a7a9" opacity=".55" /><circle cx="168" cy="113" r="5" fill="#f0a7a9" opacity=".55" /></>}
+        </g>
+        {isHoodie && <path d="M102 158 C106 133 128 125 148 131 C166 136 176 148 178 165 L160 178 C151 164 125 162 112 178Z" fill={topColor} opacity=".92" />}
+        <path d="M91 156 C104 143 122 137 136 137 C152 137 171 143 184 156 L174 279 C151 288 120 288 97 279Z" fill={topColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" />
+        {isShirt && <path d="M118 151 L136 169 L154 151 M136 169 L136 273" fill="none" stroke="#ffffff" strokeOpacity=".78" strokeWidth="4" strokeLinecap="round" />}
+        {top.pattern === "Stripe" && <g opacity=".55" stroke="#fff" strokeWidth="5"><path d="M99 184 H176" /><path d="M97 218 H178" /><path d="M97 252 H176" /></g>}
+        {outerColor && <path d={isCoat ? "M82 154 C101 137 116 138 136 151 C153 137 173 138 191 154 L202 336 C170 348 105 348 70 336Z" : "M80 158 C100 139 116 139 136 153 C154 139 174 139 194 158 L185 270 C169 286 102 286 86 270Z"} fill={outerColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" opacity=".9" />}
+        <g transform={leftArm}><path d="M89 163 C74 188 68 224 70 268 C71 282 87 283 92 270 C100 236 105 199 111 170Z" fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
+        <g transform={rightArm}><path d="M181 163 C198 188 204 224 201 268 C200 282 184 283 179 270 C171 236 166 199 159 170Z" fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
+        {isSkirt
+          ? <path d="M98 276 C120 287 151 287 174 276 L192 342 C158 356 112 356 79 342Z" fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
+          : <path d={isWide ? "M98 276 H174 L193 374 C177 382 159 382 144 374 L136 304 L126 374 C111 382 92 382 77 374Z" : "M104 276 H168 L177 374 C162 381 149 381 137 374 L135 304 L130 374 C118 381 104 381 92 374Z"} fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />}
+        <g transform={leftLeg}><path d="M104 340 C112 346 122 346 130 340 L128 387 C120 393 108 393 99 386Z" fill={skin} /></g>
+        <g transform={rightLeg}><path d="M142 340 C150 346 160 346 168 340 L175 386 C166 393 154 393 146 387Z" fill={skin} /></g>
+        <path d="M86 382 C105 376 122 378 133 391 C124 403 93 403 79 393Z" fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
+        <path d="M139 391 C151 378 169 376 188 382 L195 393 C181 403 150 403 139 391Z" fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
+        {bag.id && <path d="M198 221 C223 227 229 270 210 292 C193 285 188 244 198 221Z" fill={bag.color || "#8c5a38"} stroke="#6d574f" strokeOpacity=".25" strokeWidth="2" />}
+        {accessory.id && <path d="M121 142 Q136 156 153 142" fill="none" stroke={accessory.color || "#d8d8d6"} strokeWidth="5" strokeLinecap="round" />}
+      </g>
+    </svg>
   );
 }
 
@@ -1964,6 +2114,8 @@ function normalizeGame(game = {}) {
     level,
     petLevel: Number(game.petLevel) || level,
     streak: Number(game.streak) || 1,
+    completedMissions: Array.isArray(game.completedMissions) ? game.completedMissions : [],
+    ownedShopItems: Array.isArray(game.ownedShopItems) ? game.ownedShopItems : [],
   };
 }
 
@@ -2015,9 +2167,11 @@ function loadStoredState() {
 }
 
 function normalizeBodyProfile(profile = {}) {
+  const bodyTypeMap = { balanced: "regular", upper: "athletic", lower: "curvy", softCurve: "curvy" };
+  const hairStyleMap = { bob: "medium", wave: "wavy" };
   return {
     gender: profile.gender || "neutral",
-    bodyType: profile.bodyType || "balanced",
+    bodyType: bodyTypeMap[profile.bodyType] || profile.bodyType || "regular",
     height: Number(profile.height) || 165,
     shoulder: Number(profile.shoulder) || 42,
     waist: Number(profile.waist) || 27,
@@ -2026,8 +2180,11 @@ function normalizeBodyProfile(profile = {}) {
     legRatio: Number(profile.legRatio) || 52,
     skinTone: profile.skinTone || "medium",
     faceShape: profile.faceShape || "round",
-    hairStyle: profile.hairStyle || "bob",
+    hairStyle: hairStyleMap[profile.hairStyle] || profile.hairStyle || "medium",
+    hairColor: profile.hairColor || "brown",
     eyeStyle: profile.eyeStyle || "dot",
+    pose: profile.pose || "standing",
+    expression: profile.expression || "happy",
   };
 }
 
@@ -2045,8 +2202,8 @@ function avatarVariables(profile) {
   profile = normalizeBodyProfile(profile);
   const bodyType = profile.bodyType;
   const genderBoost = profile.gender === "male" ? 10 : profile.gender === "female" ? -2 : 0;
-  const shoulderBoost = (bodyType === "upper" ? 24 : bodyType === "slim" ? -12 : bodyType === "softCurve" ? 8 : 0) + genderBoost;
-  const hipBoost = bodyType === "lower" || bodyType === "softCurve" ? 22 : bodyType === "slim" ? -10 : profile.gender === "male" ? -4 : 0;
+  const shoulderBoost = (bodyType === "athletic" ? 24 : bodyType === "slim" ? -12 : bodyType === "curvy" ? 6 : 0) + genderBoost;
+  const hipBoost = bodyType === "curvy" ? 22 : bodyType === "slim" ? -10 : profile.gender === "male" ? -4 : 0;
   const heightScale = Math.min(1.13, Math.max(0.9, profile.height / 165));
   const torsoHeight = 150 + (profile.torsoLength - 54) * 2.2;
   const waistWidth = 92 + (profile.waist - 27) * 3.1;
@@ -2058,6 +2215,12 @@ function avatarVariables(profile) {
     cool: "#d8a3a0",
     warm: "#df9361",
   };
+  const hairMap = {
+    black: "#2f2927",
+    brown: "#6d4b3f",
+    blonde: "#c9a06b",
+    ash: "#83756f",
+  };
   return {
     "--avatar-scale": heightScale,
     "--avatar-shoulder": `${126 + shoulderBoost + (profile.shoulder - 42) * 2}px`,
@@ -2066,6 +2229,7 @@ function avatarVariables(profile) {
     "--avatar-hip": `${130 + hipBoost + (profile.waist - 27) * 1.2}px`,
     "--avatar-leg": `${Math.min(136, Math.max(96, legHeight))}px`,
     "--avatar-skin": skinMap[profile.skinTone] || skinMap.medium,
+    "--avatar-hair": hairMap[profile.hairColor] || hairMap.brown,
   };
 }
 

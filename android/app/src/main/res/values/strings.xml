@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MoodFit</string>
+    <string name="title_activity_main">MoodFit</string>
+    <string name="package_name">com.moodfit.gollajulgae</string>
+    <string name="custom_url_scheme">com.moodfit.gollajulgae</string>
+</resources>

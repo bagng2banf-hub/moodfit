@@ -16,6 +16,9 @@
     "vite": "latest"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
     "@tailwindcss/postcss": "^4.3.0",
     "autoprefixer": "latest",
     "postcss": "latest",

@@ -1,0 +1,8 @@
+{
+  "appId": "com.moodfit.gollajulgae",
+  "appName": "MoodFit",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
