@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Camera,
@@ -203,6 +203,7 @@ function App() {
   const [avatarWardrobeOpen, setAvatarWardrobeOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
+  const [comingSoon, setComingSoon] = useState(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const [game, setGame] = useState(normalizeGame(stored.game));
   const [profileName, setProfileName] = useState(stored.profileName || loadSession()?.username || "무드핏 스타일러");
@@ -289,6 +290,14 @@ function App() {
     showToast.timer = window.setTimeout(() => setToast(""), 2200);
   }
 
+  function openComingSoon(feature = "더 똑똑한 기능") {
+    setComingSoon({
+      feature,
+      title: "준비중입니다",
+      subtitle: "더 똑똑한 기능으로 곧 돌아올게요",
+    });
+  }
+
   function award(reason, xp = 25, coins = 6, rewardKey = "") {
     const today = new Date().toISOString().slice(0, 10);
     const completedKey = rewardKey ? `${today}:${rewardKey}` : "";
@@ -366,6 +375,7 @@ function App() {
     setFit(nextFit);
     persist({ mood: nextMood, fit: nextFit, brief: cleanBrief });
     award(t("generate"), 30, 8);
+    openComingSoon("고급 AI 코디 추천");
   }
 
   function wear(item) {
@@ -555,6 +565,7 @@ function App() {
           savedLooks={savedLooks}
           session={session}
           onEvent={() => setEventOpen(true)}
+          onComingSoon={openComingSoon}
         />
       )}
 
@@ -646,6 +657,18 @@ function App() {
       {editingItem && <ItemEditor item={editingItem} onClose={() => setEditingItem(null)} onSave={updateWardrobeItem} />}
       {pendingDelete && <ConfirmModal title="정말 삭제할까요?" copy={`${pendingDelete.name} 아이템은 옷장에서 완전히 사라져요.`} onCancel={() => setPendingDelete(null)} onConfirm={confirmDeleteWardrobeItem} />}
       {eventOpen && <EventPopup onClose={() => setEventOpen(false)} />}
+      {comingSoon && (
+        <ComingSoonModal
+          feature={comingSoon.feature}
+          title={comingSoon.title}
+          subtitle={comingSoon.subtitle}
+          onClose={() => setComingSoon(null)}
+          onExplore={() => {
+            setComingSoon(null);
+            setActivePanel("v3-closet");
+          }}
+        />
+      )}
 
       {!activeWorld && (activePanel === "looks" || showAll) && <section id="looks" className="lookbook panel-view">
         {savedLooks.length ? savedLooks.map((look) => (
@@ -939,7 +962,7 @@ function MagicCloset({ t, wardrobe, wear, addItem, onEditItem, onArchiveItem, on
   );
 }
 
-function StyleStudio({ t, mood, setMood, fit, bodyProfile, recommendation, scores, brief, setBrief, weather, setWeather, schedule, setSchedule, eventType, setEventType, aesthetic, setAesthetic, generateStyling, saveLook }) {
+function StyleStudio({ t, mood, setMood, fit, bodyProfile, recommendation, scores, brief, setBrief, weather, setWeather, schedule, setSchedule, eventType, setEventType, aesthetic, setAesthetic, generateStyling, saveLook, onComingSoon }) {
   const styleModes = [
     ["Daily", "daily outfit", "데일리"],
     ["Weather", weather, "날씨"],
@@ -971,6 +994,8 @@ function StyleStudio({ t, mood, setMood, fit, bodyProfile, recommendation, score
           <div className="world-actions">
             <button className="world-primary" onClick={generateStyling} type="button"><Sparkles size={18} />AI 코디 만들개</button>
             <button className="world-secondary" onClick={saveLook} type="button"><Save size={18} />룩 저장할개</button>
+            <button className="world-secondary" onClick={() => onComingSoon("실시간 트렌드 API")} type="button"><Search size={18} />트렌드 불러오기</button>
+            <button className="world-secondary" onClick={() => onComingSoon("날씨 API 자동 연동")} type="button"><Sun size={18} />날씨 자동 동기화</button>
           </div>
         </div>
         <div className="avatar-runway-v3">
@@ -983,13 +1008,13 @@ function StyleStudio({ t, mood, setMood, fit, bodyProfile, recommendation, score
   );
 }
 
-function FashionLab({ onUpload, wardrobe }) {
+function FashionLab({ onUpload, wardrobe, onComingSoon }) {
   const latest = wardrobe[0];
   return (
     <section className="world-room fashion-lab-v3">
       <RoomHeader eyebrow="사진" title="패션 분석실" comment="업로드한 사진과 분석 결과가 중심인 실험실" />
       <div className="photo-lab-grid-v3">
-        <button className="upload-polaroid" onClick={onUpload} type="button">
+        <button className="upload-polaroid" onClick={() => onComingSoon("AI 사진 분석")} type="button">
           <Camera size={34} />
           <strong>사진 올릴개</strong>
           <span>컬러 · 핏 · 패턴 · 바이브 분석</span>
@@ -1140,7 +1165,7 @@ function HallOfFame({ game, scores, wardrobe, savedLooks }) {
   );
 }
 
-function MoodVillageMap({ setActivePanel, session, game, onEvent }) {
+function MoodVillageMap({ setActivePanel, session, game, onEvent, onComingSoon }) {
   const places = [
     ["이벤트 광장", "축제와 보상이 열릴개", "v3-home", <Gift size={22} />],
     ["날씨 센터", "습도 UV 바람까지 볼개", "v3-style", <Sun size={22} />],
@@ -1155,7 +1180,7 @@ function MoodVillageMap({ setActivePanel, session, game, onEvent }) {
       <RoomHeader eyebrow="지도" title="무드 마을 지도" comment="어디로 갈지 골라줄개!" />
       <div className="map-grid-v3">
         {places.map(([title, copy, panel, icon], index) => (
-          <button key={title} className={`map-place place-${index}`} onClick={() => title === "이벤트 광장" ? onEvent() : setActivePanel(panel)} type="button">
+          <button key={title} className={`map-place place-${index}`} onClick={() => title === "이벤트 광장" ? onEvent() : title === "날씨 센터" ? onComingSoon("실시간 날씨 API") : setActivePanel(panel)} type="button">
             {icon}<strong>{title}</strong><span>{copy}</span>
           </button>
         ))}
@@ -1320,7 +1345,37 @@ function StyleResultCard({ title, recommendation, scores, onClick }) {
   );
 }
 
-function PhotoTryOnPage({ t, onUpload, wardrobe }) {
+function ComingSoonModal({ feature, title, subtitle, onClose, onExplore }) {
+  return (
+    <div className="coming-soon-backdrop" role="dialog" aria-modal="true" aria-label="준비중 안내" onMouseDown={onClose}>
+      <section className="coming-soon-card" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="coming-soon-mascot" aria-hidden="true">
+          <span className="dog-ear left" />
+          <span className="dog-ear right" />
+          <span className="dog-face">
+            <i />
+          </span>
+        </div>
+        <p className="eyebrow">{feature}</p>
+        <h2>{title}</h2>
+        <strong>{subtitle}</strong>
+        <p>현재 이 기능은 개발 중이에요. 조금만 기다려주시면 더 좋은 추천을 해드릴게요!</p>
+        <div className="coming-soon-preview">
+          <span>미리보기</span>
+          <b>기본 추천은 지금 바로 사용할 수 있어요.</b>
+          <small>AI 추천 기능은 준비중입니다</small>
+        </div>
+        <div className="coming-soon-actions">
+          <button className="secondary" onClick={onClose} type="button">확인</button>
+          <button className="primary" onClick={onExplore} type="button">다른 기능 보러가기</button>
+          <button className="text-button" onClick={onClose} type="button">베타 알림 받기</button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PhotoTryOnPage({ t, onUpload, wardrobe, onComingSoon }) {
   const sample = wardrobe[0];
   return (
     <section className="soft-page photo-page panel-view">
@@ -1328,7 +1383,7 @@ function PhotoTryOnPage({ t, onUpload, wardrobe }) {
         <p className="eyebrow">photo try-on</p>
         <h2>사진을 넣으면 옷 타입, 색, 패턴, 분위기를 읽어줘요.</h2>
         <p>업로드한 옷 사진을 바탕으로 비슷한 옷장 아이템과 더 잘 어울리는 스타일을 제안해요.</p>
-        <button className="primary" onClick={onUpload} type="button"><Upload size={17} />사진 올리기</button>
+        <button className="primary" onClick={() => onComingSoon("AI 사진 분석")} type="button"><Upload size={17} />사진 올리기</button>
       </div>
       <div className="before-after">
         <article><span>before</span><div className="photo-placeholder">{sample?.image ? <img src={sample.image} alt="" /> : <Camera size={44} />}</div><p>사진 분석 대기</p></article>
@@ -1532,9 +1587,11 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
 }
 
 function FashionAvatar({ fit, mood, bodyProfile, t }) {
+  const svgId = useId().replace(/:/g, "");
   const profile = normalizeBodyProfile(bodyProfile);
-  const skin = avatarVariables(profile)["--avatar-skin"];
-  const hair = avatarVariables(profile)["--avatar-hair"];
+  const avatarVars = avatarVariables(profile);
+  const skin = avatarVars["--avatar-skin"];
+  const hair = avatarVars["--avatar-hair"];
   const top = fit.tops || {};
   const outer = fit.outerwear || {};
   const bottom = fit.bottoms || {};
@@ -1557,44 +1614,89 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
   const rightArm = pose === "bag" ? "rotate(-16 174 172)" : "";
   const expressionClass = `avatar-expression-${profile.expression || "happy"}`;
   const title = [top.name, outer.name, bottom.name, shoes.name].filter(Boolean).join(" · ") || "MoodFit avatar";
+  const bodyShape = {
+    slim: { shoulder: 36, waist: 50, hip: 62, arm: 19, leg: 24 },
+    regular: { shoulder: 46, waist: 62, hip: 72, arm: 22, leg: 28 },
+    curvy: { shoulder: 44, waist: 66, hip: 88, arm: 24, leg: 31 },
+    athletic: { shoulder: 58, waist: 64, hip: 72, arm: 25, leg: 29 },
+  }[profile.bodyType] || { shoulder: 46, waist: 62, hip: 72, arm: 22, leg: 28 };
+  const genderShape = profile.gender === "male" ? 6 : profile.gender === "female" ? -2 : 0;
+  const shoulder = bodyShape.shoulder + genderShape;
+  const waist = bodyShape.waist + (profile.waist - 27) * 1.2;
+  const hip = bodyShape.hip + (profile.waist - 27) * 1.1;
+  const torsoTop = 136;
+  const torsoBottom = 278;
+  const leftShoulder = 135 - shoulder;
+  const rightShoulder = 135 + shoulder;
+  const leftWaist = 135 - waist / 2;
+  const rightWaist = 135 + waist / 2;
+  const leftHip = 135 - hip / 2;
+  const rightHip = 135 + hip / 2;
+  const facePath = {
+    round: "M112 75 C119 55 152 48 170 63 C185 77 184 109 173 127 C160 147 125 148 111 128 C101 112 102 89 112 75Z",
+    softSquare: "M112 75 C119 57 152 50 170 64 C184 75 184 109 175 128 C164 147 123 148 111 128 C102 110 102 89 112 75Z",
+    heart: "M112 75 C121 54 153 49 171 65 C187 80 181 113 168 130 C154 148 128 148 113 130 C101 114 101 90 112 75Z",
+    oval: "M113 72 C121 52 154 48 171 64 C188 81 183 116 169 134 C155 151 128 151 113 134 C99 116 101 88 113 72Z",
+  }[profile.faceShape] || "M112 75 C119 55 152 48 170 63 C185 77 184 109 173 127 C160 147 125 148 111 128 C101 112 102 89 112 75Z";
+  const eyes = {
+    dot: <><circle cx="126" cy="101" r="3.2" fill="#4a403a" /><circle cx="158" cy="101" r="3.2" fill="#4a403a" /></>,
+    smile: <><path d="M121 101 Q126 96 132 101" fill="none" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /><path d="M153 101 Q158 96 164 101" fill="none" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /></>,
+    calm: <><path d="M121 101 H132" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /><path d="M153 101 H164" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /></>,
+    star: <><path d="M126 96 L128 100 L132 101 L128 103 L126 107 L124 103 L120 101 L124 100Z" fill="#4a403a" /><path d="M158 96 L160 100 L164 101 L160 103 L158 107 L156 103 L152 101 L156 100Z" fill="#4a403a" /></>,
+  }[profile.eyeStyle] || <><circle cx="126" cy="101" r="3.2" fill="#4a403a" /><circle cx="158" cy="101" r="3.2" fill="#4a403a" /></>;
+  const smilePath = {
+    confident: "M132 119 Q144 123 156 116",
+    calm: "M134 119 Q144 121 154 119",
+    excited: "M132 116 Q144 131 158 116",
+    cute: "M132 117 Q144 128 157 117",
+    happy: "M132 117 Q144 128 157 117",
+  }[profile.expression] || "M132 117 Q144 128 157 117";
+  const torsoPath = `M${leftShoulder} 156 C${leftShoulder + 16} 142 122 137 136 137 C152 137 ${rightShoulder - 16} 142 ${rightShoulder} 156 L${rightWaist} ${torsoBottom} C151 288 120 288 ${leftWaist} ${torsoBottom}Z`;
+  const outerPath = isCoat
+    ? `M${leftShoulder - 14} 154 C101 137 116 138 136 151 C153 137 173 138 ${rightShoulder + 14} 154 L${rightHip + 26} 338 C170 350 105 350 ${leftHip - 26} 338Z`
+    : `M${leftShoulder - 12} 158 C100 139 116 139 136 153 C154 139 174 139 ${rightShoulder + 12} 158 L${rightWaist + 18} 270 C169 286 102 286 ${leftWaist - 18} 270Z`;
+  const pantsPath = isWide
+    ? `M${leftHip} 276 H${rightHip} L${rightHip + 20} 374 C177 382 159 382 144 374 L136 304 L126 374 C111 382 92 382 ${leftHip - 20} 374Z`
+    : `M${leftHip + 8} 276 H${rightHip - 8} L${rightHip + 4} 374 C162 381 149 381 137 374 L135 304 L130 374 C118 381 104 381 ${leftHip - 4} 374Z`;
+  const skirtPath = `M${leftHip} 276 C120 287 151 287 ${rightHip} 276 L${rightHip + 20} 342 C158 356 112 356 ${leftHip - 20} 342Z`;
 
   return (
     <svg className={`fashion-avatar svg-avatar ${mood} gender-${profile.gender} body-${profile.bodyType} pose-${pose} ${expressionClass}`} viewBox="0 0 270 430" role="img" aria-label={title}>
       <title>{title}</title>
       <defs>
-        <linearGradient id="avatarSkin" x1="0" x2="1" y1="0" y2="1">
+        <linearGradient id={`${svgId}-skin`} x1="0" x2="1" y1="0" y2="1">
           <stop offset="0%" stopColor={colorMixFallback(skin, "#ffffff")} />
           <stop offset="100%" stopColor={skin} />
         </linearGradient>
-        <filter id="softAvatarShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <filter id={`${svgId}-shadow`} x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="12" stdDeviation="8" floodColor="#6d574f" floodOpacity=".16" />
         </filter>
       </defs>
       <ellipse cx="135" cy="404" rx="92" ry="16" fill="rgba(74,64,58,.14)" />
-      <g filter="url(#softAvatarShadow)">
+      <g filter={`url(#${svgId}-shadow)`}>
         <path d="M107 101 C112 78 127 66 144 69 C166 72 180 91 174 118 L102 118 C101 112 102 106 107 101Z" fill={hair} />
         {(profile.hairStyle === "long" || profile.hairStyle === "wavy" || profile.hairStyle === "straight") && <path d="M92 105 C93 68 118 47 143 51 C176 56 190 90 184 151 C178 177 158 185 135 181 C111 185 91 170 92 105Z" fill={hair} opacity=".96" />}
         {profile.hairStyle === "ponytail" && <path d="M178 104 C207 118 205 170 182 193 C181 160 176 130 164 110Z" fill={hair} />}
-        <path d="M112 74 C118 55 152 47 170 63 C185 76 185 108 174 126 C161 146 124 147 111 127 C101 111 102 88 112 74Z" fill="url(#avatarSkin)" />
+        <path d={facePath} fill={`url(#${svgId}-skin)`} />
         <path d="M109 82 C125 58 158 55 176 79 C165 74 148 75 132 80 C122 84 115 87 109 82Z" fill={hair} />
         {profile.hairStyle === "bangs" && <path d="M111 80 C126 68 153 64 177 82 C156 84 139 92 120 101Z" fill={hair} />}
         <rect x="126" y="130" width="24" height="30" rx="10" fill={skin} />
         <g className="svg-face">
-          <circle cx="126" cy="101" r="3.2" fill="#4a403a" />
-          <circle cx="158" cy="101" r="3.2" fill="#4a403a" />
-          <path d={profile.expression === "confident" ? "M132 119 Q144 123 156 116" : profile.expression === "calm" ? "M133 118 Q144 120 155 118" : "M132 117 Q144 128 157 117"} fill="none" stroke="#8b5f54" strokeWidth="3" strokeLinecap="round" />
+          {eyes}
+          <path d="M142 104 Q139 111 143 112" fill="none" stroke="#9b6d5f" strokeWidth="2" strokeLinecap="round" />
+          <path d={smilePath} fill="none" stroke="#8b5f54" strokeWidth="3" strokeLinecap="round" />
           {profile.expression === "cute" && <><circle cx="116" cy="113" r="5" fill="#f0a7a9" opacity=".55" /><circle cx="168" cy="113" r="5" fill="#f0a7a9" opacity=".55" /></>}
         </g>
         {isHoodie && <path d="M102 158 C106 133 128 125 148 131 C166 136 176 148 178 165 L160 178 C151 164 125 162 112 178Z" fill={topColor} opacity=".92" />}
-        <path d="M91 156 C104 143 122 137 136 137 C152 137 171 143 184 156 L174 279 C151 288 120 288 97 279Z" fill={topColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" />
+        <path d={torsoPath} fill={topColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" />
         {isShirt && <path d="M118 151 L136 169 L154 151 M136 169 L136 273" fill="none" stroke="#ffffff" strokeOpacity=".78" strokeWidth="4" strokeLinecap="round" />}
         {top.pattern === "Stripe" && <g opacity=".55" stroke="#fff" strokeWidth="5"><path d="M99 184 H176" /><path d="M97 218 H178" /><path d="M97 252 H176" /></g>}
-        {outerColor && <path d={isCoat ? "M82 154 C101 137 116 138 136 151 C153 137 173 138 191 154 L202 336 C170 348 105 348 70 336Z" : "M80 158 C100 139 116 139 136 153 C154 139 174 139 194 158 L185 270 C169 286 102 286 86 270Z"} fill={outerColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" opacity=".9" />}
-        <g transform={leftArm}><path d="M89 163 C74 188 68 224 70 268 C71 282 87 283 92 270 C100 236 105 199 111 170Z" fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
-        <g transform={rightArm}><path d="M181 163 C198 188 204 224 201 268 C200 282 184 283 179 270 C171 236 166 199 159 170Z" fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
+        {outerColor && <path d={outerPath} fill={outerColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" opacity=".9" />}
+        <g transform={leftArm}><path d={`M${leftShoulder} 163 C${leftShoulder - 16} 188 ${leftShoulder - 20} 224 ${leftShoulder - 18} 268 C${leftShoulder - 17} 282 ${leftShoulder - 1} 283 ${leftShoulder + 4} 270 C${leftShoulder + 12} 236 ${leftShoulder + 17} 199 ${leftShoulder + 22} 170Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
+        <g transform={rightArm}><path d={`M${rightShoulder} 163 C${rightShoulder + 18} 188 ${rightShoulder + 24} 224 ${rightShoulder + 21} 268 C${rightShoulder + 20} 282 ${rightShoulder + 4} 283 ${rightShoulder - 1} 270 C${rightShoulder - 9} 236 ${rightShoulder - 14} 199 ${rightShoulder - 21} 170Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
         {isSkirt
-          ? <path d="M98 276 C120 287 151 287 174 276 L192 342 C158 356 112 356 79 342Z" fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
-          : <path d={isWide ? "M98 276 H174 L193 374 C177 382 159 382 144 374 L136 304 L126 374 C111 382 92 382 77 374Z" : "M104 276 H168 L177 374 C162 381 149 381 137 374 L135 304 L130 374 C118 381 104 381 92 374Z"} fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />}
+          ? <path d={skirtPath} fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
+          : <path d={pantsPath} fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />}
         <g transform={leftLeg}><path d="M104 340 C112 346 122 346 130 340 L128 387 C120 393 108 393 99 386Z" fill={skin} /></g>
         <g transform={rightLeg}><path d="M142 340 C150 346 160 346 168 340 L175 386 C166 393 154 393 146 387Z" fill={skin} /></g>
         <path d="M86 382 C105 376 122 378 133 391 C124 403 93 403 79 393Z" fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />

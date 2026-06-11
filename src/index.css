@@ -713,6 +713,166 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   gap: 10px;
   margin-top: 10px;
 }
+
+.coming-soon-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(75, 63, 54, .28);
+  backdrop-filter: blur(12px);
+  animation: modalFade .18s ease both;
+}
+
+.coming-soon-card {
+  position: relative;
+  width: min(480px, 100%);
+  padding: 34px;
+  border: 1px solid rgba(216, 176, 140, .48);
+  border-radius: 32px;
+  color: #4b3f36;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(247,217,217,.55), transparent 28%),
+    linear-gradient(145deg, #fffaf4, #f7efe6);
+  box-shadow: 0 24px 70px rgba(75, 63, 54, .18), inset 0 1px 0 rgba(255,255,255,.82);
+  text-align: center;
+  animation: modalPop .22s ease both;
+}
+
+.coming-soon-card h2 {
+  margin: 8px 0 8px;
+  color: #4b3f36;
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 950;
+}
+
+.coming-soon-card > strong {
+  display: block;
+  color: #8c6d5a;
+  font-size: 1.06rem;
+  line-height: 1.5;
+}
+
+.coming-soon-card > p {
+  margin: 14px auto 0;
+  max-width: 360px;
+  color: #8c7a6b;
+  font-weight: 800;
+}
+
+.coming-soon-mascot {
+  position: relative;
+  width: 82px;
+  height: 76px;
+  margin: 0 auto 8px;
+  animation: mascotBounce 1.8s ease-in-out infinite;
+}
+
+.coming-soon-mascot .dog-ear {
+  position: absolute;
+  top: 12px;
+  width: 28px;
+  height: 38px;
+  border-radius: 60% 60% 50% 50%;
+  background: #d8b08c;
+}
+
+.coming-soon-mascot .dog-ear.left {
+  left: 6px;
+  transform: rotate(-24deg);
+}
+
+.coming-soon-mascot .dog-ear.right {
+  right: 6px;
+  transform: rotate(24deg);
+}
+
+.coming-soon-mascot .dog-face {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  width: 64px;
+  height: 58px;
+  transform: translateX(-50%);
+  border: 2px solid rgba(75,63,54,.16);
+  border-radius: 48% 48% 44% 44%;
+  background: #fff2de;
+}
+
+.coming-soon-mascot .dog-face::before,
+.coming-soon-mascot .dog-face::after {
+  content: "";
+  position: absolute;
+  top: 24px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4b3f36;
+}
+
+.coming-soon-mascot .dog-face::before { left: 18px; }
+.coming-soon-mascot .dog-face::after { right: 18px; }
+
+.coming-soon-mascot .dog-face i {
+  position: absolute;
+  left: 50%;
+  top: 34px;
+  width: 22px;
+  height: 12px;
+  transform: translateX(-50%);
+  border-bottom: 2px solid #8c6d5a;
+  border-radius: 0 0 999px 999px;
+}
+
+.coming-soon-preview {
+  display: grid;
+  gap: 5px;
+  margin: 20px 0;
+  padding: 14px;
+  border: 1px solid rgba(216,176,140,.36);
+  border-radius: 22px;
+  background: rgba(255,255,255,.62);
+  text-align: left;
+}
+
+.coming-soon-preview span {
+  color: #d08a8f;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.coming-soon-preview b {
+  color: #4b3f36;
+}
+
+.coming-soon-preview small {
+  color: #8c7a6b;
+  font-weight: 850;
+}
+
+.coming-soon-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+}
+
+@keyframes modalFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes mascotBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
 .ambient { position: fixed; inset: 0; pointer-events: none; background-image: radial-gradient(circle at 50% 0, color-mix(in srgb, var(--accent) 12%, transparent), transparent 32%); opacity: .8; }
 .glass { border: 1px solid var(--line); border-radius: 28px; background: color-mix(in srgb, var(--surface) 92%, transparent); box-shadow: var(--shadow); backdrop-filter: blur(22px); }
 .hidden-input { display: none; }
