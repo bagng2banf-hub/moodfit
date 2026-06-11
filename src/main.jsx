@@ -1624,14 +1624,12 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
   const title = [top.name, outer.name, bottom.name, shoes.name].filter(Boolean).join(" · ") || "MoodFit avatar";
   const genderShape = profile.gender === "male" ? 6 : profile.gender === "female" ? -2 : 0;
   const heightShift = (profile.height - 165) * 0.55;
-  const headScale = Math.max(0.86, Math.min(1.08, 1 - (profile.height - 165) * 0.003));
   const shoulder = Math.max(38, Math.min(82, profile.shoulderWidth * 1.55 + genderShape));
   const waist = Math.max(42, Math.min(104, profile.waistWidth * 2.05));
   const hip = Math.max(58, Math.min(124, profile.hipWidth * 1.75));
   const torsoBottom = Math.max(248, Math.min(306, 270 + (profile.torsoLength - 54) * 1.45 + heightShift * 0.18));
   const legEnd = Math.max(354, Math.min(408, 362 + (profile.legLength - 92) * 0.95 + heightShift));
   const armEnd = Math.max(238, Math.min(322, 252 + (profile.armLength - 88) * 0.95 + heightShift * 0.25));
-  const headYOffset = Math.max(-12, Math.min(10, -heightShift * 0.22));
   const leftShoulder = 135 - shoulder;
   const rightShoulder = 135 + shoulder;
   const leftWaist = 135 - waist / 2;
@@ -1657,6 +1655,19 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
     cute: "M132 117 Q144 128 157 117",
     happy: "M132 117 Q144 128 157 117",
   }[profile.expression] || "M132 117 Q144 128 157 117";
+  const hairPath = {
+    short: "M103 102 C102 70 124 52 146 55 C168 58 184 76 181 106 C171 92 153 87 132 91 C118 93 109 99 103 102Z",
+    medium: "M97 111 C96 76 120 53 145 55 C174 58 189 85 183 128 C176 148 161 156 136 154 C112 156 96 142 97 111Z",
+    long: "M92 111 C91 70 118 47 145 51 C178 55 193 87 187 154 C178 183 156 193 135 187 C111 193 90 175 92 111Z",
+    wavy: "M91 109 C92 70 119 48 146 52 C177 57 193 88 187 154 C179 181 158 191 137 185 C115 194 91 178 92 147 C99 153 105 147 101 135 C96 121 89 118 91 109Z",
+    straight: "M94 111 C94 70 120 49 146 52 C177 56 190 86 185 160 C175 179 156 186 136 181 C115 186 96 174 94 111Z",
+    ponytail: "M101 105 C101 73 123 54 146 56 C170 59 184 79 181 108 C202 119 203 166 181 190 C179 158 175 130 163 109 C144 91 119 94 101 105Z",
+    bangs: "M103 106 C101 72 124 53 147 56 C172 59 186 80 181 111 C161 94 140 101 122 100 C115 100 109 103 103 106Z",
+  }[profile.hairStyle] || "M97 111 C96 76 120 53 145 55 C174 58 189 85 183 128 C176 148 161 156 136 154 C112 156 96 142 97 111Z";
+  const fringePath = profile.hairStyle === "bangs"
+    ? "M107 82 C124 67 153 65 178 83 C154 83 139 96 117 101Z"
+    : "M108 82 C123 60 157 58 176 80 C162 77 149 79 132 84 C121 88 114 88 108 82Z";
+  const bodyBasePath = `M125 126 C128 134 142 134 146 126 L149 145 C164 144 ${rightShoulder - 12} 147 ${rightShoulder} 160 C${rightShoulder + 20} 191 ${rightShoulder + 24} ${armEnd - 30} ${rightShoulder + 20} ${armEnd} C${rightShoulder + 18} ${armEnd + 16} ${rightShoulder + 1} ${armEnd + 17} ${rightShoulder - 4} ${armEnd + 2} C${rightShoulder - 10} ${armEnd - 29} ${rightShoulder - 16} 199 ${rightShoulder - 22} 170 L${rightHip} ${torsoBottom - 2} L${rightHip + 8} ${legEnd + 10} C${rightHip - 5} ${legEnd + 22} ${rightHip - 28} ${legEnd + 22} 139 ${legEnd + 8} L135 ${torsoBottom + 24} L130 ${legEnd + 8} C119 ${legEnd + 22} ${leftHip + 5} ${legEnd + 22} ${leftHip - 8} ${legEnd + 10} L${leftHip} ${torsoBottom - 2} L${leftShoulder + 22} 170 C${leftShoulder + 16} 199 ${leftShoulder + 10} ${armEnd - 29} ${leftShoulder + 4} ${armEnd + 2} C${leftShoulder - 1} ${armEnd + 17} ${leftShoulder - 18} ${armEnd + 16} ${leftShoulder - 20} ${armEnd} C${leftShoulder - 24} ${armEnd - 30} ${leftShoulder - 20} 191 ${leftShoulder} 160 C${leftShoulder + 12} 147 107 144 122 145Z`;
   const torsoPath = `M${leftShoulder} 156 C${leftShoulder + 16} 142 122 137 136 137 C152 137 ${rightShoulder - 16} 142 ${rightShoulder} 156 L${rightWaist} ${torsoBottom} C151 288 120 288 ${leftWaist} ${torsoBottom}Z`;
   const outerPath = isCoat
     ? `M${leftShoulder - 14} 154 C101 137 116 138 136 151 C153 137 173 138 ${rightShoulder + 14} 154 L${rightHip + 26} ${Math.min(346, torsoBottom + 62)} C170 350 105 350 ${leftHip - 26} ${Math.min(346, torsoBottom + 62)}Z`
@@ -1680,21 +1691,16 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
       </defs>
       <ellipse cx="135" cy="414" rx="92" ry="16" fill="rgba(74,64,58,.14)" />
       <g filter={`url(#${svgId}-shadow)`}>
-        <g transform={`translate(135 ${headYOffset}) scale(${headScale}) translate(-135 0)`}>
-          <path d="M107 101 C112 78 127 66 144 69 C166 72 180 91 174 118 L102 118 C101 112 102 106 107 101Z" fill={hair} />
-          {(profile.hairStyle === "long" || profile.hairStyle === "wavy" || profile.hairStyle === "straight") && <path d="M92 105 C93 68 118 47 143 51 C176 56 190 90 184 151 C178 177 158 185 135 181 C111 185 91 170 92 105Z" fill={hair} opacity=".96" />}
-          {profile.hairStyle === "ponytail" && <path d="M178 104 C207 118 205 170 182 193 C181 160 176 130 164 110Z" fill={hair} />}
-          <path d={facePath} fill={`url(#${svgId}-skin)`} />
-          <path d="M109 82 C125 58 158 55 176 79 C165 74 148 75 132 80 C122 84 115 87 109 82Z" fill={hair} />
-          {profile.hairStyle === "bangs" && <path d="M111 80 C126 68 153 64 177 82 C156 84 139 92 120 101Z" fill={hair} />}
-          <g className="svg-face">
-            {eyes}
-            <path d="M142 104 Q139 111 143 112" fill="none" stroke="#9b6d5f" strokeWidth="2" strokeLinecap="round" />
-            <path d={smilePath} fill="none" stroke="#8b5f54" strokeWidth="3" strokeLinecap="round" />
-            {profile.expression === "cute" && <><circle cx="116" cy="113" r="5" fill="#f0a7a9" opacity=".55" /><circle cx="168" cy="113" r="5" fill="#f0a7a9" opacity=".55" /></>}
-          </g>
+        <path d={bodyBasePath} fill={`url(#${svgId}-skin)`} stroke="#6d574f" strokeOpacity=".14" strokeWidth="2" strokeLinejoin="round" />
+        <path d={hairPath} fill={hair} />
+        <path d={facePath} fill={`url(#${svgId}-skin)`} stroke="#6d574f" strokeOpacity=".08" strokeWidth="1.5" />
+        <path d={fringePath} fill={hair} />
+        <g className="svg-face">
+          {eyes}
+          <path d="M142 104 Q139 111 143 112" fill="none" stroke="#9b6d5f" strokeWidth="2" strokeLinecap="round" />
+          <path d={smilePath} fill="none" stroke="#8b5f54" strokeWidth="3" strokeLinecap="round" />
+          {profile.expression === "cute" && <><circle cx="116" cy="113" r="5" fill="#f0a7a9" opacity=".55" /><circle cx="168" cy="113" r="5" fill="#f0a7a9" opacity=".55" /></>}
         </g>
-        <rect x="126" y="130" width="24" height="30" rx="10" fill={skin} />
         {isHoodie && <path d="M102 158 C106 133 128 125 148 131 C166 136 176 148 178 165 L160 178 C151 164 125 162 112 178Z" fill={topColor} opacity=".92" />}
         <path d={torsoPath} fill={topColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" />
         {isShirt && <path d="M118 151 L136 169 L154 151 M136 169 L136 273" fill="none" stroke="#ffffff" strokeOpacity=".78" strokeWidth="4" strokeLinecap="round" />}
