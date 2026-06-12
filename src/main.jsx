@@ -1619,64 +1619,60 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
   const isSkirt = /skirt/i.test(bottom.subcategory || bottom.clothingType || "");
   const isWide = /wide|baggy|cargo/i.test(bottom.subcategory || bottom.clothingType || bottom.fitType || "");
   const pose = profile.pose || "standing";
-  const leftLeg = pose === "walking" ? "rotate(-5 112 300)" : "";
-  const rightLeg = pose === "walking" ? "rotate(6 158 300)" : "";
-  const leftArm = pose === "mirror" ? "rotate(-18 96 172)" : "";
-  const rightArm = pose === "bag" ? "rotate(-16 174 172)" : "";
   const expressionClass = `avatar-expression-${profile.expression || "happy"}`;
   const title = [top.name, outer.name, bottom.name, shoes.name].filter(Boolean).join(" · ") || "MoodFit avatar";
   const genderShape = profile.gender === "male" ? 6 : profile.gender === "female" ? -2 : 0;
   const heightShift = (profile.height - 165) * 0.55;
-  const headScale = Math.max(0.82, Math.min(1.22, profile.headSize / 100));
-  const faceWidthBoost = profile.faceShape === "softSquare" ? 5 : profile.faceShape === "heart" ? 2 : profile.faceShape === "oval" ? -3 : 0;
-  const faceChinBoost = profile.faceShape === "oval" ? 8 : profile.faceShape === "heart" ? 5 : 0;
-  const headTop = 50 - (headScale - 1) * 18;
-  const headLeft = 135 - (35 + faceWidthBoost) * headScale;
-  const headRight = 135 + (35 + faceWidthBoost) * headScale;
-  const headChin = 126 + (headScale - 1) * 17 + faceChinBoost;
-  const neckTop = headChin - 2;
-  const neckBottom = headChin + 18 + (profile.neckLength - 96) * 0.24;
-  const shoulderY = neckBottom + 20;
-  const armStartY = shoulderY + 5;
-  const shoulder = Math.max(38, Math.min(82, profile.shoulderWidth * 1.55 + genderShape));
-  const waist = Math.max(42, Math.min(104, profile.waistWidth * 2.05));
-  const hip = Math.max(58, Math.min(124, profile.hipWidth * 1.75));
-  const torsoBottom = Math.max(248, Math.min(306, shoulderY + 118 + (profile.torsoLength - 54) * 1.7 + heightShift * 0.18));
-  const legEnd = Math.max(354, Math.min(408, 362 + (profile.legLength - 92) * 0.95 + heightShift));
-  const armEnd = Math.max(238, Math.min(322, 252 + (profile.armLength - 88) * 0.95 + heightShift * 0.25));
-  const leftShoulder = 135 - shoulder;
-  const rightShoulder = 135 + shoulder;
-  const leftWaist = 135 - waist / 2;
-  const rightWaist = 135 + waist / 2;
-  const leftHip = 135 - hip / 2;
-  const rightHip = 135 + hip / 2;
-  const facePath = `M${headLeft + 9} ${headTop + 21} C${headLeft + 17} ${headTop + 2} ${headRight - 15} ${headTop - 2} ${headRight - 3} ${headTop + 18} C${headRight + 11} ${headTop + 40} ${headRight} ${headChin - 7} 135 ${headChin} C${headLeft} ${headChin - 7} ${headLeft - 11} ${headTop + 40} ${headLeft + 9} ${headTop + 21}Z`;
+  const headR = Math.max(24, Math.min(42, profile.headSize * 0.34));
+  const faceWide = profile.faceShape === "softSquare" ? 1.08 : profile.faceShape === "oval" ? 0.92 : profile.faceShape === "heart" ? 1.02 : 1;
+  const headCx = 135;
+  const headCy = 60 - (profile.headSize - 100) * 0.04;
+  const headBottom = headCy + headR;
+  const neckTop = headBottom - 2;
+  const neckBottom = headBottom + 14 + (profile.neckLength - 96) * 0.18;
+  const shoulderY = neckBottom + 19;
+  const shoulderHalf = Math.max(42, Math.min(78, profile.shoulderWidth * 1.45 + genderShape));
+  const waistHalf = Math.max(25, Math.min(54, profile.waistWidth * 1.18));
+  const hipHalf = Math.max(36, Math.min(68, profile.hipWidth * 1.12));
+  const torsoBottom = Math.max(232, Math.min(292, shoulderY + 112 + (profile.torsoLength - 54) * 1.65 + heightShift * 0.15));
+  const legEnd = Math.max(348, Math.min(408, torsoBottom + 100 + (profile.legLength - 92) * 1.05 + heightShift * 0.7));
+  const armEnd = Math.max(218, Math.min(315, shoulderY + 103 + (profile.armLength - 88) * 1.05 + heightShift * 0.25));
+  const armStartY = shoulderY + 8;
+  const leftShoulder = headCx - shoulderHalf;
+  const rightShoulder = headCx + shoulderHalf;
+  const leftWaist = headCx - waistHalf;
+  const rightWaist = headCx + waistHalf;
+  const leftHip = headCx - hipHalf;
+  const rightHip = headCx + hipHalf;
+  const armTilt = pose === "mirror" ? 10 : pose === "bag" ? -6 : 0;
+  const legStep = pose === "walking" ? 7 : 0;
+  const facePath = profile.faceShape === "softSquare"
+    ? `M${headCx - headR * faceWide} ${headCy - headR * .2} C${headCx - headR * faceWide} ${headCy - headR * .88} ${headCx + headR * faceWide} ${headCy - headR * .88} ${headCx + headR * faceWide} ${headCy - headR * .2} L${headCx + headR * .88} ${headCy + headR * .7} C${headCx + headR * .42} ${headCy + headR * 1.08} ${headCx - headR * .42} ${headCy + headR * 1.08} ${headCx - headR * .88} ${headCy + headR * .7}Z`
+    : `M${headCx} ${headCy - headR} C${headCx + headR * faceWide} ${headCy - headR} ${headCx + headR * 1.08 * faceWide} ${headCy + headR * .58} ${headCx} ${headCy + headR * (profile.faceShape === "oval" ? 1.2 : 1.05)} C${headCx - headR * 1.08 * faceWide} ${headCy + headR * .58} ${headCx - headR * faceWide} ${headCy - headR} ${headCx} ${headCy - headR}Z`;
   const eyes = {
-    dot: <><circle cx="126" cy="101" r="3.2" fill="#4a403a" /><circle cx="158" cy="101" r="3.2" fill="#4a403a" /></>,
-    smile: <><path d="M121 101 Q126 96 132 101" fill="none" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /><path d="M153 101 Q158 96 164 101" fill="none" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /></>,
-    calm: <><path d="M121 101 H132" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /><path d="M153 101 H164" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /></>,
-    star: <><path d="M126 96 L128 100 L132 101 L128 103 L126 107 L124 103 L120 101 L124 100Z" fill="#4a403a" /><path d="M158 96 L160 100 L164 101 L160 103 L158 107 L156 103 L152 101 L156 100Z" fill="#4a403a" /></>,
-  }[profile.eyeStyle] || <><circle cx="126" cy="101" r="3.2" fill="#4a403a" /><circle cx="158" cy="101" r="3.2" fill="#4a403a" /></>;
+    dot: <><circle cx="124" cy={headCy + 5} r="3.4" fill="#4a403a" /><circle cx="156" cy={headCy + 5} r="3.4" fill="#4a403a" /></>,
+    smile: <><path d={`M119 ${headCy + 5} Q124 ${headCy} 130 ${headCy + 5}`} fill="none" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /><path d={`M151 ${headCy + 5} Q156 ${headCy} 162 ${headCy + 5}`} fill="none" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /></>,
+    calm: <><path d={`M119 ${headCy + 5} H130`} stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /><path d={`M151 ${headCy + 5} H162`} stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /></>,
+    star: <><path d={`M124 ${headCy} L126 ${headCy + 4} L130 ${headCy + 5} L126 ${headCy + 7} L124 ${headCy + 11} L122 ${headCy + 7} L118 ${headCy + 5} L122 ${headCy + 4}Z`} fill="#4a403a" /><path d={`M156 ${headCy} L158 ${headCy + 4} L162 ${headCy + 5} L158 ${headCy + 7} L156 ${headCy + 11} L154 ${headCy + 7} L150 ${headCy + 5} L154 ${headCy + 4}Z`} fill="#4a403a" /></>,
+  }[profile.eyeStyle] || <><circle cx="124" cy={headCy + 5} r="3.4" fill="#4a403a" /><circle cx="156" cy={headCy + 5} r="3.4" fill="#4a403a" /></>;
   const smilePath = {
-    confident: "M132 119 Q144 123 156 116",
-    calm: "M134 119 Q144 121 154 119",
-    excited: "M132 116 Q144 131 158 116",
-    cute: "M132 117 Q144 128 157 117",
-    happy: "M132 117 Q144 128 157 117",
-  }[profile.expression] || "M132 117 Q144 128 157 117";
+    confident: `M130 ${headCy + 21} Q142 ${headCy + 25} 155 ${headCy + 18}`,
+    calm: `M132 ${headCy + 21} Q143 ${headCy + 23} 154 ${headCy + 21}`,
+    excited: `M130 ${headCy + 18} Q143 ${headCy + 31} 158 ${headCy + 18}`,
+    cute: `M131 ${headCy + 19} Q143 ${headCy + 30} 157 ${headCy + 19}`,
+    happy: `M131 ${headCy + 19} Q143 ${headCy + 30} 157 ${headCy + 19}`,
+  }[profile.expression] || `M131 ${headCy + 19} Q143 ${headCy + 30} 157 ${headCy + 19}`;
+  const hairTop = headCy - headR - 4;
   const hairPath = {
-    short: `M${headLeft + 2} ${headTop + 46} C${headLeft} ${headTop + 12} ${headLeft + 24} ${headTop - 7} 137 ${headTop - 4} C${headRight - 8} ${headTop - 2} ${headRight + 6} ${headTop + 20} ${headRight - 2} ${headTop + 51} C${headRight - 13} ${headTop + 37} ${headRight - 34} ${headTop + 33} 133 ${headTop + 39} C${headLeft + 23} ${headTop + 42} ${headLeft + 10} ${headTop + 48} ${headLeft + 2} ${headTop + 46}Z`,
-    medium: `M${headLeft - 3} ${headTop + 58} C${headLeft - 2} ${headTop + 15} ${headLeft + 23} ${headTop - 8} 138 ${headTop - 5} C${headRight - 6} ${headTop - 2} ${headRight + 10} ${headTop + 26} ${headRight + 1} ${headChin + 18} C${headRight - 12} ${headChin + 33} ${headRight - 38} ${headChin + 34} 136 ${headChin + 28} C${headLeft + 17} ${headChin + 34} ${headLeft - 8} ${headChin + 22} ${headLeft - 3} ${headTop + 58}Z`,
-    long: `M${headLeft - 8} ${headTop + 58} C${headLeft - 7} ${headTop + 10} ${headLeft + 23} ${headTop - 12} 138 ${headTop - 8} C${headRight - 4} ${headTop - 4} ${headRight + 14} ${headTop + 28} ${headRight + 6} ${headChin + 58} C${headRight - 7} ${headChin + 78} ${headRight - 43} ${headChin + 74} 136 ${headChin + 62} C${headLeft + 11} ${headChin + 78} ${headLeft - 15} ${headChin + 58} ${headLeft - 8} ${headTop + 58}Z`,
-    wavy: `M${headLeft - 8} ${headTop + 58} C${headLeft - 6} ${headTop + 10} ${headLeft + 23} ${headTop - 12} 139 ${headTop - 8} C${headRight - 4} ${headTop - 4} ${headRight + 15} ${headTop + 30} ${headRight + 5} ${headChin + 55} C${headRight - 5} ${headChin + 80} ${headRight - 34} ${headChin + 68} ${headRight - 26} ${headChin + 44} C${headRight - 47} ${headChin + 72} ${headLeft + 22} ${headChin + 76} ${headLeft + 10} ${headChin + 44} C${headLeft + 1} ${headChin + 61} ${headLeft - 13} ${headChin + 42} ${headLeft - 8} ${headTop + 58}Z`,
-    straight: `M${headLeft - 4} ${headTop + 58} C${headLeft - 3} ${headTop + 13} ${headLeft + 23} ${headTop - 9} 138 ${headTop - 6} C${headRight - 5} ${headTop - 3} ${headRight + 10} ${headTop + 27} ${headRight + 1} ${headChin + 51} C${headRight - 12} ${headChin + 67} ${headRight - 38} ${headChin + 66} 136 ${headChin + 58} C${headLeft + 15} ${headChin + 66} ${headLeft - 9} ${headChin + 51} ${headLeft - 4} ${headTop + 58}Z`,
-    ponytail: `M${headLeft + 1} ${headTop + 50} C${headLeft} ${headTop + 14} ${headLeft + 24} ${headTop - 8} 138 ${headTop - 5} C${headRight - 8} ${headTop - 2} ${headRight + 5} ${headTop + 21} ${headRight - 2} ${headTop + 52} C${headRight + 28} ${headTop + 64} ${headRight + 24} ${headChin + 63} ${headRight - 1} ${headChin + 75} C${headRight + 1} ${headChin + 40} ${headRight - 12} ${headTop + 55} ${headRight - 28} ${headTop + 43} C${headLeft + 24} ${headTop + 38} ${headLeft + 10} ${headTop + 50} ${headLeft + 1} ${headTop + 50}Z`,
-    bangs: `M${headLeft + 1} ${headTop + 50} C${headLeft} ${headTop + 13} ${headLeft + 24} ${headTop - 9} 139 ${headTop - 5} C${headRight - 7} ${headTop - 2} ${headRight + 7} ${headTop + 21} ${headRight - 1} ${headTop + 55} C${headRight - 24} ${headTop + 39} ${headRight - 46} ${headTop + 53} ${headLeft + 23} ${headTop + 49} C${headLeft + 13} ${headTop + 48} ${headLeft + 6} ${headTop + 52} ${headLeft + 1} ${headTop + 50}Z`,
-  }[profile.hairStyle] || `M${headLeft - 3} ${headTop + 58} C${headLeft - 2} ${headTop + 15} ${headLeft + 23} ${headTop - 8} 138 ${headTop - 5} C${headRight - 6} ${headTop - 2} ${headRight + 10} ${headTop + 26} ${headRight + 1} ${headChin + 18} C${headRight - 12} ${headChin + 33} ${headRight - 38} ${headChin + 34} 136 ${headChin + 28} C${headLeft + 17} ${headChin + 34} ${headLeft - 8} ${headChin + 22} ${headLeft - 3} ${headTop + 58}Z`;
-  const fringePath = profile.hairStyle === "bangs"
-    ? `M${headLeft + 7} ${headTop + 32} C${headLeft + 27} ${headTop + 16} ${headRight - 13} ${headTop + 17} ${headRight - 1} ${headTop + 36} C${headRight - 28} ${headTop + 35} 150 ${headTop + 54} ${headLeft + 21} ${headTop + 50}Z`
-    : `M${headLeft + 8} ${headTop + 30} C${headLeft + 24} ${headTop + 6} ${headRight - 9} ${headTop + 8} ${headRight - 1} ${headTop + 34} C${headRight - 17} ${headTop + 29} 151 ${headTop + 33} 132 ${headTop + 39} C${headLeft + 24} ${headTop + 42} ${headLeft + 13} ${headTop + 38} ${headLeft + 8} ${headTop + 30}Z`;
-  const bodyBasePath = `M135 ${headTop} C${headRight - 7} ${headTop + 1} ${headRight + 11} ${headTop + 35} ${headRight - 1} ${headTop + 61} C${headRight - 8} ${headChin - 5} 154 ${headChin} 145 ${headChin} L147 ${neckBottom} C165 ${shoulderY - 2} ${rightShoulder - 13} ${shoulderY - 1} ${rightShoulder} ${armStartY} C${rightShoulder + 21} ${armStartY + 31} ${rightShoulder + 24} ${armEnd - 28} ${rightShoulder + 19} ${armEnd} C${rightShoulder + 16} ${armEnd + 15} ${rightShoulder + 1} ${armEnd + 17} ${rightShoulder - 5} ${armEnd + 2} C${rightShoulder - 12} ${armEnd - 28} ${rightShoulder - 16} ${armStartY + 40} ${rightShoulder - 22} ${armStartY + 15} L${rightHip} ${torsoBottom - 3} L${rightHip + 8} ${legEnd + 10} C${rightHip - 4} ${legEnd + 22} ${rightHip - 29} ${legEnd + 22} 139 ${legEnd + 8} L135 ${torsoBottom + 24} L131 ${legEnd + 8} C119 ${legEnd + 22} ${leftHip + 4} ${legEnd + 22} ${leftHip - 8} ${legEnd + 10} L${leftHip} ${torsoBottom - 3} L${leftShoulder + 22} ${armStartY + 15} C${leftShoulder + 16} ${armStartY + 40} ${leftShoulder + 12} ${armEnd - 28} ${leftShoulder + 5} ${armEnd + 2} C${leftShoulder - 1} ${armEnd + 17} ${leftShoulder - 16} ${armEnd + 15} ${leftShoulder - 19} ${armEnd} C${leftShoulder - 24} ${armEnd - 28} ${leftShoulder - 21} ${armStartY + 31} ${leftShoulder} ${armStartY} C${leftShoulder + 13} ${shoulderY - 1} 105 ${shoulderY - 2} 123 ${neckBottom} L125 ${headChin} C116 ${headChin} ${headLeft + 8} ${headChin - 5} ${headLeft + 1} ${headTop + 61} C${headLeft - 11} ${headTop + 35} ${headLeft + 7} ${headTop + 1} 135 ${headTop}Z`;
+    short: `M${headCx - headR * 1.02} ${headCy - 2} C${headCx - headR} ${hairTop + 8} ${headCx - headR * .35} ${hairTop - 7} ${headCx + 2} ${hairTop - 4} C${headCx + headR * .82} ${hairTop + 1} ${headCx + headR * 1.06} ${headCy - 1} ${headCx + headR * .92} ${headCy + 7} C${headCx + headR * .42} ${headCy - 6} ${headCx - headR * .18} ${headCy - 1} ${headCx - headR * 1.02} ${headCy - 2}Z`,
+    medium: `M${headCx - headR * 1.08} ${headCy + 6} C${headCx - headR} ${hairTop + 2} ${headCx - headR * .28} ${hairTop - 9} ${headCx + 2} ${hairTop - 5} C${headCx + headR * .94} ${hairTop} ${headCx + headR * 1.16} ${headCy + 13} ${headCx + headR * .9} ${headCy + headR * 1.15} C${headCx + headR * .28} ${headCy + headR * .46} ${headCx - headR * .36} ${headCy + headR * .45} ${headCx - headR * 1.08} ${headCy + 6}Z`,
+    long: `M${headCx - headR * 1.18} ${headCy + 5} C${headCx - headR * 1.06} ${hairTop} ${headCx - headR * .28} ${hairTop - 12} ${headCx + 2} ${hairTop - 7} C${headCx + headR} ${hairTop - 2} ${headCx + headR * 1.25} ${headCy + 15} ${headCx + headR * 1.04} ${headCy + headR * 2.05} C${headCx + headR * .34} ${headCy + headR * 1.78} ${headCx - headR * .42} ${headCy + headR * 1.78} ${headCx - headR * 1.18} ${headCy + 5}Z`,
+    wavy: `M${headCx - headR * 1.18} ${headCy + 5} C${headCx - headR * 1.03} ${hairTop} ${headCx - headR * .28} ${hairTop - 12} ${headCx + 2} ${hairTop - 7} C${headCx + headR} ${hairTop - 2} ${headCx + headR * 1.25} ${headCy + 15} ${headCx + headR} ${headCy + headR * 1.8} C${headCx + headR * .64} ${headCy + headR * 1.35} ${headCx + headR * .2} ${headCy + headR * 1.96} ${headCx - headR * .2} ${headCy + headR * 1.45} C${headCx - headR * .54} ${headCy + headR * 1.98} ${headCx - headR * 1.18} ${headCy + headR * 1.52} ${headCx - headR * 1.18} ${headCy + 5}Z`,
+    straight: `M${headCx - headR * 1.08} ${headCy + 5} C${headCx - headR} ${hairTop + 1} ${headCx - headR * .3} ${hairTop - 10} ${headCx + 1} ${hairTop - 6} C${headCx + headR * .94} ${hairTop - 1} ${headCx + headR * 1.14} ${headCy + 12} ${headCx + headR} ${headCy + headR * 1.72} C${headCx + headR * .4} ${headCy + headR * 1.56} ${headCx - headR * .42} ${headCy + headR * 1.56} ${headCx - headR * 1.08} ${headCy + 5}Z`,
+    ponytail: `M${headCx - headR * 1.02} ${headCy - 1} C${headCx - headR} ${hairTop + 4} ${headCx - headR * .3} ${hairTop - 9} ${headCx + 2} ${hairTop - 5} C${headCx + headR * .86} ${hairTop - 1} ${headCx + headR * 1.05} ${headCy + 3} ${headCx + headR * .84} ${headCy + 12} C${headCx + headR * 1.55} ${headCy + 34} ${headCx + headR * 1.25} ${headCy + headR * 1.88} ${headCx + headR * .78} ${headCy + headR * 1.64} C${headCx + headR * .96} ${headCy + headR * .72} ${headCx + headR * .42} ${headCy + 2} ${headCx - headR * 1.02} ${headCy - 1}Z`,
+    bangs: `M${headCx - headR * 1.04} ${headCy + 1} C${headCx - headR} ${hairTop + 2} ${headCx - headR * .25} ${hairTop - 11} ${headCx + 2} ${hairTop - 6} C${headCx + headR * .92} ${hairTop - 1} ${headCx + headR * 1.1} ${headCy + 6} ${headCx + headR * .9} ${headCy + 14} C${headCx + headR * .28} ${headCy - 1} ${headCx - headR * .28} ${headCy + 14} ${headCx - headR * 1.04} ${headCy + 1}Z`,
+  }[profile.hairStyle] || `M${headCx - headR * 1.08} ${headCy + 6} C${headCx - headR} ${hairTop + 2} ${headCx - headR * .28} ${hairTop - 9} ${headCx + 2} ${hairTop - 5} C${headCx + headR * .94} ${hairTop} ${headCx + headR * 1.16} ${headCy + 13} ${headCx + headR * .9} ${headCy + headR * 1.15} C${headCx + headR * .28} ${headCy + headR * .46} ${headCx - headR * .36} ${headCy + headR * .45} ${headCx - headR * 1.08} ${headCy + 6}Z`;
+  const bodyBasePath = `M${headCx - 11} ${neckTop} H${headCx + 11} L${headCx + 14} ${neckBottom} C${headCx + 31} ${shoulderY - 4} ${rightShoulder - 14} ${shoulderY - 1} ${rightShoulder} ${shoulderY + 8} C${rightShoulder + 20} ${shoulderY + 32} ${rightShoulder + 24 + armTilt} ${armEnd - 25} ${rightShoulder + 19 + armTilt} ${armEnd} C${rightShoulder + 16 + armTilt} ${armEnd + 15} ${rightShoulder + 1 + armTilt} ${armEnd + 16} ${rightShoulder - 6 + armTilt} ${armEnd + 3} C${rightShoulder - 13 + armTilt} ${armEnd - 30} ${rightShoulder - 15} ${shoulderY + 44} ${rightShoulder - 23} ${shoulderY + 20} L${rightHip} ${torsoBottom} L${rightHip + 5 + legStep} ${legEnd + 6} C${rightHip - 8 + legStep} ${legEnd + 21} ${rightHip - 31 + legStep} ${legEnd + 21} ${headCx + 7 + legStep} ${legEnd + 5} L${headCx + 2} ${torsoBottom + 28} L${headCx - 3} ${legEnd + 5} C${headCx - 31 - legStep} ${legEnd + 21} ${leftHip + 8 - legStep} ${legEnd + 21} ${leftHip - 5 - legStep} ${legEnd + 6} L${leftHip} ${torsoBottom} L${leftShoulder + 23} ${shoulderY + 20} C${leftShoulder + 15} ${shoulderY + 44} ${leftShoulder + 13 - armTilt} ${armEnd - 30} ${leftShoulder + 6 - armTilt} ${armEnd + 3} C${leftShoulder - 1 - armTilt} ${armEnd + 16} ${leftShoulder - 16 - armTilt} ${armEnd + 15} ${leftShoulder - 19 - armTilt} ${armEnd} C${leftShoulder - 24 - armTilt} ${armEnd - 25} ${leftShoulder - 20 - armTilt} ${shoulderY + 32} ${leftShoulder} ${shoulderY + 8} C${leftShoulder + 14} ${shoulderY - 1} ${headCx - 31} ${shoulderY - 4} ${headCx - 14} ${neckBottom}Z`;
   const torsoPath = `M${leftShoulder + 10} ${shoulderY + 4} C${leftShoulder + 24} ${shoulderY - 10} 122 ${shoulderY - 14} 136 ${shoulderY - 14} C152 ${shoulderY - 14} ${rightShoulder - 24} ${shoulderY - 10} ${rightShoulder - 10} ${shoulderY + 4} L${rightWaist} ${torsoBottom} C151 ${torsoBottom + 16} 120 ${torsoBottom + 16} ${leftWaist} ${torsoBottom}Z`;
   const outerPath = isCoat
     ? `M${leftShoulder - 14} ${shoulderY + 2} C101 ${shoulderY - 15} 116 ${shoulderY - 14} 136 ${shoulderY - 1} C153 ${shoulderY - 14} 173 ${shoulderY - 14} ${rightShoulder + 14} ${shoulderY + 2} L${rightHip + 26} ${Math.min(346, torsoBottom + 62)} C170 350 105 350 ${leftHip - 26} ${Math.min(346, torsoBottom + 62)}Z`
@@ -1703,7 +1699,6 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
         <path d={bodyBasePath} fill={`url(#${svgId}-skin)`} stroke="#6d574f" strokeOpacity=".14" strokeWidth="2" strokeLinejoin="round" />
         <path d={hairPath} fill={hair} />
         <path d={facePath} fill={`url(#${svgId}-skin)`} stroke="#6d574f" strokeOpacity=".08" strokeWidth="1.5" />
-        <path d={fringePath} fill={hair} />
         <g className="svg-face">
           {eyes}
           <path d="M142 104 Q139 111 143 112" fill="none" stroke="#9b6d5f" strokeWidth="2" strokeLinecap="round" />
