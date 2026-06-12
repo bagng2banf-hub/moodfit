@@ -27,8 +27,8 @@ import {
 } from "lucide-react";
 import { createTranslator } from "./i18n";
 import { clearSession, createGuestSession, loadSession, signInWithEmail } from "./lib/auth";
-import { canRequestAi, sanitizeInput } from "./lib/security";
-import { categories, defaultFit, moods, seedWardrobe, themes } from "./lib/data";
+import { canRequestAi, pruneClientState, safeJsonParse, sanitizeIdentifier, sanitizeInput } from "./lib/security";
+import { categories, defaultFit, moods, normalizeFit, seedWardrobe, themes } from "./lib/data";
 import "./index.css";
 
 const storageKey = "moodfit-premium-state-v2";
@@ -176,9 +176,9 @@ function App() {
   const [activePanel, setActivePanel] = useState("v3-home");
   const [theme, setTheme] = useState(stored.theme || "white");
   const [mood, setMood] = useState(stored.mood || "moodLuxury");
-  const [wardrobe, setWardrobe] = useState(stored.wardrobe || seedWardrobe);
-  const [fit, setFit] = useState(stored.fit || defaultFit(stored.wardrobe || seedWardrobe));
-  const [savedLooks, setSavedLooks] = useState(stored.savedLooks || []);
+  const [wardrobe, setWardrobe] = useState(Array.isArray(stored.wardrobe) ? stored.wardrobe : seedWardrobe);
+  const [fit, setFit] = useState(normalizeFit(stored.fit, Array.isArray(stored.wardrobe) ? stored.wardrobe : seedWardrobe));
+  const [savedLooks, setSavedLooks] = useState(Array.isArray(stored.savedLooks) ? stored.savedLooks : []);
   const [brief, setBrief] = useState(stored.brief || "");
   const [weather, setWeather] = useState(stored.weather || "soft rain");
   const [schedule, setSchedule] = useState(stored.schedule || "gallery date");
@@ -227,10 +227,15 @@ function App() {
     return () => window.clearTimeout(timer);
   }, [activePanel]);
 
+  useEffect(() => {
+    localStorage.removeItem("moodfit-user");
+    localStorage.removeItem("moodfit-wardrobe-editorial");
+    localStorage.removeItem("moodfit-last-style-card");
+    localStorage.setItem(storageKey, JSON.stringify(pruneClientState(loadStoredState())));
+  }, []);
+
   function persist(next = {}) {
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
+    const nextState = pruneClientState({
         language,
         theme,
         mood,
@@ -249,8 +254,8 @@ function App() {
         homeBanner,
         viewMode,
         ...next,
-      })
-    );
+      });
+    localStorage.setItem(storageKey, JSON.stringify(nextState));
   }
 
   function chooseLanguage(nextLanguage) {
@@ -268,14 +273,18 @@ function App() {
   async function handleAccount(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const username = sanitizeInput(form.get("username")) || "moodfit";
+    const username = sanitizeIdentifier(form.get("username"), 32) || "moodfit";
     const password = String(form.get("password") || "");
     if (username.length < 3) return showToast("아이디는 3글자 이상 입력해줘");
-    if (password && password.length < 8) return showToast(t("invalidPassword"));
-    const nextSession = await signInWithEmail({ email: `${username}@moodfit.local`, username });
-    setSession(nextSession);
-    setEntryStep("app");
-    showToast(t("mockSession"));
+    if (!password || password.length < 8) return showToast(t("invalidPassword"));
+    try {
+      const nextSession = await signInWithEmail({ username, password });
+      setSession(nextSession);
+      setEntryStep("app");
+      showToast(t("mockSession"));
+    } catch {
+      showToast(t("invalidPassword"));
+    }
   }
 
   function logout() {
@@ -318,7 +327,7 @@ function App() {
         streak: safe.streak || 1,
         completedMissions: completedKey ? [...safe.completedMissions, completedKey] : safe.completedMissions,
       };
-      const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+      const saved = safeJsonParse(localStorage.getItem(storageKey), {});
       localStorage.setItem(storageKey, JSON.stringify({ ...saved, game: next }));
       return next;
     });
@@ -366,9 +375,10 @@ function App() {
     setBrief(cleanBrief);
     setLastRequestAt(Date.now());
     const nextMood = detectMood(cleanBrief, mood);
-    const nextFit = { ...fit };
+    const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+    const nextFit = normalizeFit(fit, safeWardrobe);
     for (const category of ["tops", "outerwear", "bottoms", "shoes", "bags", "accessories"]) {
-      const match = wardrobe.find((item) => item.category === category && item.mood === nextMood);
+      const match = safeWardrobe.find((item) => item.category === category && item.mood === nextMood);
       if (match) nextFit[category] = match;
     }
     setMood(nextMood);
@@ -379,8 +389,9 @@ function App() {
   }
 
   function wear(item) {
+    if (!item || !item.category) return;
     if (item.archived) return showToast("보관된 옷은 복원 후 입을 수 있어요");
-    const nextFit = { ...fit, [item.category]: item };
+    const nextFit = normalizeFit({ ...fit, [item.category]: item }, wardrobe);
     setFit(nextFit);
     setMood(item.mood || mood);
     persist({ fit: nextFit, mood: item.mood || mood });
@@ -393,15 +404,16 @@ function App() {
   async function saveDetailedItem(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const category = categories[wardrobe.length % categories.length];
+    const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+    const category = categories[safeWardrobe.length % categories.length];
     const selectedCategory = form.get("category") || category;
     const subcategory = sanitizeInput(form.get("subcategory")) || inferSubcategory(selectedCategory, form.get("clothingType"));
     const fabric = sanitizeInput(form.get("fabric")) || inferFabric(subcategory, form.get("pattern"));
     const fitType = form.get("fitType") || "Regular Fit";
-    const primaryColor = sanitizeInput(form.get("primaryColor")) || sanitizeInput(form.get("color")) || ["#eadcc7", "#101010", "#46627d", "#f5f1e9", "#8c5a38"][wardrobe.length % 5];
+    const primaryColor = sanitizeInput(form.get("primaryColor")) || sanitizeInput(form.get("color")) || ["#eadcc7", "#101010", "#46627d", "#f5f1e9", "#8c5a38"][safeWardrobe.length % 5];
     const item = {
       id: crypto.randomUUID(),
-      name: sanitizeInput(form.get("name")) || `${t("scannedItem")} ${wardrobe.length + 1}`,
+      name: sanitizeInput(form.get("name")) || `${t("scannedItem")} ${safeWardrobe.length + 1}`,
       category: selectedCategory,
       subcategory,
       fabric,
@@ -429,7 +441,7 @@ function App() {
         favorite: form.has("favorite"),
       },
     };
-    const nextWardrobe = [item, ...wardrobe];
+    const nextWardrobe = [item, ...safeWardrobe];
     setWardrobe(nextWardrobe);
     wear(item);
     persist({ wardrobe: nextWardrobe });
@@ -439,7 +451,7 @@ function App() {
 
   function saveLook() {
     const look = { id: crypto.randomUUID(), mood, fit, recommendation, createdAt: new Date().toISOString() };
-    const nextLooks = [look, ...savedLooks].slice(0, 8);
+    const nextLooks = [look, ...(Array.isArray(savedLooks) ? savedLooks : [])].slice(0, 8);
     setSavedLooks(nextLooks);
     persist({ savedLooks: nextLooks });
     award(t("saveLook"), 35, 10);
@@ -453,8 +465,9 @@ function App() {
   }
 
   function updateWardrobeItem(itemId, patch) {
-    const nextWardrobe = wardrobe.map((item) => item.id === itemId ? { ...item, ...patch, updatedAt: new Date().toISOString() } : item);
-    const nextFit = Object.fromEntries(Object.entries(fit).map(([slot, item]) => [slot, item?.id === itemId ? { ...item, ...patch } : item]));
+    const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+    const nextWardrobe = safeWardrobe.map((item) => item.id === itemId ? { ...item, ...patch, updatedAt: new Date().toISOString() } : item);
+    const nextFit = Object.fromEntries(Object.entries(normalizeFit(fit, safeWardrobe)).map(([slot, item]) => [slot, item?.id === itemId ? { ...item, ...patch } : item]));
     setWardrobe(nextWardrobe);
     setFit(nextFit);
     persist({ wardrobe: nextWardrobe, fit: nextFit });
@@ -471,8 +484,9 @@ function App() {
 
   function confirmDeleteWardrobeItem() {
     if (!pendingDelete) return;
-    const nextWardrobe = wardrobe.filter((item) => item.id !== pendingDelete.id);
-    const nextFit = Object.fromEntries(Object.entries(fit).map(([slot, item]) => [slot, item?.id === pendingDelete.id ? null : item]));
+    const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+    const nextWardrobe = safeWardrobe.filter((item) => item.id !== pendingDelete.id);
+    const nextFit = Object.fromEntries(Object.entries(normalizeFit(fit, safeWardrobe)).map(([slot, item]) => [slot, item?.id === pendingDelete.id ? null : item]));
     setWardrobe(nextWardrobe);
     setFit(nextFit);
     persist({ wardrobe: nextWardrobe, fit: nextFit });
@@ -488,6 +502,10 @@ function App() {
     setViewMode(nextMode);
     persist({ viewMode: nextMode });
   }
+
+  const renderedWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+  const renderedSavedLooks = Array.isArray(savedLooks) ? savedLooks : [];
+  const renderedFit = normalizeFit(fit, renderedWardrobe);
 
   return (
     <main className={`app moodfit-game theme-${theme} mood-${mood} panel-${activePanel} view-${viewMode}`}>
@@ -524,11 +542,11 @@ function App() {
           t={t}
           mood={mood}
           setMood={setMood}
-          fit={fit}
+          fit={renderedFit}
           bodyProfile={bodyProfile}
           setBodyProfile={setBodyProfile}
           persist={persist}
-          wardrobe={wardrobe}
+          wardrobe={renderedWardrobe}
           wear={wear}
           addItem={addItem}
           onEditItem={setEditingItem}
@@ -562,7 +580,7 @@ function App() {
           }}
           onRenameProfile={changeProfileName}
           onProfilePhoto={changeProfilePhoto}
-          savedLooks={savedLooks}
+          savedLooks={renderedSavedLooks}
           session={session}
           onEvent={() => setEventOpen(true)}
           onComingSoon={openComingSoon}
@@ -620,7 +638,7 @@ function App() {
             <span>{recommendation.name}</span>
             <strong>{t(mood)}</strong>
           </div>
-          {avatarWardrobeOpen && <AvatarWardrobe t={t} fit={fit} wardrobe={wardrobe} wear={wear} />}
+          {avatarWardrobeOpen && <AvatarWardrobe t={t} fit={renderedFit} wardrobe={renderedWardrobe} wear={wear} />}
         </section>
 
         <aside className="recommendation glass">
@@ -634,7 +652,7 @@ function App() {
         </aside>
       </section>}
 
-      {!activeWorld && showAll && <GameLayer t={t} game={game} wardrobe={wardrobe} savedLooks={savedLooks} />}
+      {!activeWorld && showAll && <GameLayer t={t} game={game} wardrobe={renderedWardrobe} savedLooks={renderedSavedLooks} />}
       {!activeWorld && showAll && <FeatureShowcase t={t} />}
       {!activeWorld && showAll && <RealLifeExamples t={t} />}
 
@@ -644,7 +662,7 @@ function App() {
           <button className="icon-button" onClick={addItem} type="button"><Shirt size={18} />{t("addItem")}</button>
         </div>
         <div className="wardrobe-grid">
-          {wardrobe.length ? wardrobe.map((item) => (
+          {renderedWardrobe.length ? renderedWardrobe.map((item) => (
             <button className="garment-card" key={item.id} onClick={() => wear(item)} type="button">
               {item.image ? <img className="garment-photo" src={item.image} alt="" /> : <span className={`fabric pattern-${item.pattern}`} style={{ "--fabric": item.color }} />}
               <strong>{item.name}</strong>
@@ -671,7 +689,7 @@ function App() {
       )}
 
       {!activeWorld && (activePanel === "looks" || showAll) && <section id="looks" className="lookbook panel-view">
-        {savedLooks.length ? savedLooks.map((look) => (
+        {renderedSavedLooks.length ? renderedSavedLooks.map((look) => (
           <button className="saved-look glass" key={look.id} onClick={() => { setFit(look.fit); setMood(look.mood); showToast(t("loaded")); }} type="button">
             <MiniFit fit={look.fit} />
             <strong>{look.recommendation.name}</strong>
@@ -680,11 +698,11 @@ function App() {
         )) : <div className="saved-look glass empty">{t("emptyLooks")}</div>}
       </section>}
 
-      {!activeWorld && activePanel === "customize" && <CustomizePanel t={t} theme={theme} setTheme={setTheme} mood={mood} setMood={setMood} fit={fit} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />}
+      {!activeWorld && activePanel === "customize" && <CustomizePanel t={t} theme={theme} setTheme={setTheme} mood={mood} setMood={setMood} fit={renderedFit} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />}
 
-      {!activeWorld && activePanel === "photo" && <PhotoTryOnPage t={t} onUpload={() => fileInputRef.current?.click()} wardrobe={wardrobe} />}
+      {!activeWorld && activePanel === "photo" && <PhotoTryOnPage t={t} onUpload={() => fileInputRef.current?.click()} wardrobe={renderedWardrobe} />}
 
-      {!activeWorld && activePanel === "ranking" && <RankingBoard t={t} game={game} scores={scores} wardrobe={wardrobe} savedLooks={savedLooks} />}
+      {!activeWorld && activePanel === "ranking" && <RankingBoard t={t} game={game} scores={scores} wardrobe={renderedWardrobe} savedLooks={renderedSavedLooks} />}
 
       {activePanel === "settings" && <section id="settings" className="settings glass panel-view">
         <div>
@@ -795,6 +813,9 @@ function WorldView(props) {
 }
 
 function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, fit, onEvent, homeBanner, setHomeBanner }) {
+  const safeFit = normalizeFit(fit);
+  const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+  const safeSavedLooks = Array.isArray(savedLooks) ? savedLooks : [];
   const banner = mainBannerOptions.find((item) => item.id === homeBanner) || mainBannerOptions[0];
   const missions = [
     ["색 조합 저장하기", "보상 30 XP"],
@@ -829,7 +850,7 @@ function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, f
                 <span>트렌드 {scores.confidence}</span>
               </div>
               <div className="palette-row-v3">
-                {Object.values(fit).filter(Boolean).slice(0, 5).map((item) => <i key={item.id} style={{ "--swatch": item.color }} />)}
+                {Object.values(safeFit).filter(Boolean).slice(0, 5).map((item) => <i key={item.id} style={{ "--swatch": item.color }} />)}
               </div>
             </div>
           </div>
@@ -840,9 +861,9 @@ function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, f
         </WorldCard>
         <WorldCard className="home-medium-card" icon={<Shirt size={20} />} title="옷장 요약" note="오늘 활용할 아이템">
           <div className="mini-closet-row">
-            {wardrobe.slice(0, 4).map((item) => <span key={item.id} style={{ "--fabric": item.color }}>{item.name}</span>)}
+            {safeWardrobe.slice(0, 4).map((item) => <span key={item.id} style={{ "--fabric": item.color }}>{item.name}</span>)}
           </div>
-          <p className="tiny-copy">저장한 룩 {savedLooks.length}개, 옷장 아이템 {wardrobe.length}개</p>
+          <p className="tiny-copy">저장한 룩 {safeSavedLooks.length}개, 옷장 아이템 {safeWardrobe.length}개</p>
         </WorldCard>
         <WorldCard className="home-small-card" icon={<Check size={20} />} title="미션" note="오늘의 성장">
           <div className="mission-list-v3">
@@ -928,10 +949,11 @@ function MagicCloset({ t, wardrobe, wear, addItem, onEditItem, onArchiveItem, on
     ["accessories", "액세서리"],
     ["other", "기타"],
   ];
-  const activeItems = wardrobe.filter((item) => !item.archived);
-  const archivedItems = wardrobe.filter((item) => item.archived);
+  const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+  const activeItems = safeWardrobe.filter((item) => !item.archived);
+  const archivedItems = safeWardrobe.filter((item) => item.archived);
   const visibleItems = [...activeItems, ...archivedItems].filter((item) => item.category === closetCategory);
-  const analytics = buildWardrobeAnalytics(wardrobe);
+  const analytics = buildWardrobeAnalytics(safeWardrobe);
 
   return (
     <section className="world-room magic-closet-v3">
@@ -1151,11 +1173,13 @@ function CoinShop({ game, buyShopItem }) {
 }
 
 function HallOfFame({ game, scores, wardrobe, savedLooks }) {
+  const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+  const safeSavedLooks = Array.isArray(savedLooks) ? savedLooks : [];
   const ranks = [
     ["스타일 마스터", scores.total + 4],
     ["컬러 천재", scores.color],
     ["비 오는 날 스타일리스트", scores.comfort],
-    ["미니멀 지니어스", Math.max(86, wardrobe.length + savedLooks.length + 78)],
+    ["미니멀 지니어스", Math.max(86, safeWardrobe.length + safeSavedLooks.length + 78)],
   ];
 
   return (
@@ -1405,11 +1429,13 @@ function PhotoTryOnPage({ t, onUpload, wardrobe, onComingSoon }) {
 }
 
 function RankingBoard({ game, scores, wardrobe, savedLooks }) {
+  const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+  const safeSavedLooks = Array.isArray(savedLooks) ? savedLooks : [];
   const ranking = [
     ["오늘의 무드 장인", scores.total, "선글라스"],
     ["컬러 조합 천재", scores.color, "핑크 스카프"],
-    ["옷장 수집가", wardrobe.length * 12, "구름 코인"],
-    ["룩북 스타", savedLooks.length * 25 + 40, "XP"],
+    ["옷장 수집가", safeWardrobe.length * 12, "구름 코인"],
+    ["룩북 스타", safeSavedLooks.length * 25 + 40, "XP"],
   ].sort((a, b) => b[1] - a[1]);
   return (
     <section className="soft-page ranking-page panel-view">
@@ -1603,12 +1629,13 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
   const avatarVars = avatarVariables(profile);
   const skin = avatarVars["--avatar-skin"];
   const hair = avatarVars["--avatar-hair"];
-  const top = fit.tops || {};
-  const outer = fit.outerwear || {};
-  const bottom = fit.bottoms || {};
-  const shoes = fit.shoes || {};
-  const bag = fit.bags || {};
-  const accessory = fit.accessories || {};
+  const safeFit = normalizeFit(fit);
+  const top = safeFit.tops || {};
+  const outer = safeFit.outerwear || {};
+  const bottom = safeFit.bottoms || {};
+  const shoes = safeFit.shoes || {};
+  const bag = safeFit.bags || {};
+  const accessory = safeFit.accessories || {};
   const topColor = top.color || top.primaryColor || "#eadcc7";
   const outerColor = outer.color || outer.primaryColor || "";
   const bottomColor = bottom.color || bottom.primaryColor || "#6d7f91";
@@ -1710,14 +1737,14 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
         {isShirt && <path d="M118 151 L136 169 L154 151 M136 169 L136 273" fill="none" stroke="#ffffff" strokeOpacity=".78" strokeWidth="4" strokeLinecap="round" />}
         {top.pattern === "Stripe" && <g opacity=".55" stroke="#fff" strokeWidth="5"><path d="M99 184 H176" /><path d="M97 218 H178" /><path d="M97 252 H176" /></g>}
         {outerColor && <path d={outerPath} fill={outerColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" opacity=".9" />}
-        <g transform={leftArm}><path d={`M${leftShoulder} ${armStartY} C${leftShoulder - 16} ${armStartY + 25} ${leftShoulder - 20} ${armEnd - 34} ${leftShoulder - 18} ${armEnd} C${leftShoulder - 17} ${armEnd + 14} ${leftShoulder - 1} ${armEnd + 15} ${leftShoulder + 4} ${armEnd + 2} C${leftShoulder + 12} ${armEnd - 32} ${leftShoulder + 17} ${armStartY + 36} ${leftShoulder + 22} ${armStartY + 7}Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
-        <g transform={rightArm}><path d={`M${rightShoulder} ${armStartY} C${rightShoulder + 18} ${armStartY + 25} ${rightShoulder + 24} ${armEnd - 34} ${rightShoulder + 21} ${armEnd} C${rightShoulder + 20} ${armEnd + 14} ${rightShoulder + 4} ${armEnd + 15} ${rightShoulder - 1} ${armEnd + 2} C${rightShoulder - 9} ${armEnd - 32} ${rightShoulder - 14} ${armStartY + 36} ${rightShoulder - 21} ${armStartY + 7}Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
+        <path d={`M${leftShoulder} ${armStartY} C${leftShoulder - 16} ${armStartY + 25} ${leftShoulder - 20} ${armEnd - 34} ${leftShoulder - 18} ${armEnd} C${leftShoulder - 17} ${armEnd + 14} ${leftShoulder - 1} ${armEnd + 15} ${leftShoulder + 4} ${armEnd + 2} C${leftShoulder + 12} ${armEnd - 32} ${leftShoulder + 17} ${armStartY + 36} ${leftShoulder + 22} ${armStartY + 7}Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" />
+        <path d={`M${rightShoulder} ${armStartY} C${rightShoulder + 18} ${armStartY + 25} ${rightShoulder + 24} ${armEnd - 34} ${rightShoulder + 21} ${armEnd} C${rightShoulder + 20} ${armEnd + 14} ${rightShoulder + 4} ${armEnd + 15} ${rightShoulder - 1} ${armEnd + 2} C${rightShoulder - 9} ${armEnd - 32} ${rightShoulder - 14} ${armStartY + 36} ${rightShoulder - 21} ${armStartY + 7}Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" />
         {isSkirt
           ? <path d={skirtPath} fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
           : <path d={pantsPath} fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />}
         {isSkirt && <>
-          <g transform={leftLeg}><path d={`M104 ${legEnd - 34} C112 ${legEnd - 28} 122 ${legEnd - 28} 130 ${legEnd - 34} L128 ${legEnd + 13} C120 ${legEnd + 19} 108 ${legEnd + 19} 99 ${legEnd + 12}Z`} fill={skin} /></g>
-          <g transform={rightLeg}><path d={`M142 ${legEnd - 34} C150 ${legEnd - 28} 160 ${legEnd - 28} 168 ${legEnd - 34} L175 ${legEnd + 12} C166 ${legEnd + 19} 154 ${legEnd + 19} 146 ${legEnd + 13}Z`} fill={skin} /></g>
+          <path d={`M104 ${legEnd - 34} C112 ${legEnd - 28} 122 ${legEnd - 28} 130 ${legEnd - 34} L128 ${legEnd + 13} C120 ${legEnd + 19} 108 ${legEnd + 19} 99 ${legEnd + 12}Z`} fill={skin} />
+          <path d={`M142 ${legEnd - 34} C150 ${legEnd - 28} 160 ${legEnd - 28} 168 ${legEnd - 34} L175 ${legEnd + 12} C166 ${legEnd + 19} 154 ${legEnd + 19} 146 ${legEnd + 13}Z`} fill={skin} />
         </>}
         <path d={`M86 ${legEnd + 8} C105 ${legEnd + 2} 122 ${legEnd + 4} 133 ${legEnd + 17} C124 ${legEnd + 29} 93 ${legEnd + 29} 79 ${legEnd + 19}Z`} fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
         <path d={`M139 ${legEnd + 17} C151 ${legEnd + 4} 169 ${legEnd + 2} 188 ${legEnd + 8} L195 ${legEnd + 19} C181 ${legEnd + 29} 150 ${legEnd + 29} 139 ${legEnd + 17}Z`} fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
@@ -1746,11 +1773,14 @@ function RangeControl({ label, min, max, value, onChange }) {
 }
 
 function MiniFit({ fit }) {
-  return <span className="mini-fit">{["tops", "outerwear", "bottoms", "shoes"].map((key) => <i key={key} style={{ "--c": fit[key]?.color || "#ddd" }} />)}</span>;
+  const safeFit = normalizeFit(fit);
+  return <span className="mini-fit">{["tops", "outerwear", "bottoms", "shoes"].map((key) => <i key={key} style={{ "--c": safeFit[key]?.color || "#ddd" }} />)}</span>;
 }
 
 function AvatarWardrobe({ t, fit, wardrobe, wear }) {
-  const [selected, setSelected] = useState(wardrobe[0] || null);
+  const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+  const safeFit = normalizeFit(fit, safeWardrobe);
+  const [selected, setSelected] = useState(safeWardrobe[0] || null);
   const slots = ["tops", "outerwear", "bottoms", "shoes", "bags", "accessories"];
   return (
     <aside className="avatar-wardrobe">
@@ -1761,17 +1791,17 @@ function AvatarWardrobe({ t, fit, wardrobe, wear }) {
       <div className="wearing-details">
         {slots.map((slot) => (
           <div className="wearing-detail" key={slot}>
-            <span style={{ "--swatch": fit[slot]?.color || "#ddd" }} />
+            <span style={{ "--swatch": safeFit[slot]?.color || "#ddd" }} />
             <div>
               <small>{t(`part${capitalize(slot)}`) || t(slot)}</small>
-              <strong>{fit[slot]?.name || t(slot)}</strong>
-              <em>{fit[slot] ? `${t(fit[slot].fitType || "regularFit")} · ${fit[slot].season || "all"}` : t("emptyWardrobe")}</em>
+              <strong>{safeFit[slot]?.name || t(slot)}</strong>
+              <em>{safeFit[slot] ? `${t(safeFit[slot].fitType || "regularFit")} · ${safeFit[slot].season || "all"}` : t("emptyWardrobe")}</em>
             </div>
           </div>
         ))}
       </div>
       <div className="avatar-closet-list">
-        {wardrobe.map((item) => (
+        {safeWardrobe.map((item) => (
           <button className={selected?.id === item.id ? "active" : ""} key={item.id} onClick={() => setSelected(item)} type="button">
             {item.image ? <img src={item.image} alt="" /> : <span style={{ "--swatch": item.color }} />}
             <div>
@@ -1827,10 +1857,11 @@ function SettingsModal({ t, language, setLanguage, theme, setTheme, session, log
 }
 
 function scoreOutfit({ fit, weather, mood, eventType }) {
-  const items = Object.values(fit).filter(Boolean);
+  const safeFit = normalizeFit(fit);
+  const items = Object.values(safeFit).filter(Boolean);
   const colorNames = items.map((item) => `${item.colorName || item.color || ""}`.toLowerCase());
-  const hasOuter = Boolean(fit.outerwear);
-  const hasShoes = Boolean(fit.shoes);
+  const hasOuter = Boolean(safeFit.outerwear);
+  const hasShoes = Boolean(safeFit.shoes);
   const weatherText = `${weather || ""}`.toLowerCase();
   const moodText = `${mood || ""}`.toLowerCase();
   const eventText = `${eventType || ""}`.toLowerCase();
@@ -2001,6 +2032,8 @@ function GameScorePanel({ t, scores }) {
 }
 
 function GameLayer({ t, game, wardrobe, savedLooks }) {
+  const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+  const safeSavedLooks = Array.isArray(savedLooks) ? savedLooks : [];
   const level = game.level || levelFromXp(game.xp);
   const progress = Math.min(100, (game.xp / Math.max(100, level * 250)) * 100);
   const missions = [
@@ -2010,7 +2043,7 @@ function GameLayer({ t, game, wardrobe, savedLooks }) {
     ["missionOldItem", "Memory", 35],
   ];
   const badges = ["badgeMinimal", "badgeColor", "badgeRain", "badgeCampus"];
-  const unlocked = Math.min(4, Math.max(1, Math.floor((wardrobe.length + savedLooks.length) / 2)));
+  const unlocked = Math.min(4, Math.max(1, Math.floor((safeWardrobe.length + safeSavedLooks.length) / 2)));
   return (
     <section className="game-layer glass">
       <div className="game-intro">
@@ -2125,8 +2158,11 @@ function TrustSection({ t }) {
 }
 
 function PlatformLayer({ t, wardrobe, savedLooks, fit }) {
-  const palette = Object.values(fit).filter(Boolean).map((item) => item.color).slice(0, 5);
-  const topCategory = wardrobe.reduce((acc, item) => {
+  const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+  const safeSavedLooks = Array.isArray(savedLooks) ? savedLooks : [];
+  const safeFit = normalizeFit(fit, safeWardrobe);
+  const palette = Object.values(safeFit).filter(Boolean).map((item) => item.color).slice(0, 5);
+  const topCategory = safeWardrobe.reduce((acc, item) => {
     acc[item.category] = (acc[item.category] || 0) + 1;
     return acc;
   }, {});
@@ -2136,7 +2172,7 @@ function PlatformLayer({ t, wardrobe, savedLooks, fit }) {
     {
       title: t("styleDnaTitle"),
       copy: t("styleDnaCopy"),
-      stat: `${wardrobe.filter((item) => item.checklist?.favorite || item.source === "scanned").length + savedLooks.length} signals`,
+      stat: `${safeWardrobe.filter((item) => item.checklist?.favorite || item.source === "scanned").length + safeSavedLooks.length} signals`,
       visual: <div className="dna-rings"><i /><i /><i /></div>,
     },
     {
@@ -2154,7 +2190,7 @@ function PlatformLayer({ t, wardrobe, savedLooks, fit }) {
     {
       title: t("outfitCalendarTitle"),
       copy: t("outfitCalendarCopy"),
-      stat: `${savedLooks.length || 0} saved looks`,
+      stat: `${safeSavedLooks.length || 0} saved looks`,
       visual: <div className="calendar-preview"><i>Mon</i><i>Thu</i><i>Sun</i></div>,
     },
     {
@@ -2186,12 +2222,13 @@ function PlatformLayer({ t, wardrobe, savedLooks, fit }) {
 }
 
 function buildRecommendation({ t, mood, fit, brief, weather, schedule, eventType, aesthetic }) {
-  const pieces = [fit.tops, fit.outerwear, fit.bottoms, fit.shoes].filter(Boolean).map((item) => item.name);
+  const safeFit = normalizeFit(fit);
+  const pieces = [safeFit.tops, safeFit.outerwear, safeFit.bottoms, safeFit.shoes].filter(Boolean).map((item) => item.name);
   const pieceText = pieces.length ? pieces.join(", ") : t("wardrobeTitle");
   return {
     name: `${t(mood)} Atelier ${eventType || "Look"}`,
     explanation: t("recommendationSentence").replace("{schedule}", schedule || t("schedule")).replace("{pieces}", pieceText),
-    colors: [fit.tops?.color, fit.outerwear?.color, fit.bottoms?.color].filter(Boolean).join(" · "),
+    colors: [safeFit.tops?.color, safeFit.outerwear?.color, safeFit.bottoms?.color].filter(Boolean).join(" · "),
     avoid: t("avoidSentence").replace("{weather}", weather || t("weather")),
     tips: `${t("tipSentence").replace("{aesthetic}", aesthetic || t("aesthetic"))}${brief ? ` ${sanitizeInput(brief)}` : ""}`,
   };
@@ -2242,7 +2279,8 @@ function normalizeGame(game = {}) {
 }
 
 function buildWardrobeAnalytics(wardrobe = []) {
-  const active = wardrobe.filter((item) => !item.archived);
+  const source = Array.isArray(wardrobe) ? wardrobe : [];
+  const active = source.filter((item) => !item.archived);
   const colorCounts = countBy(active, "color");
   const categoryCounts = countBy(active, "category");
   return {
@@ -2258,7 +2296,8 @@ function buildWardrobeAnalytics(wardrobe = []) {
 }
 
 function countBy(items, key) {
-  return items.reduce((acc, item) => {
+  const source = Array.isArray(items) ? items : [];
+  return source.reduce((acc, item) => {
     const value = item[key] || "unknown";
     acc[value] = (acc[value] || 0) + 1;
     return acc;
@@ -2266,26 +2305,24 @@ function countBy(items, key) {
 }
 
 function buildAchievements({ game, wardrobe, savedLooks }) {
+  const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
+  const safeSavedLooks = Array.isArray(savedLooks) ? savedLooks : [];
   const level = game.level || levelFromXp(game.xp);
   return [
     { name: "패션 입문자", unlocked: game.xp >= 100 },
-    { name: "옷장 정리러", unlocked: wardrobe.length >= 5 },
+    { name: "옷장 정리러", unlocked: safeWardrobe.length >= 5 },
     { name: "패션 탐험가", unlocked: level >= 2 },
     { name: "옷장 큐레이터", unlocked: level >= 3 },
     { name: "트렌드 마스터", unlocked: level >= 4 },
     { name: "컬러 마스터", unlocked: level >= 5 },
-    { name: "날씨 스타일러", unlocked: savedLooks.length >= 2 },
+    { name: "날씨 스타일러", unlocked: safeSavedLooks.length >= 2 },
     { name: "스타일 킹", unlocked: level >= 7 },
-    { name: "100룩 크리에이터", unlocked: savedLooks.length >= 100 },
+    { name: "100룩 크리에이터", unlocked: safeSavedLooks.length >= 100 },
   ];
 }
 
 function loadStoredState() {
-  try {
-    return JSON.parse(localStorage.getItem(storageKey)) || {};
-  } catch {
-    return {};
-  }
+  return pruneClientState(safeJsonParse(localStorage.getItem(storageKey), {}));
 }
 
 function normalizeBodyProfile(profile = {}) {

@@ -1,11 +1,17 @@
+import { createSessionId, isStrongPassword, sanitizeIdentifier, safeJsonParse } from "./security";
+
 const SESSION_KEY = "moodfit-session";
 
 export function loadSession() {
-  try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY));
-  } catch {
-    return null;
-  }
+  const session = safeJsonParse(localStorage.getItem(SESSION_KEY), null);
+  if (!session || typeof session !== "object") return null;
+  return {
+    mode: session.mode === "account" ? "account" : "guest",
+    id: sanitizeIdentifier(session.id || createSessionId(), 64),
+    username: sanitizeIdentifier(session.username || "guest", 32),
+    provider: session.provider === "local" ? "local" : "guest",
+    issuedAt: session.issuedAt || new Date().toISOString(),
+  };
 }
 
 export function saveSession(session) {
@@ -16,12 +22,15 @@ export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
-export async function signInWithEmail({ email, username }) {
+export async function signInWithEmail({ username, password }) {
+  const safeUsername = sanitizeIdentifier(username, 32);
+  if (safeUsername.length < 3) throw new Error("invalid_username");
+  if (!isStrongPassword(password)) throw new Error("weak_password");
   const session = {
     mode: "account",
-    email,
-    username: username || email,
-    provider: "email",
+    id: createSessionId(),
+    username: safeUsername,
+    provider: "local",
     issuedAt: new Date().toISOString(),
   };
   saveSession(session);
@@ -31,7 +40,9 @@ export async function signInWithEmail({ email, username }) {
 export async function createGuestSession() {
   const session = {
     mode: "guest",
-    id: crypto.randomUUID(),
+    id: createSessionId(),
+    username: "guest",
+    provider: "guest",
     issuedAt: new Date().toISOString(),
   };
   saveSession(session);
