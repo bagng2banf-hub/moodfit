@@ -893,7 +893,10 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
           <Segment label="헤어" items={[["short", "숏"], ["medium", "미디엄"], ["long", "롱"], ["wavy", "웨이브"], ["straight", "스트레이트"], ["ponytail", "포니테일"], ["bangs", "앞머리"]]} value={profile.hairStyle} onChange={(value) => updateProfile({ hairStyle: value })} />
           <Segment label="헤어 컬러" items={[["black", "블랙"], ["brown", "브라운"], ["blonde", "블론드"], ["ash", "애쉬"]]} value={profile.hairColor} onChange={(value) => updateProfile({ hairColor: value })} />
           <Segment label="피부톤" items={[["bright", "밝음"], ["medium", "보통"], ["warm", "웜"], ["cool", "쿨"], ["deep", "딥"]]} value={profile.skinTone} onChange={(value) => updateProfile({ skinTone: value })} />
+          <RangeControl label="머리 크기" min="82" max="122" value={profile.headSize} onChange={(value) => updateProfile({ headSize: Number(value) })} />
           <RangeControl label="키" min="140" max="200" value={profile.height} onChange={(value) => updateProfile({ height: Number(value) })} />
+          <RangeControl label="목 길이" min="72" max="122" value={profile.neckLength} onChange={(value) => updateProfile({ neckLength: Number(value) })} />
+          <RangeControl label="몸통 길이" min="44" max="72" value={profile.torsoLength} onChange={(value) => updateProfile({ torsoLength: Number(value) })} />
           <RangeControl label="다리 길이" min="70" max="125" value={profile.legLength} onChange={(value) => updateProfile({ legLength: Number(value) })} />
           <RangeControl label="팔 길이" min="70" max="120" value={profile.armLength} onChange={(value) => updateProfile({ armLength: Number(value) })} />
           <RangeControl label="어깨 너비" min="30" max="58" value={profile.shoulderWidth} onChange={(value) => updateProfile({ shoulderWidth: Number(value), shoulder: Number(value) })} />
@@ -1624,10 +1627,21 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
   const title = [top.name, outer.name, bottom.name, shoes.name].filter(Boolean).join(" · ") || "MoodFit avatar";
   const genderShape = profile.gender === "male" ? 6 : profile.gender === "female" ? -2 : 0;
   const heightShift = (profile.height - 165) * 0.55;
+  const headScale = Math.max(0.82, Math.min(1.22, profile.headSize / 100));
+  const faceWidthBoost = profile.faceShape === "softSquare" ? 5 : profile.faceShape === "heart" ? 2 : profile.faceShape === "oval" ? -3 : 0;
+  const faceChinBoost = profile.faceShape === "oval" ? 8 : profile.faceShape === "heart" ? 5 : 0;
+  const headTop = 50 - (headScale - 1) * 18;
+  const headLeft = 135 - (35 + faceWidthBoost) * headScale;
+  const headRight = 135 + (35 + faceWidthBoost) * headScale;
+  const headChin = 126 + (headScale - 1) * 17 + faceChinBoost;
+  const neckTop = headChin - 2;
+  const neckBottom = headChin + 18 + (profile.neckLength - 96) * 0.24;
+  const shoulderY = neckBottom + 20;
+  const armStartY = shoulderY + 5;
   const shoulder = Math.max(38, Math.min(82, profile.shoulderWidth * 1.55 + genderShape));
   const waist = Math.max(42, Math.min(104, profile.waistWidth * 2.05));
   const hip = Math.max(58, Math.min(124, profile.hipWidth * 1.75));
-  const torsoBottom = Math.max(248, Math.min(306, 270 + (profile.torsoLength - 54) * 1.45 + heightShift * 0.18));
+  const torsoBottom = Math.max(248, Math.min(306, shoulderY + 118 + (profile.torsoLength - 54) * 1.7 + heightShift * 0.18));
   const legEnd = Math.max(354, Math.min(408, 362 + (profile.legLength - 92) * 0.95 + heightShift));
   const armEnd = Math.max(238, Math.min(322, 252 + (profile.armLength - 88) * 0.95 + heightShift * 0.25));
   const leftShoulder = 135 - shoulder;
@@ -1636,12 +1650,7 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
   const rightWaist = 135 + waist / 2;
   const leftHip = 135 - hip / 2;
   const rightHip = 135 + hip / 2;
-  const facePath = {
-    round: "M112 72 C120 54 151 49 169 63 C187 78 184 111 172 128 C158 147 125 147 112 128 C101 112 101 88 112 72Z",
-    softSquare: "M112 73 C121 56 153 51 170 65 C184 78 183 111 175 129 C163 148 123 148 111 129 C102 111 102 89 112 73Z",
-    heart: "M112 73 C121 53 153 49 171 65 C187 81 181 114 168 130 C154 148 128 148 113 130 C101 114 101 90 112 73Z",
-    oval: "M113 69 C122 51 154 48 171 64 C188 82 183 118 169 135 C155 151 128 151 113 135 C99 118 101 87 113 69Z",
-  }[profile.faceShape] || "M112 72 C120 54 151 49 169 63 C187 78 184 111 172 128 C158 147 125 147 112 128 C101 112 101 88 112 72Z";
+  const facePath = `M${headLeft + 9} ${headTop + 21} C${headLeft + 17} ${headTop + 2} ${headRight - 15} ${headTop - 2} ${headRight - 3} ${headTop + 18} C${headRight + 11} ${headTop + 40} ${headRight} ${headChin - 7} 135 ${headChin} C${headLeft} ${headChin - 7} ${headLeft - 11} ${headTop + 40} ${headLeft + 9} ${headTop + 21}Z`;
   const eyes = {
     dot: <><circle cx="126" cy="101" r="3.2" fill="#4a403a" /><circle cx="158" cy="101" r="3.2" fill="#4a403a" /></>,
     smile: <><path d="M121 101 Q126 96 132 101" fill="none" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /><path d="M153 101 Q158 96 164 101" fill="none" stroke="#4a403a" strokeWidth="2.4" strokeLinecap="round" /></>,
@@ -1656,22 +1665,22 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
     happy: "M132 117 Q144 128 157 117",
   }[profile.expression] || "M132 117 Q144 128 157 117";
   const hairPath = {
-    short: "M103 102 C102 70 124 52 146 55 C168 58 184 76 181 106 C171 92 153 87 132 91 C118 93 109 99 103 102Z",
-    medium: "M97 111 C96 76 120 53 145 55 C174 58 189 85 183 128 C176 148 161 156 136 154 C112 156 96 142 97 111Z",
-    long: "M92 111 C91 70 118 47 145 51 C178 55 193 87 187 154 C178 183 156 193 135 187 C111 193 90 175 92 111Z",
-    wavy: "M91 109 C92 70 119 48 146 52 C177 57 193 88 187 154 C179 181 158 191 137 185 C115 194 91 178 92 147 C99 153 105 147 101 135 C96 121 89 118 91 109Z",
-    straight: "M94 111 C94 70 120 49 146 52 C177 56 190 86 185 160 C175 179 156 186 136 181 C115 186 96 174 94 111Z",
-    ponytail: "M101 105 C101 73 123 54 146 56 C170 59 184 79 181 108 C202 119 203 166 181 190 C179 158 175 130 163 109 C144 91 119 94 101 105Z",
-    bangs: "M103 106 C101 72 124 53 147 56 C172 59 186 80 181 111 C161 94 140 101 122 100 C115 100 109 103 103 106Z",
-  }[profile.hairStyle] || "M97 111 C96 76 120 53 145 55 C174 58 189 85 183 128 C176 148 161 156 136 154 C112 156 96 142 97 111Z";
+    short: `M${headLeft + 2} ${headTop + 46} C${headLeft} ${headTop + 12} ${headLeft + 24} ${headTop - 7} 137 ${headTop - 4} C${headRight - 8} ${headTop - 2} ${headRight + 6} ${headTop + 20} ${headRight - 2} ${headTop + 51} C${headRight - 13} ${headTop + 37} ${headRight - 34} ${headTop + 33} 133 ${headTop + 39} C${headLeft + 23} ${headTop + 42} ${headLeft + 10} ${headTop + 48} ${headLeft + 2} ${headTop + 46}Z`,
+    medium: `M${headLeft - 3} ${headTop + 58} C${headLeft - 2} ${headTop + 15} ${headLeft + 23} ${headTop - 8} 138 ${headTop - 5} C${headRight - 6} ${headTop - 2} ${headRight + 10} ${headTop + 26} ${headRight + 1} ${headChin + 18} C${headRight - 12} ${headChin + 33} ${headRight - 38} ${headChin + 34} 136 ${headChin + 28} C${headLeft + 17} ${headChin + 34} ${headLeft - 8} ${headChin + 22} ${headLeft - 3} ${headTop + 58}Z`,
+    long: `M${headLeft - 8} ${headTop + 58} C${headLeft - 7} ${headTop + 10} ${headLeft + 23} ${headTop - 12} 138 ${headTop - 8} C${headRight - 4} ${headTop - 4} ${headRight + 14} ${headTop + 28} ${headRight + 6} ${headChin + 58} C${headRight - 7} ${headChin + 78} ${headRight - 43} ${headChin + 74} 136 ${headChin + 62} C${headLeft + 11} ${headChin + 78} ${headLeft - 15} ${headChin + 58} ${headLeft - 8} ${headTop + 58}Z`,
+    wavy: `M${headLeft - 8} ${headTop + 58} C${headLeft - 6} ${headTop + 10} ${headLeft + 23} ${headTop - 12} 139 ${headTop - 8} C${headRight - 4} ${headTop - 4} ${headRight + 15} ${headTop + 30} ${headRight + 5} ${headChin + 55} C${headRight - 5} ${headChin + 80} ${headRight - 34} ${headChin + 68} ${headRight - 26} ${headChin + 44} C${headRight - 47} ${headChin + 72} ${headLeft + 22} ${headChin + 76} ${headLeft + 10} ${headChin + 44} C${headLeft + 1} ${headChin + 61} ${headLeft - 13} ${headChin + 42} ${headLeft - 8} ${headTop + 58}Z`,
+    straight: `M${headLeft - 4} ${headTop + 58} C${headLeft - 3} ${headTop + 13} ${headLeft + 23} ${headTop - 9} 138 ${headTop - 6} C${headRight - 5} ${headTop - 3} ${headRight + 10} ${headTop + 27} ${headRight + 1} ${headChin + 51} C${headRight - 12} ${headChin + 67} ${headRight - 38} ${headChin + 66} 136 ${headChin + 58} C${headLeft + 15} ${headChin + 66} ${headLeft - 9} ${headChin + 51} ${headLeft - 4} ${headTop + 58}Z`,
+    ponytail: `M${headLeft + 1} ${headTop + 50} C${headLeft} ${headTop + 14} ${headLeft + 24} ${headTop - 8} 138 ${headTop - 5} C${headRight - 8} ${headTop - 2} ${headRight + 5} ${headTop + 21} ${headRight - 2} ${headTop + 52} C${headRight + 28} ${headTop + 64} ${headRight + 24} ${headChin + 63} ${headRight - 1} ${headChin + 75} C${headRight + 1} ${headChin + 40} ${headRight - 12} ${headTop + 55} ${headRight - 28} ${headTop + 43} C${headLeft + 24} ${headTop + 38} ${headLeft + 10} ${headTop + 50} ${headLeft + 1} ${headTop + 50}Z`,
+    bangs: `M${headLeft + 1} ${headTop + 50} C${headLeft} ${headTop + 13} ${headLeft + 24} ${headTop - 9} 139 ${headTop - 5} C${headRight - 7} ${headTop - 2} ${headRight + 7} ${headTop + 21} ${headRight - 1} ${headTop + 55} C${headRight - 24} ${headTop + 39} ${headRight - 46} ${headTop + 53} ${headLeft + 23} ${headTop + 49} C${headLeft + 13} ${headTop + 48} ${headLeft + 6} ${headTop + 52} ${headLeft + 1} ${headTop + 50}Z`,
+  }[profile.hairStyle] || `M${headLeft - 3} ${headTop + 58} C${headLeft - 2} ${headTop + 15} ${headLeft + 23} ${headTop - 8} 138 ${headTop - 5} C${headRight - 6} ${headTop - 2} ${headRight + 10} ${headTop + 26} ${headRight + 1} ${headChin + 18} C${headRight - 12} ${headChin + 33} ${headRight - 38} ${headChin + 34} 136 ${headChin + 28} C${headLeft + 17} ${headChin + 34} ${headLeft - 8} ${headChin + 22} ${headLeft - 3} ${headTop + 58}Z`;
   const fringePath = profile.hairStyle === "bangs"
-    ? "M107 82 C124 67 153 65 178 83 C154 83 139 96 117 101Z"
-    : "M108 82 C123 60 157 58 176 80 C162 77 149 79 132 84 C121 88 114 88 108 82Z";
-  const bodyBasePath = `M125 126 C128 134 142 134 146 126 L149 145 C164 144 ${rightShoulder - 12} 147 ${rightShoulder} 160 C${rightShoulder + 20} 191 ${rightShoulder + 24} ${armEnd - 30} ${rightShoulder + 20} ${armEnd} C${rightShoulder + 18} ${armEnd + 16} ${rightShoulder + 1} ${armEnd + 17} ${rightShoulder - 4} ${armEnd + 2} C${rightShoulder - 10} ${armEnd - 29} ${rightShoulder - 16} 199 ${rightShoulder - 22} 170 L${rightHip} ${torsoBottom - 2} L${rightHip + 8} ${legEnd + 10} C${rightHip - 5} ${legEnd + 22} ${rightHip - 28} ${legEnd + 22} 139 ${legEnd + 8} L135 ${torsoBottom + 24} L130 ${legEnd + 8} C119 ${legEnd + 22} ${leftHip + 5} ${legEnd + 22} ${leftHip - 8} ${legEnd + 10} L${leftHip} ${torsoBottom - 2} L${leftShoulder + 22} 170 C${leftShoulder + 16} 199 ${leftShoulder + 10} ${armEnd - 29} ${leftShoulder + 4} ${armEnd + 2} C${leftShoulder - 1} ${armEnd + 17} ${leftShoulder - 18} ${armEnd + 16} ${leftShoulder - 20} ${armEnd} C${leftShoulder - 24} ${armEnd - 30} ${leftShoulder - 20} 191 ${leftShoulder} 160 C${leftShoulder + 12} 147 107 144 122 145Z`;
-  const torsoPath = `M${leftShoulder} 156 C${leftShoulder + 16} 142 122 137 136 137 C152 137 ${rightShoulder - 16} 142 ${rightShoulder} 156 L${rightWaist} ${torsoBottom} C151 288 120 288 ${leftWaist} ${torsoBottom}Z`;
+    ? `M${headLeft + 7} ${headTop + 32} C${headLeft + 27} ${headTop + 16} ${headRight - 13} ${headTop + 17} ${headRight - 1} ${headTop + 36} C${headRight - 28} ${headTop + 35} 150 ${headTop + 54} ${headLeft + 21} ${headTop + 50}Z`
+    : `M${headLeft + 8} ${headTop + 30} C${headLeft + 24} ${headTop + 6} ${headRight - 9} ${headTop + 8} ${headRight - 1} ${headTop + 34} C${headRight - 17} ${headTop + 29} 151 ${headTop + 33} 132 ${headTop + 39} C${headLeft + 24} ${headTop + 42} ${headLeft + 13} ${headTop + 38} ${headLeft + 8} ${headTop + 30}Z`;
+  const bodyBasePath = `M135 ${headTop} C${headRight - 7} ${headTop + 1} ${headRight + 11} ${headTop + 35} ${headRight - 1} ${headTop + 61} C${headRight - 8} ${headChin - 5} 154 ${headChin} 145 ${headChin} L147 ${neckBottom} C165 ${shoulderY - 2} ${rightShoulder - 13} ${shoulderY - 1} ${rightShoulder} ${armStartY} C${rightShoulder + 21} ${armStartY + 31} ${rightShoulder + 24} ${armEnd - 28} ${rightShoulder + 19} ${armEnd} C${rightShoulder + 16} ${armEnd + 15} ${rightShoulder + 1} ${armEnd + 17} ${rightShoulder - 5} ${armEnd + 2} C${rightShoulder - 12} ${armEnd - 28} ${rightShoulder - 16} ${armStartY + 40} ${rightShoulder - 22} ${armStartY + 15} L${rightHip} ${torsoBottom - 3} L${rightHip + 8} ${legEnd + 10} C${rightHip - 4} ${legEnd + 22} ${rightHip - 29} ${legEnd + 22} 139 ${legEnd + 8} L135 ${torsoBottom + 24} L131 ${legEnd + 8} C119 ${legEnd + 22} ${leftHip + 4} ${legEnd + 22} ${leftHip - 8} ${legEnd + 10} L${leftHip} ${torsoBottom - 3} L${leftShoulder + 22} ${armStartY + 15} C${leftShoulder + 16} ${armStartY + 40} ${leftShoulder + 12} ${armEnd - 28} ${leftShoulder + 5} ${armEnd + 2} C${leftShoulder - 1} ${armEnd + 17} ${leftShoulder - 16} ${armEnd + 15} ${leftShoulder - 19} ${armEnd} C${leftShoulder - 24} ${armEnd - 28} ${leftShoulder - 21} ${armStartY + 31} ${leftShoulder} ${armStartY} C${leftShoulder + 13} ${shoulderY - 1} 105 ${shoulderY - 2} 123 ${neckBottom} L125 ${headChin} C116 ${headChin} ${headLeft + 8} ${headChin - 5} ${headLeft + 1} ${headTop + 61} C${headLeft - 11} ${headTop + 35} ${headLeft + 7} ${headTop + 1} 135 ${headTop}Z`;
+  const torsoPath = `M${leftShoulder + 10} ${shoulderY + 4} C${leftShoulder + 24} ${shoulderY - 10} 122 ${shoulderY - 14} 136 ${shoulderY - 14} C152 ${shoulderY - 14} ${rightShoulder - 24} ${shoulderY - 10} ${rightShoulder - 10} ${shoulderY + 4} L${rightWaist} ${torsoBottom} C151 ${torsoBottom + 16} 120 ${torsoBottom + 16} ${leftWaist} ${torsoBottom}Z`;
   const outerPath = isCoat
-    ? `M${leftShoulder - 14} 154 C101 137 116 138 136 151 C153 137 173 138 ${rightShoulder + 14} 154 L${rightHip + 26} ${Math.min(346, torsoBottom + 62)} C170 350 105 350 ${leftHip - 26} ${Math.min(346, torsoBottom + 62)}Z`
-    : `M${leftShoulder - 12} 158 C100 139 116 139 136 153 C154 139 174 139 ${rightShoulder + 12} 158 L${rightWaist + 18} 270 C169 286 102 286 ${leftWaist - 18} 270Z`;
+    ? `M${leftShoulder - 14} ${shoulderY + 2} C101 ${shoulderY - 15} 116 ${shoulderY - 14} 136 ${shoulderY - 1} C153 ${shoulderY - 14} 173 ${shoulderY - 14} ${rightShoulder + 14} ${shoulderY + 2} L${rightHip + 26} ${Math.min(346, torsoBottom + 62)} C170 350 105 350 ${leftHip - 26} ${Math.min(346, torsoBottom + 62)}Z`
+    : `M${leftShoulder - 12} ${shoulderY + 6} C100 ${shoulderY - 13} 116 ${shoulderY - 13} 136 ${shoulderY + 1} C154 ${shoulderY - 13} 174 ${shoulderY - 13} ${rightShoulder + 12} ${shoulderY + 6} L${rightWaist + 18} 270 C169 286 102 286 ${leftWaist - 18} 270Z`;
   const pantsPath = isWide
     ? `M${leftHip} ${torsoBottom - 2} H${rightHip} L${rightHip + 20} ${legEnd} C177 ${legEnd + 8} 159 ${legEnd + 8} 144 ${legEnd} L136 ${torsoBottom + 26} L126 ${legEnd} C111 ${legEnd + 8} 92 ${legEnd + 8} ${leftHip - 20} ${legEnd}Z`
     : `M${leftHip + 8} ${torsoBottom - 2} H${rightHip - 8} L${rightHip + 4} ${legEnd} C162 ${legEnd + 7} 149 ${legEnd + 7} 137 ${legEnd} L135 ${torsoBottom + 26} L130 ${legEnd} C118 ${legEnd + 7} 104 ${legEnd + 7} ${leftHip - 4} ${legEnd}Z`;
@@ -1701,18 +1710,20 @@ function FashionAvatar({ fit, mood, bodyProfile, t }) {
           <path d={smilePath} fill="none" stroke="#8b5f54" strokeWidth="3" strokeLinecap="round" />
           {profile.expression === "cute" && <><circle cx="116" cy="113" r="5" fill="#f0a7a9" opacity=".55" /><circle cx="168" cy="113" r="5" fill="#f0a7a9" opacity=".55" /></>}
         </g>
-        {isHoodie && <path d="M102 158 C106 133 128 125 148 131 C166 136 176 148 178 165 L160 178 C151 164 125 162 112 178Z" fill={topColor} opacity=".92" />}
+        {isHoodie && <path d={`M${leftShoulder + 6} ${shoulderY + 6} C106 ${shoulderY - 20} 128 ${shoulderY - 28} 148 ${shoulderY - 22} C166 ${shoulderY - 17} 176 ${shoulderY - 5} ${rightShoulder - 4} ${shoulderY + 13} L160 ${shoulderY + 26} C151 ${shoulderY + 12} 125 ${shoulderY + 10} 112 ${shoulderY + 26}Z`} fill={topColor} opacity=".92" />}
         <path d={torsoPath} fill={topColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" />
         {isShirt && <path d="M118 151 L136 169 L154 151 M136 169 L136 273" fill="none" stroke="#ffffff" strokeOpacity=".78" strokeWidth="4" strokeLinecap="round" />}
         {top.pattern === "Stripe" && <g opacity=".55" stroke="#fff" strokeWidth="5"><path d="M99 184 H176" /><path d="M97 218 H178" /><path d="M97 252 H176" /></g>}
         {outerColor && <path d={outerPath} fill={outerColor} stroke="#6d574f" strokeOpacity=".22" strokeWidth="2" opacity=".9" />}
-        <g transform={leftArm}><path d={`M${leftShoulder} 163 C${leftShoulder - 16} 188 ${leftShoulder - 20} ${armEnd - 34} ${leftShoulder - 18} ${armEnd} C${leftShoulder - 17} ${armEnd + 14} ${leftShoulder - 1} ${armEnd + 15} ${leftShoulder + 4} ${armEnd + 2} C${leftShoulder + 12} ${armEnd - 32} ${leftShoulder + 17} 199 ${leftShoulder + 22} 170Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
-        <g transform={rightArm}><path d={`M${rightShoulder} 163 C${rightShoulder + 18} 188 ${rightShoulder + 24} ${armEnd - 34} ${rightShoulder + 21} ${armEnd} C${rightShoulder + 20} ${armEnd + 14} ${rightShoulder + 4} ${armEnd + 15} ${rightShoulder - 1} ${armEnd + 2} C${rightShoulder - 9} ${armEnd - 32} ${rightShoulder - 14} 199 ${rightShoulder - 21} 170Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
+        <g transform={leftArm}><path d={`M${leftShoulder} ${armStartY} C${leftShoulder - 16} ${armStartY + 25} ${leftShoulder - 20} ${armEnd - 34} ${leftShoulder - 18} ${armEnd} C${leftShoulder - 17} ${armEnd + 14} ${leftShoulder - 1} ${armEnd + 15} ${leftShoulder + 4} ${armEnd + 2} C${leftShoulder + 12} ${armEnd - 32} ${leftShoulder + 17} ${armStartY + 36} ${leftShoulder + 22} ${armStartY + 7}Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
+        <g transform={rightArm}><path d={`M${rightShoulder} ${armStartY} C${rightShoulder + 18} ${armStartY + 25} ${rightShoulder + 24} ${armEnd - 34} ${rightShoulder + 21} ${armEnd} C${rightShoulder + 20} ${armEnd + 14} ${rightShoulder + 4} ${armEnd + 15} ${rightShoulder - 1} ${armEnd + 2} C${rightShoulder - 9} ${armEnd - 32} ${rightShoulder - 14} ${armStartY + 36} ${rightShoulder - 21} ${armStartY + 7}Z`} fill={topColor || skin} stroke="#6d574f" strokeOpacity=".18" strokeWidth="2" /></g>
         {isSkirt
           ? <path d={skirtPath} fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
           : <path d={pantsPath} fill={bottomColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />}
-        <g transform={leftLeg}><path d={`M104 ${legEnd - 34} C112 ${legEnd - 28} 122 ${legEnd - 28} 130 ${legEnd - 34} L128 ${legEnd + 13} C120 ${legEnd + 19} 108 ${legEnd + 19} 99 ${legEnd + 12}Z`} fill={skin} /></g>
-        <g transform={rightLeg}><path d={`M142 ${legEnd - 34} C150 ${legEnd - 28} 160 ${legEnd - 28} 168 ${legEnd - 34} L175 ${legEnd + 12} C166 ${legEnd + 19} 154 ${legEnd + 19} 146 ${legEnd + 13}Z`} fill={skin} /></g>
+        {isSkirt && <>
+          <g transform={leftLeg}><path d={`M104 ${legEnd - 34} C112 ${legEnd - 28} 122 ${legEnd - 28} 130 ${legEnd - 34} L128 ${legEnd + 13} C120 ${legEnd + 19} 108 ${legEnd + 19} 99 ${legEnd + 12}Z`} fill={skin} /></g>
+          <g transform={rightLeg}><path d={`M142 ${legEnd - 34} C150 ${legEnd - 28} 160 ${legEnd - 28} 168 ${legEnd - 34} L175 ${legEnd + 12} C166 ${legEnd + 19} 154 ${legEnd + 19} 146 ${legEnd + 13}Z`} fill={skin} /></g>
+        </>}
         <path d={`M86 ${legEnd + 8} C105 ${legEnd + 2} 122 ${legEnd + 4} 133 ${legEnd + 17} C124 ${legEnd + 29} 93 ${legEnd + 29} 79 ${legEnd + 19}Z`} fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
         <path d={`M139 ${legEnd + 17} C151 ${legEnd + 4} 169 ${legEnd + 2} 188 ${legEnd + 8} L195 ${legEnd + 19} C181 ${legEnd + 29} 150 ${legEnd + 29} 139 ${legEnd + 17}Z`} fill={shoeColor} stroke="#6d574f" strokeOpacity=".2" strokeWidth="2" />
         {bag.id && <path d="M198 221 C223 227 229 270 210 292 C193 285 188 244 198 221Z" fill={bag.color || "#8c5a38"} stroke="#6d574f" strokeOpacity=".25" strokeWidth="2" />}
@@ -2290,6 +2301,8 @@ function normalizeBodyProfile(profile = {}) {
   const waistWidth = Number(profile.waistWidth ?? profile.waist) || (bodyType === "curvy" ? 31 : bodyType === "slim" ? 24 : 28);
   const hipWidth = Number(profile.hipWidth) || (bodyType === "curvy" ? 52 : bodyType === "slim" ? 36 : 42);
   const armLength = Number(profile.armLength) || 90;
+  const headSize = Number(profile.headSize) || 100;
+  const neckLength = Number(profile.neckLength) || 96;
   return {
     gender: profile.gender || "neutral",
     bodyType,
@@ -2300,6 +2313,8 @@ function normalizeBodyProfile(profile = {}) {
     waistWidth,
     hipWidth,
     armLength,
+    headSize,
+    neckLength,
     torsoLength: Number(profile.torsoLength) || 54,
     legLength: Number(profile.legLength) || 92,
     legRatio: Number(profile.legRatio) || 52,
@@ -2315,10 +2330,10 @@ function normalizeBodyProfile(profile = {}) {
 
 function bodyPreset(type) {
   const presets = {
-    slim: { bodyType: "slim", height: 170, shoulderWidth: 36, waistWidth: 24, hipWidth: 36, armLength: 88, legLength: 102, torsoLength: 52, legRatio: 55 },
-    regular: { bodyType: "regular", height: 165, shoulderWidth: 42, waistWidth: 28, hipWidth: 42, armLength: 90, legLength: 94, torsoLength: 54, legRatio: 52 },
-    curvy: { bodyType: "curvy", height: 164, shoulderWidth: 42, waistWidth: 31, hipWidth: 52, armLength: 90, legLength: 94, torsoLength: 54, legRatio: 51 },
-    athletic: { bodyType: "athletic", height: 172, shoulderWidth: 50, waistWidth: 29, hipWidth: 42, armLength: 94, legLength: 98, torsoLength: 55, legRatio: 53 },
+    slim: { bodyType: "slim", height: 170, headSize: 96, neckLength: 98, shoulderWidth: 36, waistWidth: 24, hipWidth: 36, armLength: 88, legLength: 102, torsoLength: 52, legRatio: 55 },
+    regular: { bodyType: "regular", height: 165, headSize: 100, neckLength: 96, shoulderWidth: 42, waistWidth: 28, hipWidth: 42, armLength: 90, legLength: 94, torsoLength: 54, legRatio: 52 },
+    curvy: { bodyType: "curvy", height: 164, headSize: 103, neckLength: 94, shoulderWidth: 42, waistWidth: 31, hipWidth: 52, armLength: 90, legLength: 94, torsoLength: 54, legRatio: 51 },
+    athletic: { bodyType: "athletic", height: 172, headSize: 98, neckLength: 98, shoulderWidth: 50, waistWidth: 29, hipWidth: 42, armLength: 94, legLength: 98, torsoLength: 55, legRatio: 53 },
   };
   return normalizeBodyProfile(presets[type] || presets.regular);
 }
