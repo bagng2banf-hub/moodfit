@@ -99,9 +99,11 @@ const styleSurveyOptions = {
 
 function App() {
   const stored = loadStoredState();
+  const initialSession = loadSession();
+  const initialStyleProfile = normalizeStyleProfile(stored.styleProfile);
   const [language, setLanguage] = useState(stored.language || null);
-  const [session, setSession] = useState(loadSession());
-  const [entryStep, setEntryStep] = useState(loadSession() ? "app" : "auth");
+  const [session, setSession] = useState(initialSession);
+  const [entryStep, setEntryStep] = useState(initialSession ? (initialStyleProfile.completed || initialStyleProfile.skipped ? "app" : "survey") : "auth");
   const [activePanel, setActivePanel] = useState("v3-home");
   const [theme, setTheme] = useState(stored.theme || "white");
   const [mood, setMood] = useState(stored.mood || "moodLuxury");
@@ -139,7 +141,7 @@ function App() {
   const [profilePhoto, setProfilePhoto] = useState(stored.profilePhoto || "");
   const [homeBanner, setHomeBanner] = useState(stored.homeBanner || "dressing");
   const [viewMode, setViewMode] = useState(stored.viewMode || "desktop");
-  const [styleProfile, setStyleProfile] = useState(normalizeStyleProfile(stored.styleProfile));
+  const [styleProfile, setStyleProfile] = useState(initialStyleProfile);
   const fileInputRef = useRef(null);
   const t = useMemo(() => createTranslator(language || "ko"), [language]);
   const recommendation = useMemo(
@@ -1673,7 +1675,8 @@ function StyleResultCard({ title = "추천 결과", recommendation, scores, onCl
       <p className="eyebrow">{title}</p>
       <strong>{recommendation.name}</strong>
       <p>{recommendation.explanation}</p>
-      <div className="score-strip-v3"><span>총점 {scores.total}</span><span>컬러 {scores.color}</span><span>편안함 {scores.comfort}</span></div>
+      <div className="score-strip-v3"><span>총점 {scores.total}</span><span>컬러 {scores.color}</span><span>실루엣 {scores.silhouette}</span><span>트렌드 {scores.trend}</span></div>
+      <p className="tiny-copy">{recommendation.tips}</p>
       <small>AI 추천 기능은 준비중입니다. 기본 추천은 바로 사용할 수 있어요.</small>
     </article>
   );

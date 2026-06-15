@@ -2,18 +2,21 @@
   color-scheme: light;
   font-family: "Pretendard Rounded", "SUIT Rounded", "Cafe24 Ssurround", "Gmarket Sans", "Noto Sans KR", "Apple SD Gothic Neo", Pretendard, Inter, system-ui, sans-serif;
   --display-font: "Pretendard Rounded", "SUIT Rounded", "Cafe24 Ssurround", "Gmarket Sans", "Noto Sans KR", "Apple SD Gothic Neo", Pretendard, Inter, system-ui, sans-serif;
-  --ink: #4a3428;
-  --muted: rgba(74, 52, 40, .64);
-  --bg-a: #fff8ec;
-  --bg-b: #fdf0dc;
-  --bg-c: #f8e8cf;
-  --surface: rgba(255, 255, 255, .78);
+  --ink: #4a3f3a;
+  --muted: rgba(74, 63, 58, .64);
+  --bg-a: #fffdfc;
+  --bg-b: #fafafa;
+  --bg-c: #f7f0ea;
+  --surface: rgba(255, 255, 255, .82);
   --surface-strong: #ffffff;
-  --line: #e8d7c4;
-  --accent: #eeb8bf;
+  --line: #e7ddd8;
+  --accent: #e7b7b7;
   --accent-soft: #f7d9d9;
   --accent-blue: #ddebf3;
-  --button: #6b4a37;
+  --success: #a8cfa8;
+  --warning: #f0c97d;
+  --error: #e38a8a;
+  --button: #4a3f3a;
   --button-ink: #fffafc;
   --shadow: 0 8px 24px rgba(0, 0, 0, .05);
   --soft-shadow: 0 8px 24px rgba(0, 0, 0, .05), inset 0 1px 0 rgba(255,255,255,.78);
@@ -4506,4 +4509,251 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   margin-top: 14px;
   color: rgba(74, 64, 58, 0.48);
   word-break: break-word;
+}
+
+.survey-world {
+  background:
+    radial-gradient(circle at 12% 16%, rgba(247, 217, 217, .45), transparent 28%),
+    radial-gradient(circle at 88% 84%, rgba(221, 235, 243, .55), transparent 30%),
+    linear-gradient(135deg, #fffdfc, #f7f0ea);
+}
+
+.style-survey-card {
+  display: grid;
+  grid-template-columns: minmax(300px, .86fr) minmax(0, 1.35fr);
+  gap: 20px;
+  padding: clamp(18px, 3vw, 34px);
+  min-height: min(800px, calc(100vh - 44px));
+  background: rgba(255, 255, 255, .88);
+}
+
+.survey-copy,
+.survey-form,
+.survey-block,
+.survey-preview {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.survey-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: clamp(22px, 3vw, 38px);
+}
+
+.survey-copy h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.05;
+  font-weight: 900;
+}
+
+.survey-copy p,
+.survey-preview li {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.survey-preview {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(247,217,217,.28), #fff);
+}
+
+.survey-preview span,
+.survey-block > div:first-child span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.survey-preview strong {
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.survey-preview ul,
+.advice-list-v3 {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.survey-form {
+  display: grid;
+  gap: 12px;
+  max-height: calc(100vh - 112px);
+  overflow: auto;
+  padding: 16px;
+}
+
+.survey-block {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.survey-block > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.survey-block > div:first-child strong,
+.survey-field span {
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.survey-option-grid,
+.survey-color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.survey-option-grid button,
+.survey-color-grid button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 14px;
+  color: var(--ink);
+  background: #fffdfc;
+  box-shadow: none;
+  font-weight: 800;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.survey-option-grid button.active,
+.survey-color-grid button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.survey-option-grid button:active,
+.survey-color-grid button:active {
+  transform: scale(.97);
+}
+
+.survey-color-grid button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.survey-color-grid span {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(74,63,58,.16);
+  border-radius: 50%;
+  background: var(--survey-color);
+}
+
+.survey-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.survey-field {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 14px;
+  background: #fff;
+}
+
+.survey-field input,
+.survey-field select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0 12px;
+  color: var(--ink);
+  background: #fffdfc;
+}
+
+.survey-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  background: linear-gradient(180deg, rgba(255,255,255,0), #fff 28%);
+}
+
+.strong-copy {
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.profile-advice-card {
+  background:
+    linear-gradient(135deg, rgba(221,235,243,.45), transparent 44%),
+    #fff;
+}
+
+.fashion-avatar.svg-avatar.reference-avatar {
+  width: min(100%, 260px);
+  height: auto;
+  max-height: min(470px, 64vh);
+  filter: drop-shadow(0 22px 26px rgba(74, 63, 58, .13));
+  transform-origin: 50% 38%;
+}
+
+.reference-avatar path,
+.reference-avatar ellipse,
+.reference-avatar rect {
+  vector-effect: non-scaling-stroke;
+}
+
+.avatar-dressing-stage,
+.avatar-runway-v3 {
+  overflow: hidden;
+}
+
+.room-header-v3 h2 {
+  letter-spacing: 0;
+}
+
+@media (max-width: 900px) {
+  .style-survey-card {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .survey-form {
+    max-height: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .survey-two-col,
+  .style-survey-card {
+    grid-template-columns: 1fr;
+  }
+
+  .survey-actions {
+    flex-direction: column-reverse;
+  }
+
+  .survey-actions button {
+    width: 100%;
+  }
+
+  .fashion-avatar.svg-avatar.reference-avatar {
+    max-height: 420px;
+  }
 }

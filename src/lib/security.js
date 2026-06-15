@@ -67,5 +67,17 @@ export function pruneClientState(state = {}) {
     profilePhoto: typeof safe.profilePhoto === "string" && safe.profilePhoto.startsWith("data:image/") ? safe.profilePhoto.slice(0, 1_500_000) : "",
     homeBanner: ["dressing", "closet"].includes(safe.homeBanner) ? safe.homeBanner : "dressing",
     viewMode: safe.viewMode === "mobile" ? "mobile" : "desktop",
+    styleProfile: safe.styleProfile && typeof safe.styleProfile === "object" ? {
+      completed: Boolean(safe.styleProfile.completed),
+      skipped: Boolean(safe.styleProfile.skipped),
+      styles: Array.isArray(safe.styleProfile.styles) ? safe.styleProfile.styles.map((item) => sanitizeInput(item, 32)).slice(0, 8) : [],
+      fits: Array.isArray(safe.styleProfile.fits) ? safe.styleProfile.fits.map((item) => sanitizeInput(item, 32)).slice(0, 4) : [],
+      colors: Array.isArray(safe.styleProfile.colors) ? safe.styleProfile.colors.map((item) => sanitizeInput(item, 32)).slice(0, 5) : [],
+      gender: sanitizeInput(safe.styleProfile.gender || "neutral", 24),
+      bodyType: sanitizeInput(safe.styleProfile.bodyType || "balanced", 24),
+      brands: sanitizeInput(safe.styleProfile.brands || "", 240),
+      personalColor: sanitizeInput(safe.styleProfile.personalColor || "모름", 32),
+      summary: sanitizeInput(safe.styleProfile.summary || "", 120),
+    } : {},
   };
 }
