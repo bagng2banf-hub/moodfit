@@ -961,17 +961,68 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
   const profile = normalizeBodyProfile(bodyProfile);
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
-  const [activeCustomizeTab, setActiveCustomizeTab] = useState("body");
+  const [activeCustomizeTab, setActiveCustomizeTab] = useState("upper");
   const updateProfile = (patch) => {
     const next = normalizeBodyProfile({ ...profile, ...patch });
     setBodyProfile(next);
     persist({ bodyProfile: next });
   };
-  const bodyControls = [
+  const headControls = [
+    ["머리 크기", "headSize", 80, 130],
+    ["머리 폭", "headWidth", -50, 50],
+    ["머리 높이", "headHeight", -50, 50],
+    ["턱 길이", "jawSize", -50, 50],
+    ["턱 넓이", "jawWidth", -50, 50],
+    ["얼굴 길이", "faceLength", -50, 50],
+    ["목 길이", "neckLength", 70, 130],
+    ["목 굵기", "neckWidth", -50, 50],
+  ];
+  const upperControls = [
     ["키", "height", 140, 210],
+    ["어깨 넓이", "shoulderWidth", 30, 56, { shoulder: true }],
+    ["쇄골 넓이", "clavicleWidth", -50, 50],
+    ["어깨 기울기", "shoulderSlope", -50, 50],
+    ["승모근 크기", "trapSize", -50, 50],
+    ["가슴 볼륨", "chestVolume", 0, 100],
+    ["가슴 위치", "chestPosition", -50, 50],
+    ["흉곽 크기", "ribcageSize", -50, 50],
+    ["등 두께", "backThickness", -50, 50],
+  ];
+  const armControls = [
+    ["팔 길이", "armLength", 70, 130],
+    ["상완 굵기", "upperArmWidth", -50, 50],
+    ["전완 굵기", "lowerArmWidth", -50, 50],
+    ["손 크기", "handSize", -50, 50],
+    ["손가락 길이", "fingerLength", -50, 50],
+  ];
+  const waistHipControls = [
+    ["허리 굵기", "waistWidth", 20, 42, { waist: true }],
+    ["허리 높이", "waistHeight", -50, 50],
+    ["복부 볼륨", "abdomenVolume", -50, 50],
+    ["골반 넓이", "hipWidth", 32, 62],
+    ["골반 높이", "hipHeight", -50, 50],
+    ["엉덩이 볼륨", "hipVolume", -50, 50],
+    ["엉덩이 돌출", "hipProjection", -50, 50],
+  ];
+  const legControls = [
+    ["다리 길이", "legLength", 70, 130],
+    ["다리 비율", "legRatio", 40, 70],
+    ["허벅지 굵기", "thighWidth", -50, 50],
+    ["허벅지 길이", "thighLength", -50, 50],
+    ["종아리 굵기", "calfWidth", -50, 50],
+    ["종아리 길이", "calfLength", -50, 50],
+    ["무릎 높이", "kneeHeight", -50, 50],
+    ["발 크기", "footSize", -50, 50],
+  ];
+  const volumeControls = [
+    ["체중", "weightKg", 40, 150],
+    ["전체 체중감", "weightMass", -50, 50],
+    ["근육량", "muscleMass", 0, 100],
+    ["체지방", "bodyFat", 0, 100],
+    ["상체 비율", "torsoRatio", 30, 60],
+    ["머리 비율", "headRatio", 5, 20],
+    ["팔 비율", "armRatio", 10, 25],
     ["몸통 길이", "torsoLength", 44, 70],
-    ["다리 길이", "legLength", 72, 120],
-    ["다리 비율", "legRatio", 46, 60],
   ];
   const updateRange = (key, value, options = {}) => {
     const number = Number(value);
@@ -1007,9 +1058,13 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
         <h3>캐릭터 커스터마이징</h3>
         <div className="avatar-studio-tabs" role="tablist" aria-label="캐릭터 커스터마이징 항목">
           {[
-            ["body", "신체 비율"],
+            ["head", "머리·목"],
+            ["upper", "상체"],
+            ["arms", "팔·손"],
+            ["waistHip", "허리·골반"],
+            ["legs", "다리·발"],
+            ["volume", "전체 비율"],
             ["hair", "헤어"],
-            ["style", "포즈"],
             ["view", "보기"],
           ].map(([key, label]) => (
             <button key={key} className={activeCustomizeTab === key ? "active" : ""} type="button" onClick={() => setActiveCustomizeTab(key)}>
@@ -1018,26 +1073,48 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
           ))}
         </div>
         <div className="avatar-studio-tools compact">
-          <Segment label="성별" items={[["female", "여성"], ["male", "남성"], ["neutral", "뉴트럴"]]} value={profile.gender} onChange={(value) => updateProfile({ gender: value })} />
-          <Segment label="체형" items={[["slim", "슬림"], ["regular", "평균"], ["athletic", "운동형"], ["curvy", "통통"], ["model", "모델형"], ["zepeto", "패션핏"]]} value={profile.bodyType} onChange={(value) => updateProfile(bodyPreset(value))} />
-          {activeCustomizeTab === "body" && (
+          <Segment label="성별 베이스" items={[["neutral", "뉴트럴"], ["female", "여성"], ["male", "남성"]]} value={profile.gender} onChange={(value) => updateProfile({ gender: value })} />
+          {activeCustomizeTab === "head" && (
             <div className="custom-tab-panel-v3">
-              <p className="custom-panel-note-v3">기준 모델 형체는 유지하고 키, 몸통, 다리 비율만 자연스럽게 바꿔요.</p>
-              <div className="custom-range-grid-v3">{renderRanges(bodyControls)}</div>
+              <p className="custom-panel-note-v3">얼굴 파츠는 숨기고, 무안면 마네킹의 머리 형태와 목 비율만 조정해요.</p>
+              <div className="custom-range-grid-v3">{renderRanges(headControls)}</div>
+            </div>
+          )}
+          {activeCustomizeTab === "upper" && (
+            <div className="custom-tab-panel-v3">
+              <p className="custom-panel-note-v3">어깨선, 흉곽, 가슴 볼륨이 옷 실루엣과 함께 변해요.</p>
+              <div className="custom-range-grid-v3">{renderRanges(upperControls)}</div>
+            </div>
+          )}
+          {activeCustomizeTab === "arms" && (
+            <div className="custom-tab-panel-v3">
+              <p className="custom-panel-note-v3">팔 길이와 손 크기를 조절하면 소매 길이도 같이 맞춰져요.</p>
+              <div className="custom-range-grid-v3">{renderRanges(armControls)}</div>
+            </div>
+          )}
+          {activeCustomizeTab === "waistHip" && (
+            <div className="custom-tab-panel-v3">
+              <p className="custom-panel-note-v3">허리와 골반 변화가 상의 폭, 바지 폭에 바로 반영돼요.</p>
+              <div className="custom-range-grid-v3">{renderRanges(waistHipControls)}</div>
+            </div>
+          )}
+          {activeCustomizeTab === "legs" && (
+            <div className="custom-tab-panel-v3">
+              <p className="custom-panel-note-v3">다리 길이, 허벅지, 종아리, 발 크기를 세밀하게 맞춰요.</p>
+              <div className="custom-range-grid-v3">{renderRanges(legControls)}</div>
+            </div>
+          )}
+          {activeCustomizeTab === "volume" && (
+            <div className="custom-tab-panel-v3">
+              <p className="custom-panel-note-v3">전체 체중감과 비율을 조절해 실제 체형에 더 가깝게 만들어요.</p>
+              <div className="custom-range-grid-v3">{renderRanges(volumeControls)}</div>
             </div>
           )}
           {activeCustomizeTab === "hair" && (
             <div className="custom-tab-panel-v3">
-              <Segment label="헤어" items={[["none", "무안면"], ["short", "숏"], ["medium", "미디엄"], ["long", "롱"], ["wavy", "웨이브"], ["straight", "스트레이트"], ["ponytail", "포니테일"], ["bangs", "앞머리"]]} value={profile.hairStyle} onChange={(value) => updateProfile({ hairStyle: value })} />
+              <Segment label="헤어" items={[["none", "없음"], ["short", "숏컷"], ["medium", "미디엄"], ["long", "롱"], ["wavy", "웨이브"], ["ponytail", "포니테일"], ["bun", "번헤어"]]} value={profile.hairStyle} onChange={(value) => updateProfile({ hairStyle: value })} />
               <Segment label="헤어 컬러" items={[["black", "블랙"], ["brown", "브라운"], ["blonde", "블론드"], ["ash", "애쉬"]]} value={profile.hairColor} onChange={(value) => updateProfile({ hairColor: value })} />
-              <Segment label="피부톤" items={[["bright", "밝음"], ["medium", "보통"], ["warm", "웜"], ["cool", "쿨"], ["deep", "딥"]]} value={profile.skinTone} onChange={(value) => updateProfile({ skinTone: value })} />
-              <Segment label="얼굴" items={[["detailed", "표정 있음"], ["faceless", "무안면"]]} value={profile.faceDetail} onChange={(value) => updateProfile({ faceDetail: value })} />
-            </div>
-          )}
-          {activeCustomizeTab === "style" && (
-            <div className="custom-tab-panel-v3">
-              <Segment label="포즈" items={[["standing", "정면"], ["walking", "워킹"], ["mirror", "거울"], ["bag", "쇼핑백"]]} value={profile.pose} onChange={(value) => updateProfile({ pose: value })} />
-              <Segment label="표정" items={[["happy", "해피"], ["confident", "자신감"], ["calm", "차분"], ["excited", "반짝"], ["cute", "러블리"]]} value={profile.expression} onChange={(value) => updateProfile({ expression: value })} />
+              <Segment label="베이스 컬러" items={[["ivory", "소프트 아이보리"], ["warmGray", "웜 그레이"], ["lightBeige", "라이트 베이지"], ["bright", "밝은 피부"], ["medium", "보통 피부"]]} value={profile.skinTone} onChange={(value) => updateProfile({ skinTone: value })} />
             </div>
           )}
           {activeCustomizeTab === "view" && (
@@ -1805,54 +1882,21 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
 }
 function lockAvatarModelShape(profile = {}) {
   const safe = normalizeBodyProfile(profile);
-  const bodyPresets = {
-    slim: { shoulderWidth: 39, waistWidth: 25, hipWidth: 38 },
-    regular: { shoulderWidth: 42, waistWidth: 28, hipWidth: 42 },
-    balanced: { shoulderWidth: 42, waistWidth: 28, hipWidth: 42 },
-    athletic: { shoulderWidth: 47, waistWidth: 29, hipWidth: 42 },
-    curvy: { shoulderWidth: 42, waistWidth: 30, hipWidth: 48 },
-    model: { shoulderWidth: 40, waistWidth: 25, hipWidth: 39 },
-    zepeto: { shoulderWidth: 39, waistWidth: 26, hipWidth: 42 },
-  };
-  const preset = bodyPresets[safe.bodyType] || bodyPresets.regular;
+  const genderMorph = {
+    male: { shoulderWidth: 7, waistWidth: -1, hipWidth: -5, chestVolume: -10, legRatio: -1 },
+    female: { shoulderWidth: -2, waistWidth: -3, hipWidth: 8, chestVolume: 24, legRatio: 3 },
+    neutral: { shoulderWidth: 0, waistWidth: 0, hipWidth: 0, chestVolume: 4, legRatio: 0 },
+  }[safe.gender] || { shoulderWidth: 0, waistWidth: 0, hipWidth: 0, chestVolume: 0, legRatio: 0 };
   return normalizeBodyProfile({
     ...safe,
-    ...preset,
-    shoulder: preset.shoulderWidth,
-    waist: preset.waistWidth,
-    headSize: 100,
-    headWidth: 0,
-    headHeight: 0,
-    jawSize: 0,
-    jawWidth: 0,
-    faceLength: 0,
-    neckWidth: 0,
-    clavicleWidth: 0,
-    chestVolume: 0,
-    chestPosition: 0,
-    waistHeight: 0,
-    abdomenVolume: 0,
-    backThickness: 0,
-    upperArmWidth: 0,
-    lowerArmWidth: 0,
-    handSize: 0,
-    fingerLength: 0,
-    hipVolume: 0,
-    thighWidth: 0,
-    calfWidth: 0,
-    kneeHeight: 0,
-    footSize: 0,
-    weightMass: 0,
-    muscleMass: 0,
-    bodyFat: 0,
-    eyeSize: 0,
-    eyeSpacing: 0,
-    eyeHeight: 0,
-    noseSize: 0,
-    mouthWidth: 0,
-    mouthHeight: 0,
-    faceShape: "round",
-    eyeStyle: "soft",
+    shoulderWidth: safe.shoulderWidth + genderMorph.shoulderWidth,
+    shoulder: safe.shoulderWidth + genderMorph.shoulderWidth,
+    waistWidth: safe.waistWidth + genderMorph.waistWidth,
+    waist: safe.waistWidth + genderMorph.waistWidth,
+    hipWidth: safe.hipWidth + genderMorph.hipWidth,
+    chestVolume: safe.chestVolume + genderMorph.chestVolume,
+    legRatio: safe.legRatio + genderMorph.legRatio,
+    faceDetail: "faceless",
   });
 }
 
@@ -1993,8 +2037,119 @@ function ReferenceFashionAvatar({ fit, bodyProfile }) {
   );
 }
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, Number(value) || 0));
+}
+
+function MannequinAvatar({ fit, bodyProfile }) {
+  const svgId = useId().replace(/:/g, "");
+  const profile = lockAvatarModelShape(bodyProfile);
+  const safeFit = normalizeFit(fit);
+  const top = safeFit.tops || {};
+  const outer = safeFit.outerwear || {};
+  const bottom = safeFit.bottoms || {};
+  const shoes = safeFit.shoes || {};
+  const skin = avatarVariables(profile)["--avatar-skin"] || "#efe6dc";
+  const hair = avatarVariables(profile)["--avatar-hair"] || "#6d4b3f";
+  const topColor = top.color || top.primaryColor || "#f3efe7";
+  const outerColor = outer.color || outer.primaryColor || "";
+  const bottomColor = bottom.color || bottom.primaryColor || "#9fb0c4";
+  const shoeColor = shoes.color || shoes.primaryColor || "#f7f3ea";
+  const isHoodie = /hood/i.test(top.subcategory || top.clothingType || "");
+  const isShirt = /shirt|oxford|dress|linen/i.test(top.subcategory || top.clothingType || "");
+  const isCoat = /coat|padding|cardigan|jacket/i.test(outer.subcategory || outer.clothingType || "");
+  const isSkirt = /skirt/i.test(bottom.subcategory || bottom.clothingType || "");
+  const isWide = /wide|baggy|cargo|jogger/i.test(bottom.subcategory || bottom.clothingType || bottom.fitType || "");
+  const isSlim = /skinny|slim/i.test(bottom.subcategory || bottom.clothingType || bottom.fitType || "");
+
+  const cx = 160;
+  const heightScale = clamp(profile.height / 168, .86, 1.2);
+  const headRx = clamp(35 + (profile.headSize - 100) * .22 + profile.headWidth * .14, 29, 48);
+  const headRy = clamp(47 + (profile.headSize - 100) * .24 + profile.headHeight * .16 + profile.faceLength * .08, 38, 62);
+  const headCy = 76;
+  const neckW = clamp(19 + profile.neckWidth * .08, 14, 28);
+  const neckH = clamp(32 + (profile.neckLength - 100) * .26, 22, 46);
+  const shoulderY = headCy + headRy + neckH + 10;
+  const shoulderHalf = clamp(58 + (profile.shoulderWidth - 42) * 1.9 + profile.clavicleWidth * .18 + profile.muscleMass * .08, 44, 88);
+  const ribHalf = clamp(46 + profile.ribcageSize * .16 + profile.backThickness * .13 + profile.chestVolume * .08, 34, 74);
+  const waistHalf = clamp(34 + (profile.waistWidth - 28) * 2.15 + profile.abdomenVolume * .16 + profile.bodyFat * .12 + profile.weightMass * .08, 24, 68);
+  const hipHalf = clamp(48 + (profile.hipWidth - 42) * 1.72 + profile.hipVolume * .18 + profile.hipProjection * .08 + profile.bodyFat * .08, 34, 88);
+  const chestLift = clamp(profile.chestPosition * .12, -7, 7);
+  const torsoH = clamp(154 + (profile.torsoLength - 54) * 3 + (profile.torsoRatio - 45) * 1.2, 124, 220);
+  const waistY = shoulderY + torsoH * .55 + profile.waistHeight * .16;
+  const hipY = shoulderY + torsoH;
+  const legH = clamp(196 + (profile.legLength - 100) * 1.9 + (profile.legRatio - 52) * 4.1 + (profile.height - 168) * .72, 150, 286);
+  const footY = hipY + legH;
+  const armH = clamp(158 + (profile.armLength - 100) * 1.55 + (profile.armRatio - 18) * 3.2 + (profile.height - 168) * .18, 122, 226);
+  const upperArm = clamp(16 + profile.upperArmWidth * .08 + profile.muscleMass * .08 + profile.bodyFat * .04, 11, 28);
+  const lowerArm = clamp(13 + profile.lowerArmWidth * .08 + profile.muscleMass * .05 + profile.bodyFat * .03, 9, 23);
+  const thigh = clamp(28 + profile.thighWidth * .12 + profile.bodyFat * .09 + profile.muscleMass * .08, 19, 46);
+  const calf = clamp(21 + profile.calfWidth * .11 + profile.bodyFat * .06 + profile.muscleMass * .07, 14, 35);
+  const foot = clamp(25 + profile.footSize * .12, 18, 38);
+  const leftShoulder = cx - shoulderHalf;
+  const rightShoulder = cx + shoulderHalf;
+  const chestY = shoulderY + 38 + chestLift;
+  const leftRib = cx - ribHalf;
+  const rightRib = cx + ribHalf;
+  const leftWaist = cx - waistHalf;
+  const rightWaist = cx + waistHalf;
+  const leftHip = cx - hipHalf;
+  const rightHip = cx + hipHalf;
+  const clothEase = isHoodie ? 13 : /oversized|wide|baggy/i.test(top.fitType || top.subcategory || "") ? 10 : /slim/i.test(top.fitType || top.subcategory || "") ? 1 : 5;
+  const topHemY = hipY - (/(crop|cropped)/i.test(top.fitType || top.subcategory || "") ? 38 : 8);
+  const topPath = `M${leftShoulder - clothEase} ${shoulderY + 8} C${leftRib - clothEase * .6} ${chestY + 8} ${leftWaist - clothEase} ${waistY + 18} ${leftWaist - clothEase * .8} ${topHemY} C${cx - 26} ${topHemY + 13} ${cx + 26} ${topHemY + 13} ${rightWaist + clothEase * .8} ${topHemY} C${rightWaist + clothEase} ${waistY + 18} ${rightRib + clothEase * .6} ${chestY + 8} ${rightShoulder + clothEase} ${shoulderY + 8} C${cx + 36} ${shoulderY - 8} ${cx - 36} ${shoulderY - 8} ${leftShoulder - clothEase} ${shoulderY + 8}Z`;
+  const torsoPath = `M${leftShoulder} ${shoulderY + 6} C${leftRib} ${chestY + 10} ${leftWaist} ${waistY - 4} ${leftWaist} ${waistY} C${leftWaist} ${waistY + 34} ${leftHip} ${hipY - 14} ${leftHip} ${hipY} C${cx - 35} ${hipY + 20} ${cx + 35} ${hipY + 20} ${rightHip} ${hipY} C${rightHip} ${hipY - 14} ${rightWaist} ${waistY + 34} ${rightWaist} ${waistY} C${rightWaist} ${waistY - 4} ${rightRib} ${chestY + 10} ${rightShoulder} ${shoulderY + 6} C${cx + 34} ${shoulderY - 14} ${cx - 34} ${shoulderY - 14} ${leftShoulder} ${shoulderY + 6}Z`;
+  const leftArm = `M${leftShoulder + 8} ${shoulderY + 15} C${leftShoulder - 18} ${shoulderY + 44} ${leftShoulder - 20} ${shoulderY + armH - 30} ${leftShoulder - 7} ${shoulderY + armH} C${leftShoulder + 5 + profile.handSize * .05} ${shoulderY + armH + 14} ${leftShoulder + lowerArm + 11} ${shoulderY + armH + 4} ${leftShoulder + lowerArm + 2} ${shoulderY + armH - 12} C${leftShoulder + lowerArm} ${shoulderY + 93} ${leftShoulder + upperArm + 15} ${shoulderY + 38} ${leftShoulder + 23} ${shoulderY + 12}Z`;
+  const rightArm = `M${rightShoulder - 8} ${shoulderY + 15} C${rightShoulder + 18} ${shoulderY + 44} ${rightShoulder + 20} ${shoulderY + armH - 30} ${rightShoulder + 7} ${shoulderY + armH} C${rightShoulder - 5 - profile.handSize * .05} ${shoulderY + armH + 14} ${rightShoulder - lowerArm - 11} ${shoulderY + armH + 4} ${rightShoulder - lowerArm - 2} ${shoulderY + armH - 12} C${rightShoulder - lowerArm} ${shoulderY + 93} ${rightShoulder - upperArm - 15} ${shoulderY + 38} ${rightShoulder - 23} ${shoulderY + 12}Z`;
+  const legsPath = `M${cx - 10} ${hipY + 8} C${cx - thigh} ${hipY + 58 + profile.thighLength * .12} ${cx - calf} ${footY - 48 - profile.calfLength * .1} ${cx - 29} ${footY} C${cx - 10} ${footY + 12} ${cx - 5} ${footY - 7} ${cx - 2} ${hipY + 54} C${cx + 3} ${footY - 7} ${cx + 10} ${footY + 12} ${cx + 29} ${footY} C${cx + calf} ${footY - 48 - profile.calfLength * .1} ${cx + thigh} ${hipY + 58 + profile.thighLength * .12} ${cx + 10} ${hipY + 8}Z`;
+  const pantsLeg = isSlim ? 10 : isWide ? 25 : 17;
+  const pantsPath = isWide
+    ? `M${leftHip + 4} ${hipY - 3} H${rightHip - 4} L${rightHip + pantsLeg} ${footY - 19} C${cx + 38} ${footY - 8} ${cx + 20} ${footY - 8} ${cx + 11} ${footY - 18} L${cx + 2} ${hipY + 48} L${cx - 11} ${footY - 18} C${cx - 20} ${footY - 8} ${cx - 38} ${footY - 8} ${leftHip - pantsLeg} ${footY - 19}Z`
+    : `M${leftHip + 10} ${hipY - 3} H${rightHip - 10} L${cx + pantsLeg} ${footY - 18} C${cx + 19} ${footY - 7} ${cx + 7} ${footY - 7} ${cx + 5} ${footY - 19} L${cx + 1} ${hipY + 48} L${cx - 5} ${footY - 19} C${cx - 7} ${footY - 7} ${cx - 19} ${footY - 7} ${cx - pantsLeg} ${footY - 18}Z`;
+  const skirtPath = `M${leftHip - 5} ${hipY - 5} H${rightHip + 5} L${rightHip + 16} ${hipY + 98} C${cx + 34} ${hipY + 114} ${cx - 34} ${hipY + 114} ${leftHip - 16} ${hipY + 98}Z`;
+  const hairPath = `M${cx - headRx * .95} ${headCy - 4} C${cx - headRx * .78} ${headCy - headRy * 1.02} ${cx + headRx * .74} ${headCy - headRy * 1.04} ${cx + headRx * .96} ${headCy - 4} C${cx + headRx * .45} ${headCy - headRy * .2} ${cx - headRx * .18} ${headCy - headRy * .18} ${cx - headRx * .95} ${headCy - 4}Z`;
+
+  return (
+    <svg className={`fashion-avatar svg-avatar mannequin-avatar gender-${profile.gender || "neutral"}`} viewBox="0 0 320 620" role="img" aria-label="MoodFit faceless fitting avatar">
+      <defs>
+        <radialGradient id={`${svgId}-skin`} cx="42%" cy="20%" r="76%">
+          <stop stopColor="#fffdf8" />
+          <stop offset=".56" stopColor={skin} />
+          <stop offset="1" stopColor="#cfc7bd" />
+        </radialGradient>
+        <linearGradient id={`${svgId}-cloth`} x1="0" x2="1" y1="0" y2="1">
+          <stop stopColor="#fff" stopOpacity=".36" />
+          <stop offset=".45" stopColor={topColor} />
+          <stop offset="1" stopColor={topColor} stopOpacity=".88" />
+        </linearGradient>
+        <filter id={`${svgId}-soft`} x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="16" stdDeviation="13" floodColor="#4a3f3a" floodOpacity=".14" />
+        </filter>
+      </defs>
+      <g filter={`url(#${svgId}-soft)`} style={{ transform: `translateY(${(1 - heightScale) * 28}px) scale(${heightScale})`, transformOrigin: "160px 330px" }}>
+        <ellipse cx="160" cy={Math.min(596, footY + 22)} rx="88" ry="15" fill="rgba(74,63,58,.12)" />
+        <path d={leftArm} fill={`url(#${svgId}-skin)`} stroke="#cfc7bd" strokeWidth="1.5" />
+        <path d={rightArm} fill={`url(#${svgId}-skin)`} stroke="#cfc7bd" strokeWidth="1.5" />
+        <path d={legsPath} fill={`url(#${svgId}-skin)`} stroke="#cfc7bd" strokeWidth="1.5" />
+        <path d={torsoPath} fill={`url(#${svgId}-skin)`} stroke="#cfc7bd" strokeWidth="1.5" />
+        <rect x={cx - neckW} y={headCy + headRy - 1} width={neckW * 2} height={neckH + 11} rx={neckW * .72} fill={`url(#${svgId}-skin)`} />
+        <ellipse cx={cx} cy={headCy} rx={headRx} ry={headRy} fill={`url(#${svgId}-skin)`} stroke="#cfc7bd" strokeWidth="1.4" />
+        <path d={`M${cx - 52} ${chestY + 4} C${cx - 22} ${chestY + 20} ${cx + 22} ${chestY + 20} ${cx + 52} ${chestY + 4}`} fill="none" stroke="#fff" strokeOpacity=".32" strokeWidth="2" />
+        {profile.hairStyle !== "none" && <path d={hairPath} fill={hair} opacity=".9" />}
+        <path d={topPath} fill={`url(#${svgId}-cloth)`} stroke="#817268" strokeOpacity=".18" strokeWidth="1.8" />
+        {isHoodie && <path d={`M${cx - 37} ${shoulderY + 6} C${cx - 26} ${shoulderY - 22} ${cx + 26} ${shoulderY - 22} ${cx + 37} ${shoulderY + 6} C${cx + 19} ${shoulderY + 23} ${cx - 19} ${shoulderY + 23} ${cx - 37} ${shoulderY + 6}Z`} fill={topColor} opacity=".88" />}
+        {isShirt && <path d={`M${cx - 18} ${shoulderY + 9} L${cx} ${shoulderY + 31} L${cx + 18} ${shoulderY + 9} M${cx} ${shoulderY + 31} V${topHemY - 6}`} fill="none" stroke="#fff" strokeOpacity=".78" strokeWidth="3.4" strokeLinecap="round" />}
+        {outerColor && <path d={`M${leftShoulder - 11} ${shoulderY + 6} C${leftRib - 14} ${chestY + 8} ${leftWaist - 18} ${waistY + 28} ${leftHip - 18} ${isCoat ? hipY + 92 : hipY + 12} C${cx - 17} ${isCoat ? hipY + 105 : hipY + 24} ${cx + 17} ${isCoat ? hipY + 105 : hipY + 24} ${rightHip + 18} ${isCoat ? hipY + 92 : hipY + 12} C${rightWaist + 18} ${waistY + 28} ${rightRib + 14} ${chestY + 8} ${rightShoulder + 11} ${shoulderY + 6} C${cx + 36} ${shoulderY - 7} ${cx - 36} ${shoulderY - 7} ${leftShoulder - 11} ${shoulderY + 6}Z`} fill={outerColor} stroke="#817268" strokeOpacity=".18" strokeWidth="1.8" opacity=".93" />}
+        {isSkirt ? <path d={skirtPath} fill={bottomColor} stroke="#817268" strokeOpacity=".2" strokeWidth="1.8" /> : <path d={pantsPath} fill={bottomColor} stroke="#817268" strokeOpacity=".2" strokeWidth="1.8" />}
+        <ellipse cx={cx - 26} cy={footY + 4} rx={foot + 8} ry="9" fill={shoeColor} stroke="#cfc7bd" strokeWidth="1.6" />
+        <ellipse cx={cx + 26} cy={footY + 4} rx={foot + 8} ry="9" fill={shoeColor} stroke="#cfc7bd" strokeWidth="1.6" />
+      </g>
+    </svg>
+  );
+}
+
 function FashionAvatar({ fit, mood, bodyProfile, t }) {
-  return <ReferenceFashionAvatar fit={fit} bodyProfile={bodyProfile} />;
+  return <MannequinAvatar fit={fit} bodyProfile={bodyProfile} />;
   const svgId = useId().replace(/:/g, "");
   const profile = normalizeBodyProfile(bodyProfile);
   const avatarVars = avatarVariables(profile);
@@ -2838,8 +2993,11 @@ function normalizeBodyProfile(profile = {}) {
     faceLength: metric("faceLength"),
     neckWidth: metric("neckWidth"),
     clavicleWidth: metric("clavicleWidth"),
+    shoulderSlope: metric("shoulderSlope"),
+    trapSize: metric("trapSize"),
     chestVolume: metric("chestVolume"),
     chestPosition: metric("chestPosition"),
+    ribcageSize: metric("ribcageSize"),
     waistHeight: metric("waistHeight"),
     abdomenVolume: metric("abdomenVolume"),
     backThickness: metric("backThickness"),
@@ -2848,16 +3006,24 @@ function normalizeBodyProfile(profile = {}) {
     handSize: metric("handSize"),
     fingerLength: metric("fingerLength"),
     hipVolume: metric("hipVolume"),
+    hipHeight: metric("hipHeight"),
+    hipProjection: metric("hipProjection"),
     thighWidth: metric("thighWidth"),
+    thighLength: metric("thighLength"),
     calfWidth: metric("calfWidth"),
+    calfLength: metric("calfLength"),
     kneeHeight: metric("kneeHeight"),
     footSize: metric("footSize"),
+    weightKg: Number(profile.weightKg) || 58,
     weightMass: metric("weightMass"),
     muscleMass: metric("muscleMass"),
     bodyFat: metric("bodyFat"),
     torsoLength: Number(profile.torsoLength) || 54,
+    torsoRatio: Number(profile.torsoRatio) || 45,
     legLength: Number(profile.legLength) || 92,
     legRatio: Number(profile.legRatio) || 52,
+    headRatio: Number(profile.headRatio) || 12,
+    armRatio: Number(profile.armRatio) || 18,
     skinTone: profile.skinTone || "medium",
     faceShape: profile.faceShape || "round",
     hairStyle: hairStyleMap[profile.hairStyle] || profile.hairStyle || "none",
@@ -2908,6 +3074,9 @@ function avatarVariables(profile) {
   const waistWidth = 92 + (profile.waist - 27) * 3.1;
   const legHeight = 104 + (profile.legRatio - 50) * 1.5 + (profile.legLength - 92) * 1.25;
   const skinMap = {
+    ivory: "#eee6dd",
+    warmGray: "#dfddd8",
+    lightBeige: "#e8e3dd",
     bright: "#f0b789",
     medium: "#d98b5d",
     deep: "#8f5942",

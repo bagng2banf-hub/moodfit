@@ -4713,6 +4713,38 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   transform-origin: 50% 38%;
 }
 
+.fashion-avatar.svg-avatar.mannequin-avatar {
+  width: min(100%, 310px);
+  height: auto;
+  max-height: min(560px, 72vh);
+  filter: drop-shadow(0 28px 34px rgba(74, 63, 58, .16));
+  transform-origin: 50% 45%;
+}
+
+.avatar-studio-stage .mannequin-avatar,
+.closet-avatar-preview-v3 .mannequin-avatar,
+.avatar-runway-v3 .mannequin-avatar {
+  max-width: 100%;
+}
+
+.mannequin-avatar path,
+.mannequin-avatar ellipse,
+.mannequin-avatar rect {
+  vector-effect: non-scaling-stroke;
+}
+
+.mannequin-avatar.gender-male {
+  --avatar-model-accent: #7fa2c7;
+}
+
+.mannequin-avatar.gender-female {
+  --avatar-model-accent: #d98aa5;
+}
+
+.mannequin-avatar.gender-neutral {
+  --avatar-model-accent: #88a57b;
+}
+
 .reference-avatar path,
 .reference-avatar ellipse,
 .reference-avatar rect {
