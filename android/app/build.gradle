@@ -1,5 +1,17 @@
 apply plugin: 'com.android.application'
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def releaseStoreFile = keystoreProperties['storeFile'] ?: project.findProperty('MOODFIT_STORE_FILE') ?: System.getenv('MOODFIT_STORE_FILE')
+def releaseStorePassword = keystoreProperties['storePassword'] ?: project.findProperty('MOODFIT_STORE_PASSWORD') ?: System.getenv('MOODFIT_STORE_PASSWORD')
+def releaseKeyAlias = keystoreProperties['keyAlias'] ?: project.findProperty('MOODFIT_KEY_ALIAS') ?: System.getenv('MOODFIT_KEY_ALIAS')
+def releaseKeyPassword = keystoreProperties['keyPassword'] ?: project.findProperty('MOODFIT_KEY_PASSWORD') ?: System.getenv('MOODFIT_KEY_PASSWORD')
+def hasReleaseSigning = releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword
+
 android {
     namespace = "com.moodfit.gollajulgae"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,9 +28,22 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
