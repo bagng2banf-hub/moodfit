@@ -3105,7 +3105,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .avatar-studio-tabs {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
   gap: 8px;
   margin: 10px 0 14px;
 }
@@ -3162,7 +3162,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .custom-range-grid-v3 {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
 }
 
@@ -3293,7 +3293,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .closet-fitting-room-v3 {
   display: grid;
-  grid-template-columns: minmax(230px, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(360px, 480px) minmax(0, 1fr);
   gap: 12px;
   margin-bottom: 12px;
 }
@@ -3308,22 +3308,54 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
 .closet-avatar-preview-v3 {
   display: grid;
-  grid-template-columns: 118px minmax(0, 1fr);
+  grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
-  min-height: 190px;
-  padding: 10px 14px;
+  gap: 16px;
+  min-height: 340px;
+  padding: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 38% 74%, rgba(247, 217, 217, .74) 0 22%, transparent 23%),
+    linear-gradient(180deg, rgba(255, 252, 247, .96), rgba(248, 239, 230, .9));
+}
+
+.fitting-avatar-frame {
+  min-height: 302px;
+  display: grid;
+  place-items: end center;
+  border: 1px solid rgba(132, 105, 94, .18);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.54), rgba(255, 239, 232, .42)),
+    radial-gradient(circle at 50% 86%, rgba(132, 105, 94, .18), transparent 42%);
   overflow: hidden;
 }
 
 .closet-avatar-preview-v3 .fashion-avatar {
-  width: 120px;
-  height: 190px;
+  width: 210px;
+  height: 315px;
 }
 
 .closet-avatar-preview-v3 .svg-avatar {
-  width: 120px;
-  max-height: 190px;
+  width: 210px;
+  max-height: 315px;
+}
+
+.fitting-copy-v3 {
+  display: grid;
+  gap: 9px;
+}
+
+.fitting-status-v3 {
+  width: max-content;
+  max-width: 100%;
+  border: 1px solid rgba(215, 135, 148, .42);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #805a58;
+  background: #fff0f3;
+  font-size: 12px;
+  font-weight: 950;
 }
 
 .closet-avatar-preview-v3 strong {
@@ -3357,6 +3389,12 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   box-shadow: 0 8px 0 rgba(132, 105, 94, .08);
   text-align: left;
   transition: transform .18s ease;
+}
+
+.collectible-card.is-wearing {
+  border-color: rgba(215, 135, 148, .72);
+  background: linear-gradient(180deg, #fff7f8, #fffaf7);
+  box-shadow: 0 10px 0 rgba(215, 135, 148, .16), 0 20px 42px rgba(132, 105, 94, .12);
 }
 
 .collectible-card .fabric,
@@ -4021,7 +4059,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   .photo-lab-grid-v3,
   .hall-layout-v3,
   .village-map-v3,
-  .character-room-v3 {
+  .character-room-v3,
+  .closet-fitting-room-v3 {
     grid-template-columns: 1fr;
   }
 
@@ -4067,7 +4106,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   }
 
   .closet-avatar-preview-v3 {
-    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-columns: 1fr;
+  }
+
+  .fitting-avatar-frame {
+    min-height: 280px;
+  }
+
+  .closet-avatar-preview-v3 .fashion-avatar,
+  .closet-avatar-preview-v3 .svg-avatar {
+    width: 190px;
+    max-height: 290px;
   }
 
   .v3-home-room {

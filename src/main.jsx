@@ -87,11 +87,21 @@ const fashionLabelMap = {
   "Round Neck": "라운드넥", "V Neck": "브이넥", Collar: "카라", "Short Sleeve": "반팔", "Long Sleeve": "긴팔", Sleeveless: "민소매", Raglan: "래글런",
   "Inner Layer": "이너", "Middle Layer": "미들 레이어", "Outer Layer": "아우터 레이어",
 };
+
+const styleSurveyOptions = {
+  styles: ["미니멀", "캐주얼", "스트릿", "시티보이", "시티걸", "아메카지", "클래식", "댄디", "비즈니스 캐주얼", "고프코어", "Y2K", "빈티지", "힙합", "스포츠웨어", "페미닌", "러블리", "모던", "올드머니", "놈코어", "테크웨어"],
+  fits: ["오버핏", "정핏", "슬림핏", "와이드핏", "크롭핏", "롱핏"],
+  colors: ["화이트", "블랙", "그레이", "베이지", "브라운", "카키", "네이비", "블루", "레드", "핑크", "퍼플", "그린", "옐로우"],
+  genders: [["male", "남성"], ["female", "여성"], ["neutral", "중성"], ["private", "선택 안 함"]],
+  bodyTypes: [["slim", "마른형"], ["balanced", "보통형"], ["athletic", "근육형"], ["curvy", "통통형"], ["custom", "직접 커스터마이징"]],
+  personalColors: ["모름", "봄 웜톤", "여름 쿨톤", "가을 웜톤", "겨울 쿨톤"],
+};
+
 function App() {
   const stored = loadStoredState();
   const [language, setLanguage] = useState(stored.language || null);
   const [session, setSession] = useState(loadSession());
-  const [entryStep, setEntryStep] = useState("auth");
+  const [entryStep, setEntryStep] = useState(loadSession() ? "app" : "auth");
   const [activePanel, setActivePanel] = useState("v3-home");
   const [theme, setTheme] = useState(stored.theme || "white");
   const [mood, setMood] = useState(stored.mood || "moodLuxury");
@@ -129,13 +139,14 @@ function App() {
   const [profilePhoto, setProfilePhoto] = useState(stored.profilePhoto || "");
   const [homeBanner, setHomeBanner] = useState(stored.homeBanner || "dressing");
   const [viewMode, setViewMode] = useState(stored.viewMode || "desktop");
+  const [styleProfile, setStyleProfile] = useState(normalizeStyleProfile(stored.styleProfile));
   const fileInputRef = useRef(null);
   const t = useMemo(() => createTranslator(language || "ko"), [language]);
   const recommendation = useMemo(
-    () => buildRecommendation({ t, mood, fit, brief, weather, schedule, eventType, aesthetic }),
-    [t, mood, fit, brief, weather, schedule, eventType, aesthetic]
+    () => buildRecommendation({ t, mood, fit, brief, weather, schedule, eventType, aesthetic, styleProfile }),
+    [t, mood, fit, brief, weather, schedule, eventType, aesthetic, styleProfile]
   );
-  const scores = useMemo(() => scoreOutfit({ fit, weather, mood, eventType }), [fit, weather, mood, eventType]);
+  const scores = useMemo(() => scoreOutfit({ fit, weather, mood, eventType, styleProfile }), [fit, weather, mood, eventType, styleProfile]);
   const showToday = activePanel === "today" || activePanel === "all";
   const showAll = activePanel === "all";
   const activeWorld = activePanel.startsWith("v3-");
@@ -177,6 +188,7 @@ function App() {
         profilePhoto,
         homeBanner,
         viewMode,
+        styleProfile,
         ...next,
       });
     localStorage.setItem(storageKey, JSON.stringify(nextState));
@@ -191,7 +203,7 @@ function App() {
   async function continueGuest() {
     const nextSession = await createGuestSession();
     setSession(nextSession);
-    setEntryStep("app");
+    setEntryStep(styleProfile.completed || styleProfile.skipped ? "app" : "survey");
   }
 
   async function handleAccount(event) {
@@ -204,7 +216,7 @@ function App() {
     try {
       const nextSession = await signInWithEmail({ username, password });
       setSession(nextSession);
-      setEntryStep("app");
+      setEntryStep(styleProfile.completed || styleProfile.skipped ? "app" : "survey");
       showToast(t("mockSession"));
     } catch {
       showToast(t("invalidPassword"));
@@ -221,6 +233,28 @@ function App() {
     setToast(message);
     window.clearTimeout(showToast.timer);
     showToast.timer = window.setTimeout(() => setToast(""), 2200);
+  }
+
+  function finishStyleSurvey(nextProfile) {
+    const normalized = normalizeStyleProfile({ ...nextProfile, completed: true, skipped: false });
+    const nextBody = normalizeBodyProfile({
+      ...bodyProfile,
+      gender: normalized.gender === "private" ? bodyProfile.gender : normalized.gender,
+      bodyType: normalized.bodyType === "custom" ? bodyProfile.bodyType : normalized.bodyType,
+    });
+    setStyleProfile(normalized);
+    setBodyProfile(nextBody);
+    setAesthetic(normalized.summary || aesthetic);
+    persist({ styleProfile: normalized, bodyProfile: nextBody, aesthetic: normalized.summary || aesthetic });
+    setEntryStep("app");
+    showToast("취향 분석을 저장했개!");
+  }
+
+  function skipStyleSurvey() {
+    const skipped = normalizeStyleProfile({ ...styleProfile, skipped: true, completed: false });
+    setStyleProfile(skipped);
+    persist({ styleProfile: skipped });
+    setEntryStep("app");
   }
 
   function openComingSoon(feature = "준비중인 기능") {
@@ -422,6 +456,10 @@ function App() {
     return <AuthScreen t={t} onGuest={continueGuest} onAccount={handleAccount} setLanguage={setLanguage} bodyProfile={bodyProfile} setBodyProfile={setBodyProfile} persist={persist} />;
   }
 
+  if (entryStep === "survey") {
+    return <StyleSurveyScreen initialProfile={styleProfile} onSubmit={finishStyleSurvey} onSkip={skipStyleSurvey} />;
+  }
+
   function changeViewMode(nextMode) {
     setViewMode(nextMode);
     persist({ viewMode: nextMode });
@@ -502,6 +540,7 @@ function App() {
           profileName={profileName}
           profilePhoto={profilePhoto}
           homeBanner={homeBanner}
+          styleProfile={styleProfile}
           setHomeBanner={(nextBanner) => {
             setHomeBanner(nextBanner);
             persist({ homeBanner: nextBanner });
@@ -715,6 +754,106 @@ function AuthScreen({ t, onGuest, onAccount, setLanguage }) {
     </main>
   );
 }
+
+function StyleSurveyScreen({ initialProfile, onSubmit, onSkip }) {
+  const [profile, setProfile] = useState(normalizeStyleProfile(initialProfile));
+  const advice = buildShoppingAdvice(profile);
+  const summary = summarizeStyleProfile(profile);
+
+  const toggleList = (key, value, limit = 99) => {
+    setProfile((current) => {
+      const list = Array.isArray(current[key]) ? current[key] : [];
+      const exists = list.includes(value);
+      const nextList = exists ? list.filter((item) => item !== value) : [...list, value].slice(0, limit);
+      return normalizeStyleProfile({ ...current, [key]: nextList });
+    });
+  };
+
+  const setSingle = (key, value) => {
+    setProfile((current) => normalizeStyleProfile({ ...current, [key]: value }));
+  };
+
+  return (
+    <main className="entry-screen survey-world">
+      <section className="entry-card style-survey-card">
+        <div className="survey-copy">
+          <p className="eyebrow">STYLE PROFILE</p>
+          <h1>취향을 알려주면 더 잘 골라줄개</h1>
+          <p>설문은 건너뛸 수 있어요. 참여하면 옷장, 추천, 코디 점수가 내 취향에 더 가깝게 맞춰집니다.</p>
+          <div className="survey-preview">
+            <span>분석 미리보기</span>
+            <strong>{summary || "좋아하는 스타일을 선택해보세요"}</strong>
+            <ul>
+              {advice.slice(0, 3).map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+        </div>
+        <form className="survey-form" onSubmit={(event) => { event.preventDefault(); onSubmit(profile); }}>
+          <SurveyBlock title="좋아하는 스타일" note="복수 선택">
+            <div className="survey-option-grid">
+              {styleSurveyOptions.styles.map((item) => (
+                <button className={profile.styles.includes(item) ? "active" : ""} key={item} onClick={() => toggleList("styles", item)} type="button">{item}</button>
+              ))}
+            </div>
+          </SurveyBlock>
+          <SurveyBlock title="좋아하는 핏" note="복수 선택">
+            <div className="survey-option-grid compact">
+              {styleSurveyOptions.fits.map((item) => (
+                <button className={profile.fits.includes(item) ? "active" : ""} key={item} onClick={() => toggleList("fits", item)} type="button">{item}</button>
+              ))}
+            </div>
+          </SurveyBlock>
+          <SurveyBlock title="좋아하는 색상" note="최대 5개">
+            <div className="survey-color-grid">
+              {styleSurveyOptions.colors.map((item) => (
+                <button className={profile.colors.includes(item) ? "active" : ""} key={item} onClick={() => toggleList("colors", item, 5)} type="button">
+                  <span style={{ "--survey-color": colorTokenToHex(item) }} />
+                  {item}
+                </button>
+              ))}
+            </div>
+          </SurveyBlock>
+          <div className="survey-two-col">
+            <SurveyBlock title="성별 선택" note="추천 기준">
+              <div className="survey-option-grid compact">
+                {styleSurveyOptions.genders.map(([value, label]) => (
+                  <button className={profile.gender === value ? "active" : ""} key={value} onClick={() => setSingle("gender", value)} type="button">{label}</button>
+                ))}
+              </div>
+            </SurveyBlock>
+            <SurveyBlock title="체형 선택" note="나중에 커마에서 수정 가능">
+              <div className="survey-option-grid compact">
+                {styleSurveyOptions.bodyTypes.map(([value, label]) => (
+                  <button className={profile.bodyType === value ? "active" : ""} key={value} onClick={() => setSingle("bodyType", value)} type="button">{label}</button>
+                ))}
+              </div>
+            </SurveyBlock>
+          </div>
+          <div className="survey-two-col">
+            <label className="survey-field"><span>선호 브랜드</span><input value={profile.brands} onChange={(event) => setSingle("brands", event.target.value)} placeholder="무신사 스탠다드, 나이키, COS" /></label>
+            <label className="survey-field"><span>퍼스널 컬러</span><select value={profile.personalColor} onChange={(event) => setSingle("personalColor", event.target.value)}>{styleSurveyOptions.personalColors.map((item) => <option key={item}>{item}</option>)}</select></label>
+          </div>
+          <div className="survey-actions">
+            <button className="secondary" type="button" onClick={onSkip}>건너뛰기</button>
+            <button className="primary" type="submit"><Sparkles size={16} />스타일 프로필 만들기</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  );
+}
+
+function SurveyBlock({ title, note, children }) {
+  return (
+    <section className="survey-block">
+      <div>
+        <strong>{title}</strong>
+        <span>{note}</span>
+      </div>
+      {children}
+    </section>
+  );
+}
 function WorldView(props) {
   const pages = {
     "v3-home": <V3Home {...props} />,
@@ -740,10 +879,12 @@ function WorldView(props) {
   );
 }
 
-function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, fit, onEvent, homeBanner, setHomeBanner }) {
+function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, fit, onEvent, homeBanner, setHomeBanner, styleProfile }) {
   const safeFit = normalizeFit(fit);
   const safeWardrobe = Array.isArray(wardrobe) ? wardrobe : [];
   const safeSavedLooks = Array.isArray(savedLooks) ? savedLooks : [];
+  const profile = normalizeStyleProfile(styleProfile);
+  const shoppingAdvice = recommendation.shoppingAdvice || buildShoppingAdvice(profile, safeFit, weather);
   const banner = mainBannerOptions.find((item) => item.id === homeBanner) || mainBannerOptions[0];
   const missions = [
     ["색 조합 저장하기", "보상 30 XP"],
@@ -775,7 +916,7 @@ function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, f
                 <b>{scores.total}점</b>
                 <span>컬러 {scores.color}</span>
                 <span>편안함 {scores.comfort}</span>
-                <span>트렌드 {scores.confidence}</span>
+                <span>트렌드 {scores.trend}</span>
               </div>
               <div className="palette-row-v3">
                 {Object.values(safeFit).filter(Boolean).slice(0, 5).map((item) => <i key={item.id} style={{ "--swatch": item.color }} />)}
@@ -786,6 +927,12 @@ function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, f
         <WorldCard className="home-medium-card" icon={<Sun size={20} />} title="날씨 추천" note="날씨에 맞춰 가볍게">
           <div className="metric-row"><MetricPill label="날씨" value={weather} /><MetricPill label="습도" value="62%" /><MetricPill label="UV" value="보통" /></div>
           <p className="tiny-copy">비 오는 날엔 흰 운동화는 조심할개!</p>
+        </WorldCard>
+        <WorldCard className="home-medium-card profile-advice-card" icon={<Palette size={20} />} title="골라줄개 추천" note={profile.summary || "취향 설문으로 더 정확하게"}>
+          <p className="tiny-copy strong-copy">{recommendation.colorReason || scores.colorSummary}</p>
+          <ul className="advice-list-v3">
+            {shoppingAdvice.slice(0, 3).map((item) => <li key={item}>{item}</li>)}
+          </ul>
         </WorldCard>
         <WorldCard className="home-medium-card" icon={<Shirt size={20} />} title="옷장 요약" note="오늘 활용할 아이템">
           <div className="mini-closet-row">
@@ -812,54 +959,17 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
   const profile = normalizeBodyProfile(bodyProfile);
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
-  const [activeCustomizeTab, setActiveCustomizeTab] = useState("face");
+  const [activeCustomizeTab, setActiveCustomizeTab] = useState("body");
   const updateProfile = (patch) => {
     const next = normalizeBodyProfile({ ...profile, ...patch });
     setBodyProfile(next);
     persist({ bodyProfile: next });
   };
-  const faceControls = [
-    ["머리 크기", "headSize", 82, 118],
-    ["머리 폭", "headWidth", -50, 50],
-    ["머리 높이", "headHeight", -50, 50],
-    ["눈 크기", "eyeSize", -50, 50],
-    ["눈 간격", "eyeSpacing", -50, 50],
-    ["눈 높이", "eyeHeight", -50, 50],
-    ["코 크기", "noseSize", -50, 50],
-    ["입 너비", "mouthWidth", -50, 50],
-    ["입 위치", "mouthHeight", -50, 50],
-    ["턱 크기", "jawSize", -50, 50],
-    ["턱 폭", "jawWidth", -50, 50],
-    ["얼굴 길이", "faceLength", -50, 50],
-    ["목 길이", "neckLength", 72, 118],
-    ["목 굵기", "neckWidth", -50, 50],
-  ];
   const bodyControls = [
     ["키", "height", 140, 210],
     ["몸통 길이", "torsoLength", 44, 70],
     ["다리 길이", "legLength", 72, 120],
-    ["팔 길이", "armLength", 72, 116],
-    ["어깨 너비", "shoulderWidth", 30, 56, { shoulder: true }],
-    ["쇄골 넓이", "clavicleWidth", -50, 50],
-    ["가슴 볼륨", "chestVolume", -50, 50],
-    ["가슴 위치", "chestPosition", -50, 50],
-    ["허리 너비", "waistWidth", 22, 42, { waist: true }],
-    ["허리 높이", "waistHeight", -50, 50],
-    ["복부 볼륨", "abdomenVolume", -50, 50],
-    ["등 두께", "backThickness", -50, 50],
-    ["상완 굵기", "upperArmWidth", -50, 50],
-    ["하완 굵기", "lowerArmWidth", -50, 50],
-    ["손 크기", "handSize", -50, 50],
-    ["손가락 길이", "fingerLength", -50, 50],
-    ["골반 너비", "hipWidth", 32, 60],
-    ["엉덩이 볼륨", "hipVolume", -50, 50],
-    ["허벅지 굵기", "thighWidth", -50, 50],
-    ["종아리 굵기", "calfWidth", -50, 50],
-    ["무릎 높이", "kneeHeight", -50, 50],
-    ["발 크기", "footSize", -50, 50],
-    ["전체 체중감", "weightMass", -50, 50],
-    ["근육량", "muscleMass", -50, 50],
-    ["체지방량", "bodyFat", -50, 50],
+    ["다리 비율", "legRatio", 46, 60],
   ];
   const updateRange = (key, value, options = {}) => {
     const number = Number(value);
@@ -895,10 +1005,9 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
         <h3>캐릭터 커스터마이징</h3>
         <div className="avatar-studio-tabs" role="tablist" aria-label="캐릭터 커스터마이징 항목">
           {[
-            ["face", "얼굴"],
             ["body", "신체 비율"],
             ["hair", "헤어"],
-            ["style", "스타일"],
+            ["style", "포즈"],
             ["view", "보기"],
           ].map(([key, label]) => (
             <button key={key} className={activeCustomizeTab === key ? "active" : ""} type="button" onClick={() => setActiveCustomizeTab(key)}>
@@ -909,17 +1018,9 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
         <div className="avatar-studio-tools compact">
           <Segment label="성별" items={[["female", "여성"], ["male", "남성"], ["neutral", "뉴트럴"]]} value={profile.gender} onChange={(value) => updateProfile({ gender: value })} />
           <Segment label="체형" items={[["slim", "슬림"], ["regular", "평균"], ["athletic", "운동형"], ["curvy", "통통"], ["model", "모델형"], ["zepeto", "패션핏"]]} value={profile.bodyType} onChange={(value) => updateProfile(bodyPreset(value))} />
-          {activeCustomizeTab === "face" && (
-            <div className="custom-tab-panel-v3">
-              <Segment label="얼굴형" items={[["round", "라운드"], ["softSquare", "소프트"], ["heart", "하트"], ["oval", "오벌"]]} value={profile.faceShape} onChange={(value) => updateProfile({ faceShape: value })} />
-              <Segment label="눈" items={[["soft", "소프트"], ["round", "동그란"], ["cat", "캣아이"], ["calm", "차분"]]} value={profile.eyeStyle} onChange={(value) => updateProfile({ eyeStyle: value })} />
-              <Segment label="얼굴 디테일" items={[["detailed", "표정 있음"], ["faceless", "무안면"]]} value={profile.faceDetail} onChange={(value) => updateProfile({ faceDetail: value })} />
-              <div className="custom-range-grid-v3">{renderRanges(faceControls)}</div>
-            </div>
-          )}
           {activeCustomizeTab === "body" && (
             <div className="custom-tab-panel-v3">
-              <p className="custom-panel-note-v3">신체 비율은 슬라이더를 움직이면 바로 아바타에 반영돼요.</p>
+              <p className="custom-panel-note-v3">기준 모델 형체는 유지하고 키, 몸통, 다리 비율만 자연스럽게 바꿔요.</p>
               <div className="custom-range-grid-v3">{renderRanges(bodyControls)}</div>
             </div>
           )}
@@ -928,6 +1029,7 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
               <Segment label="헤어" items={[["none", "무안면"], ["short", "숏"], ["medium", "미디엄"], ["long", "롱"], ["wavy", "웨이브"], ["straight", "스트레이트"], ["ponytail", "포니테일"], ["bangs", "앞머리"]]} value={profile.hairStyle} onChange={(value) => updateProfile({ hairStyle: value })} />
               <Segment label="헤어 컬러" items={[["black", "블랙"], ["brown", "브라운"], ["blonde", "블론드"], ["ash", "애쉬"]]} value={profile.hairColor} onChange={(value) => updateProfile({ hairColor: value })} />
               <Segment label="피부톤" items={[["bright", "밝음"], ["medium", "보통"], ["warm", "웜"], ["cool", "쿨"], ["deep", "딥"]]} value={profile.skinTone} onChange={(value) => updateProfile({ skinTone: value })} />
+              <Segment label="얼굴" items={[["detailed", "표정 있음"], ["faceless", "무안면"]]} value={profile.faceDetail} onChange={(value) => updateProfile({ faceDetail: value })} />
             </div>
           )}
           {activeCustomizeTab === "style" && (
@@ -948,6 +1050,7 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
 }
 function MagicCloset({ t, wardrobe, wear, addItem, onEditItem, onArchiveItem, onRestoreItem, onDeleteItem, fit, bodyProfile }) {
   const [closetCategory, setClosetCategory] = useState("tops");
+  const [lastDressedItem, setLastDressedItem] = useState(null);
   const closetTabs = [
     ["tops", "상의"],
     ["bottoms", "하의"],
@@ -962,6 +1065,12 @@ function MagicCloset({ t, wardrobe, wear, addItem, onEditItem, onArchiveItem, on
   const archivedItems = safeWardrobe.filter((item) => item.archived);
   const visibleItems = [...activeItems, ...archivedItems].filter((item) => item.category === closetCategory);
   const analytics = buildWardrobeAnalytics(safeWardrobe);
+  const safeFit = normalizeFit(fit, safeWardrobe);
+  const handleWear = (item) => {
+    if (!item || item.archived) return;
+    setLastDressedItem(item);
+    wear(item);
+  };
 
   return (
     <section className="world-room magic-closet-v3">
@@ -976,19 +1085,22 @@ function MagicCloset({ t, wardrobe, wear, addItem, onEditItem, onArchiveItem, on
       </div>
       <div className="closet-fitting-room-v3">
         <div className="closet-avatar-preview-v3">
-          <FashionAvatar fit={fit} mood="moodLuxury" bodyProfile={bodyProfile} t={t} />
-          <div>
-            <strong>지금 입은 룩</strong>
-            <p>옷 카드의 입히기를 누르면 바로 캐릭터에 적용돼요.</p>
+          <div className="fitting-avatar-frame">
+            <FashionAvatar fit={fit} mood="moodLuxury" bodyProfile={bodyProfile} t={t} />
+          </div>
+          <div className="fitting-copy-v3">
+            <span className="fitting-status-v3">{lastDressedItem ? "방금 입힘" : "피팅룸"}</span>
+            <strong>{lastDressedItem?.name || "지금 입은 룩"}</strong>
+            <p>{lastDressedItem ? `${fashionText(lastDressedItem.category)}가 캐릭터에 적용됐어요. 색과 핏을 바로 확인하세요.` : "옷 카드의 입히기를 누르면 이 캐릭터에 바로 적용돼요."}</p>
           </div>
         </div>
         <div className="wearing-details compact-wearing-v3">
           {["tops", "outerwear", "bottoms", "shoes", "bags", "accessories"].map((slot) => (
             <div className="wearing-detail" key={slot}>
-              <span style={{ "--swatch": normalizeFit(fit)[slot]?.color || "#e8e1d9" }} />
+              <span style={{ "--swatch": safeFit[slot]?.color || "#e8e1d9" }} />
               <div>
                 <small>{fashionText(slot)}</small>
-                <strong>{normalizeFit(fit)[slot]?.name || "비어 있음"}</strong>
+                <strong>{safeFit[slot]?.name || "비어 있음"}</strong>
               </div>
             </div>
           ))}
@@ -1001,13 +1113,13 @@ function MagicCloset({ t, wardrobe, wear, addItem, onEditItem, onArchiveItem, on
         </aside>
         <div className="collectible-grid">
           {visibleItems.length ? visibleItems.map((item) => (
-            <article className={`collectible-card ${item.archived ? "is-archived" : ""}`} key={item.id}>
-              <button className="collectible-wear" onClick={() => wear(item)} type="button" disabled={item.archived}>
+            <article className={`collectible-card ${item.archived ? "is-archived" : ""} ${safeFit[item.category]?.id === item.id ? "is-wearing" : ""}`} key={item.id}>
+              <button className="collectible-wear" onClick={() => handleWear(item)} type="button" disabled={item.archived}>
                 {item.image ? <img src={item.image} alt="" /> : <span className={`fabric pattern-${item.pattern || "plain"}`} style={{ "--fabric": item.color }} />}
                 <strong>{item.name}</strong>
                 <p>{fashionText(item.category)} · {fashionText(item.subcategory || item.clothingType)} · {fashionText(item.pattern || "Solid")}</p>
                 <div><em>{fashionText(item.fitType || "Regular Fit")}</em><em>{fashionText(item.fabric || "Cotton")}</em></div>
-                <b className="wear-now-label">바로 입히기</b>
+                <b className="wear-now-label">{safeFit[item.category]?.id === item.id ? "착용 중" : "바로 입히기"}</b>
               </button>
               <div className="wardrobe-actions-v3">
                 <button onClick={() => onEditItem(item)} type="button">편집</button>
@@ -1688,9 +1800,62 @@ function ItemComposer({ t, mood, onClose, onSubmit }) {
     </div>
   );
 }
+function lockAvatarModelShape(profile = {}) {
+  const safe = normalizeBodyProfile(profile);
+  const bodyPresets = {
+    slim: { shoulderWidth: 39, waistWidth: 25, hipWidth: 38 },
+    regular: { shoulderWidth: 42, waistWidth: 28, hipWidth: 42 },
+    balanced: { shoulderWidth: 42, waistWidth: 28, hipWidth: 42 },
+    athletic: { shoulderWidth: 47, waistWidth: 29, hipWidth: 42 },
+    curvy: { shoulderWidth: 42, waistWidth: 30, hipWidth: 48 },
+    model: { shoulderWidth: 40, waistWidth: 25, hipWidth: 39 },
+    zepeto: { shoulderWidth: 39, waistWidth: 26, hipWidth: 42 },
+  };
+  const preset = bodyPresets[safe.bodyType] || bodyPresets.regular;
+  return normalizeBodyProfile({
+    ...safe,
+    ...preset,
+    shoulder: preset.shoulderWidth,
+    waist: preset.waistWidth,
+    headSize: 100,
+    headWidth: 0,
+    headHeight: 0,
+    jawSize: 0,
+    jawWidth: 0,
+    faceLength: 0,
+    neckWidth: 0,
+    clavicleWidth: 0,
+    chestVolume: 0,
+    chestPosition: 0,
+    waistHeight: 0,
+    abdomenVolume: 0,
+    backThickness: 0,
+    upperArmWidth: 0,
+    lowerArmWidth: 0,
+    handSize: 0,
+    fingerLength: 0,
+    hipVolume: 0,
+    thighWidth: 0,
+    calfWidth: 0,
+    kneeHeight: 0,
+    footSize: 0,
+    weightMass: 0,
+    muscleMass: 0,
+    bodyFat: 0,
+    eyeSize: 0,
+    eyeSpacing: 0,
+    eyeHeight: 0,
+    noseSize: 0,
+    mouthWidth: 0,
+    mouthHeight: 0,
+    faceShape: "round",
+    eyeStyle: "soft",
+  });
+}
+
 function ReferenceFashionAvatar({ fit, bodyProfile }) {
   const svgId = useId().replace(/:/g, "");
-  const profile = normalizeBodyProfile(bodyProfile);
+  const profile = lockAvatarModelShape(bodyProfile);
   const safeFit = normalizeFit(fit);
   const skin = avatarVariables(profile)["--avatar-skin"];
   const hair = avatarVariables(profile)["--avatar-hair"];
@@ -2074,9 +2239,11 @@ function SettingsModal({ t, language, setLanguage, theme, setTheme, session, log
   );
 }
 
-function scoreOutfit({ fit, weather, mood, eventType }) {
+function scoreOutfit({ fit, weather, mood, eventType, styleProfile }) {
   const safeFit = normalizeFit(fit);
   const items = Object.values(safeFit).filter(Boolean);
+  const profile = normalizeStyleProfile(styleProfile);
+  const colorAnalysis = buildColorAnalysis(safeFit, profile);
   const colorNames = items.map((item) => `${item.colorName || item.color || ""}`.toLowerCase());
   const hasOuter = Boolean(safeFit.outerwear);
   const hasShoes = Boolean(safeFit.shoes);
@@ -2096,14 +2263,19 @@ function scoreOutfit({ fit, weather, mood, eventType }) {
   );
   const patternWarning = patternItems.length > 1;
   const coverageBonus = Math.min(12, items.length * 3);
-  const color = Math.max(54, Math.min(97, 72 + coverageBonus + (hasLightDarkBalance ? 10 : 3) - (patternWarning ? 9 : 0)));
+  const profileFitBonus = profile.fits.some((fitName) => items.some((item) => fashionText(item.fitType || "").includes(fitName) || String(item.fitType || "").toLowerCase().includes(fitName.toLowerCase().replace("핏", "")))) ? 6 : 0;
+  const styleSignalBonus = profile.styles.length ? 4 : 0;
+  const color = Math.max(54, Math.min(98, Math.round((72 + coverageBonus + (hasLightDarkBalance ? 10 : 3) - (patternWarning ? 9 : 0) + colorAnalysis.score) / 2)));
   const comfort = Math.max(
     52,
     Math.min(96, 66 + coverageBonus + (hasShoes ? 8 : 0) + (hasOuter ? 7 : 0) + (isRain ? (hasOuter ? 4 : -7) : 3) + (isCold ? (hasOuter ? 5 : -5) : 0))
   );
-  const confidence = Math.max(58, Math.min(98, 70 + coverageBonus + (moodText.includes("luxury") || moodText.includes("chic") ? 9 : 5) + (eventText ? 5 : 0)));
-  const total = Math.round((color + comfort + confidence) / 3);
-  return { total, color, comfort, confidence, patternWarning };
+  const confidence = Math.max(58, Math.min(98, 70 + coverageBonus + (moodText.includes("luxury") || moodText.includes("chic") ? 9 : 5) + (eventText ? 5 : 0) + profileFitBonus));
+  const trend = Math.max(60, Math.min(97, 74 + styleSignalBonus + profileFitBonus + (safeFit.outerwear ? 4 : 0)));
+  const silhouette = Math.max(58, Math.min(96, 70 + profileFitBonus + (items.length >= 3 ? 8 : 0) + (patternWarning ? -5 : 2)));
+  const season = Math.max(58, Math.min(96, comfort + (isCold || isRain ? 0 : 2)));
+  const total = Math.round((color + comfort + confidence + trend + silhouette + season) / 6);
+  return { total, color, comfort, confidence, trend, silhouette, season, colorSummary: colorAnalysis.summary, patternWarning };
 }
 
 function token(value, fallback = "basic") {
@@ -2112,6 +2284,89 @@ function token(value, fallback = "basic") {
 
 function fashionText(value) {
   return fashionLabelMap[value] || value || "";
+}
+
+function normalizeStyleProfile(profile = {}) {
+  const safe = profile && typeof profile === "object" ? profile : {};
+  const styles = Array.isArray(safe.styles) ? safe.styles.filter((item) => styleSurveyOptions.styles.includes(item)).slice(0, 8) : [];
+  const fits = Array.isArray(safe.fits) ? safe.fits.filter((item) => styleSurveyOptions.fits.includes(item)).slice(0, 4) : [];
+  const colors = Array.isArray(safe.colors) ? safe.colors.filter((item) => styleSurveyOptions.colors.includes(item)).slice(0, 5) : [];
+  const gender = styleSurveyOptions.genders.some(([value]) => value === safe.gender) ? safe.gender : "neutral";
+  const bodyType = styleSurveyOptions.bodyTypes.some(([value]) => value === safe.bodyType) ? safe.bodyType : "balanced";
+  const personalColor = styleSurveyOptions.personalColors.includes(safe.personalColor) ? safe.personalColor : "모름";
+  const brands = sanitizeInput(safe.brands || "", 240);
+  const summary = summarizeStyleProfile({ styles, fits, colors });
+  return {
+    completed: Boolean(safe.completed),
+    skipped: Boolean(safe.skipped),
+    styles,
+    fits,
+    colors,
+    gender,
+    bodyType,
+    brands,
+    personalColor,
+    summary,
+  };
+}
+
+function summarizeStyleProfile(profile = {}) {
+  const styles = Array.isArray(profile.styles) ? profile.styles.slice(0, 2) : [];
+  const fits = Array.isArray(profile.fits) ? profile.fits.slice(0, 1) : [];
+  const colors = Array.isArray(profile.colors) ? profile.colors.slice(0, 2) : [];
+  return [...styles, ...fits, ...colors].filter(Boolean).join(" + ");
+}
+
+function buildShoppingAdvice(profile = {}, fit = {}, weather = "") {
+  const safeProfile = normalizeStyleProfile(profile);
+  const safeFit = normalizeFit(fit);
+  const closetColors = Object.values(safeFit).filter(Boolean).map((item) => normalizeColorName(item.color));
+  const favoriteColors = safeProfile.colors.length ? safeProfile.colors : ["화이트", "네이비", "베이지"];
+  const favoriteFit = safeProfile.fits[0] || "정핏";
+  const favoriteStyle = safeProfile.styles[0] || "캐주얼";
+  const weatherText = String(weather || "").toLowerCase();
+  const outerAdvice = weatherText.includes("rain") || weatherText.includes("비")
+    ? "비 오는 날용 생활 방수 아우터를 하나 두면 활용도가 높을개."
+    : "계절감 있는 얇은 아우터를 더하면 코디 완성도가 올라갈개.";
+  const colorAdvice = closetColors.includes("black") || closetColors.includes("navy")
+    ? `${favoriteColors[0]} 계열 상의를 추가하면 어두운 옷장에 밝은 포인트가 생길개.`
+    : `${favoriteColors[0]} 또는 ${favoriteColors[1] || "그레이"} 계열 하의를 더하면 기존 옷과 매치하기 쉬울개.`;
+  return [
+    `${favoriteStyle} 무드에는 ${favoriteFit} 실루엣의 기본 상의가 먼저 필요할개.`,
+    colorAdvice,
+    outerAdvice,
+    safeProfile.brands ? `${safeProfile.brands.split(",")[0].trim()} 느낌의 베이직 아이템부터 비교해보면 좋을개.` : "브랜드를 입력하면 구매 추천이 더 정확해질개.",
+  ];
+}
+
+function buildColorAnalysis(fit = {}, profile = {}) {
+  const safeFit = normalizeFit(fit);
+  const colors = Object.values(safeFit).filter(Boolean).map((item) => normalizeColorName(item.color || item.primaryColor));
+  const personalColor = normalizeStyleProfile(profile).personalColor;
+  const hasNeutral = colors.some((color) => ["white", "black", "gray", "cream", "beige", "brown"].includes(color));
+  const hasBlue = colors.some((color) => ["blue", "navy"].includes(color));
+  const hasWarm = colors.some((color) => ["brown", "beige", "pink", "red", "yellow"].includes(color));
+  const hasCool = colors.some((color) => ["blue", "navy", "gray", "green"].includes(color));
+  const harmony = hasNeutral ? 92 : hasBlue && hasWarm ? 88 : hasCool && hasWarm ? 82 : 76;
+  const personalBonus =
+    personalColor.includes("겨울") && colors.some((color) => ["black", "white", "navy", "gray"].includes(color)) ? 5 :
+    personalColor.includes("여름") && colors.some((color) => ["blue", "gray", "pink"].includes(color)) ? 4 :
+    personalColor.includes("가을") && colors.some((color) => ["brown", "beige", "khaki"].includes(color)) ? 4 :
+    personalColor.includes("봄") && colors.some((color) => ["cream", "pink", "yellow"].includes(color)) ? 4 : 0;
+  const score = Math.min(98, harmony + personalBonus);
+  const summary = hasNeutral
+    ? "뉴트럴 컬러가 중심을 잡아줘서 안정적이고 고급스럽게 보일개."
+    : hasBlue && hasWarm
+      ? "차가운 색과 따뜻한 색이 섞여 포인트가 또렷한 조합일개."
+      : "톤 차이가 크지 않아 부드럽게 이어지는 조합일개.";
+  return { score, summary, colors };
+}
+
+function colorTokenToHex(name = "") {
+  return {
+    화이트: "#ffffff", 블랙: "#24201d", 그레이: "#b7b4ae", 베이지: "#dfc9aa", 브라운: "#8b674a", 카키: "#8f9678",
+    네이비: "#1f3556", 블루: "#8bb5dc", 레드: "#d26d68", 핑크: "#f3b7c2", 퍼플: "#b7a3d8", 그린: "#9fc89f", 옐로우: "#f3d271",
+  }[name] || "#f7d9d9";
 }
 
 function inferSubcategory(category, clothingType) {
@@ -2439,16 +2694,23 @@ function PlatformLayer({ t, wardrobe, savedLooks, fit }) {
   );
 }
 
-function buildRecommendation({ t, mood, fit, brief, weather, schedule, eventType, aesthetic }) {
+function buildRecommendation({ t, mood, fit, brief, weather, schedule, eventType, aesthetic, styleProfile }) {
   const safeFit = normalizeFit(fit);
+  const profile = normalizeStyleProfile(styleProfile);
   const pieces = [safeFit.tops, safeFit.outerwear, safeFit.bottoms, safeFit.shoes].filter(Boolean).map((item) => item.name);
   const pieceText = pieces.length ? pieces.join(", ") : t("wardrobeTitle");
+  const colorAnalysis = buildColorAnalysis(safeFit, profile);
+  const shoppingAdvice = buildShoppingAdvice(profile, safeFit, weather);
+  const profileText = profile.summary || "캐주얼 + 정핏";
   return {
-    name: `${t(mood)} Atelier ${eventType || "Look"}`,
-    explanation: t("recommendationSentence").replace("{schedule}", schedule || t("schedule")).replace("{pieces}", pieceText),
+    name: `${t(mood)} ${profileText} 룩`,
+    explanation: `오늘 일정은 ${schedule || t("schedule")}라서 ${pieceText} 조합이 가장 자연스럽개. ${colorAnalysis.summary}`,
     colors: [safeFit.tops?.color, safeFit.outerwear?.color, safeFit.bottoms?.color].filter(Boolean).join(" · "),
     avoid: t("avoidSentence").replace("{weather}", weather || t("weather")),
-    tips: `${t("tipSentence").replace("{aesthetic}", aesthetic || t("aesthetic"))}${brief ? ` ${sanitizeInput(brief)}` : ""}`,
+    tips: `${shoppingAdvice[0]} ${t("tipSentence").replace("{aesthetic}", aesthetic || profileText)}${brief ? ` ${sanitizeInput(brief)}` : ""}`,
+    shoppingAdvice,
+    colorReason: colorAnalysis.summary,
+    profileText,
   };
 }
 
