@@ -957,73 +957,24 @@ function V3Home({ recommendation, scores, game, wardrobe, savedLooks, weather, f
     </section>
   );
 }
-function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, persist }) {
+function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, persist, saveLook, styleProfile }) {
   const profile = normalizeBodyProfile(bodyProfile);
-  const [zoom, setZoom] = useState(100);
+  const [zoom, setZoom] = useState(112);
   const [rotation, setRotation] = useState(0);
-  const [activeCustomizeTab, setActiveCustomizeTab] = useState("upper");
+  const [activeCustomizeTab, setActiveCustomizeTab] = useState("body");
+  const [advancedMode, setAdvancedMode] = useState(false);
+  const dragState = useRef({ active: false, x: 0, rotation: 0 });
+  const profileSummary = normalizeStyleProfile(styleProfile);
+  const focusZoom = { face: 1.2, hair: 1.16, body: 1.04, tops: 1.07, bottoms: 1.08, shoes: 1.16, detail: 1.1 }[activeCustomizeTab] || 1;
+  const viewportY = { face: "-7%", hair: "-8%", body: "0%", tops: "-2%", bottoms: "4%", shoes: "8%", detail: "-2%" }[activeCustomizeTab] || "0%";
+  const genderLabel = { male: "남성", female: "여성", neutral: "뉴트럴" }[profile.gender] || "뉴트럴";
+  const silhouetteLabel = profile.legRatio >= 58 ? "롱레그 실루엣" : profile.shoulderWidth >= 48 ? "스트럭처 핏" : profile.hipWidth >= 48 ? "커브 밸런스" : "소프트 밸런스";
+
   const updateProfile = (patch) => {
     const next = normalizeBodyProfile({ ...profile, ...patch });
     setBodyProfile(next);
     persist({ bodyProfile: next });
   };
-  const headControls = [
-    ["머리 크기", "headSize", 80, 130],
-    ["머리 폭", "headWidth", -50, 50],
-    ["머리 높이", "headHeight", -50, 50],
-    ["턱 길이", "jawSize", -50, 50],
-    ["턱 넓이", "jawWidth", -50, 50],
-    ["얼굴 길이", "faceLength", -50, 50],
-    ["목 길이", "neckLength", 70, 130],
-    ["목 굵기", "neckWidth", -50, 50],
-  ];
-  const upperControls = [
-    ["키", "height", 140, 210],
-    ["어깨 넓이", "shoulderWidth", 30, 56, { shoulder: true }],
-    ["쇄골 넓이", "clavicleWidth", -50, 50],
-    ["어깨 기울기", "shoulderSlope", -50, 50],
-    ["승모근 크기", "trapSize", -50, 50],
-    ["가슴 볼륨", "chestVolume", 0, 100],
-    ["가슴 위치", "chestPosition", -50, 50],
-    ["흉곽 크기", "ribcageSize", -50, 50],
-    ["등 두께", "backThickness", -50, 50],
-  ];
-  const armControls = [
-    ["팔 길이", "armLength", 70, 130],
-    ["상완 굵기", "upperArmWidth", -50, 50],
-    ["전완 굵기", "lowerArmWidth", -50, 50],
-    ["손 크기", "handSize", -50, 50],
-    ["손가락 길이", "fingerLength", -50, 50],
-  ];
-  const waistHipControls = [
-    ["허리 굵기", "waistWidth", 20, 42, { waist: true }],
-    ["허리 높이", "waistHeight", -50, 50],
-    ["복부 볼륨", "abdomenVolume", -50, 50],
-    ["골반 넓이", "hipWidth", 32, 62],
-    ["골반 높이", "hipHeight", -50, 50],
-    ["엉덩이 볼륨", "hipVolume", -50, 50],
-    ["엉덩이 돌출", "hipProjection", -50, 50],
-  ];
-  const legControls = [
-    ["다리 길이", "legLength", 70, 130],
-    ["다리 비율", "legRatio", 40, 70],
-    ["허벅지 굵기", "thighWidth", -50, 50],
-    ["허벅지 길이", "thighLength", -50, 50],
-    ["종아리 굵기", "calfWidth", -50, 50],
-    ["종아리 길이", "calfLength", -50, 50],
-    ["무릎 높이", "kneeHeight", -50, 50],
-    ["발 크기", "footSize", -50, 50],
-  ];
-  const volumeControls = [
-    ["체중", "weightKg", 40, 150],
-    ["전체 체중감", "weightMass", -50, 50],
-    ["근육량", "muscleMass", 0, 100],
-    ["체지방", "bodyFat", 0, 100],
-    ["상체 비율", "torsoRatio", 30, 60],
-    ["머리 비율", "headRatio", 5, 20],
-    ["팔 비율", "armRatio", 10, 25],
-    ["몸통 길이", "torsoLength", 44, 70],
-  ];
   const updateRange = (key, value, options = {}) => {
     const number = Number(value);
     updateProfile({
@@ -1042,88 +993,156 @@ function CharacterRoom({ t, mood, setMood, fit, bodyProfile, setBodyProfile, per
       onChange={(value) => updateRange(key, value, options)}
     />
   ));
+  const controlGroups = {
+    face: {
+      note: "얼굴 파츠 없이도 머리와 목 비율로 모델 인상이 달라져요.",
+      basic: [["머리 크기", "headSize", 80, 130], ["머리 폭", "headWidth", -50, 50], ["얼굴 길이", "faceLength", -50, 50]],
+      advanced: [["머리 높이", "headHeight", -50, 50], ["턱 길이", "jawSize", -50, 50], ["턱 넓이", "jawWidth", -50, 50], ["목 길이", "neckLength", 70, 130], ["목 굵기", "neckWidth", -50, 50]],
+    },
+    body: {
+      note: "가장 자주 쓰는 체형 값만 먼저 보여줘요. 옷 실루엣도 즉시 같이 변합니다.",
+      basic: [["키", "height", 140, 210], ["어깨 넓이", "shoulderWidth", 30, 56, { shoulder: true }], ["허리", "waistWidth", 20, 42, { waist: true }], ["골반", "hipWidth", 32, 62], ["다리 길이", "legLength", 70, 130], ["다리 비율", "legRatio", 40, 70]],
+      advanced: [["쇄골", "clavicleWidth", -50, 50], ["승모근", "trapSize", -50, 50], ["흉곽", "ribcageSize", -50, 50], ["가슴 볼륨", "chestVolume", 0, 100], ["가슴 위치", "chestPosition", -50, 50], ["등 두께", "backThickness", -50, 50], ["복부 볼륨", "abdomenVolume", -50, 50], ["체중", "weightKg", 40, 150], ["근육량", "muscleMass", 0, 100], ["체지방", "bodyFat", 0, 100]],
+    },
+    tops: {
+      note: "상의와 아우터가 어깨, 가슴, 허리 변화에 맞춰 붙도록 조정해요.",
+      basic: [["어깨 넓이", "shoulderWidth", 30, 56, { shoulder: true }], ["가슴 볼륨", "chestVolume", 0, 100], ["허리", "waistWidth", 20, 42, { waist: true }]],
+      advanced: [["팔 길이", "armLength", 70, 130], ["상완 굵기", "upperArmWidth", -50, 50], ["전완 굵기", "lowerArmWidth", -50, 50], ["손 크기", "handSize", -50, 50]],
+    },
+    bottoms: {
+      note: "하의는 허리, 골반, 허벅지, 다리 길이에 맞춰 실루엣이 바뀝니다.",
+      basic: [["허리", "waistWidth", 20, 42, { waist: true }], ["골반", "hipWidth", 32, 62], ["다리 길이", "legLength", 70, 130], ["허벅지", "thighWidth", -50, 50]],
+      advanced: [["골반 높이", "hipHeight", -50, 50], ["엉덩이 볼륨", "hipVolume", -50, 50], ["엉덩이 돌출", "hipProjection", -50, 50], ["종아리", "calfWidth", -50, 50], ["무릎 높이", "kneeHeight", -50, 50]],
+    },
+    shoes: {
+      note: "신발 크기와 발끝 비율을 맞춰 바닥에 자연스럽게 닿게 해요.",
+      basic: [["발 크기", "footSize", -50, 50], ["다리 길이", "legLength", 70, 130]],
+      advanced: [["종아리 굵기", "calfWidth", -50, 50], ["종아리 길이", "calfLength", -50, 50], ["팔 비율", "armRatio", 10, 25]],
+    },
+    detail: {
+      note: "전체 비율과 저장 기능을 관리해요.",
+      basic: [["상체 비율", "torsoRatio", 30, 60], ["머리 비율", "headRatio", 5, 20], ["몸통 길이", "torsoLength", 44, 70]],
+      advanced: [["전체 체중감", "weightMass", -50, 50], ["손 크기", "handSize", -50, 50], ["손가락 길이", "fingerLength", -50, 50]],
+    },
+  };
+  const activeGroup = controlGroups[activeCustomizeTab] || controlGroups.body;
+  const presetGroups = {
+    female: [["슬림", { gender: "female", shoulderWidth: 38, waistWidth: 24, hipWidth: 43, legRatio: 58, chestVolume: 18 }], ["스트레이트", { gender: "female", shoulderWidth: 41, waistWidth: 27, hipWidth: 42, legRatio: 55, chestVolume: 10 }], ["글래머", { gender: "female", shoulderWidth: 42, waistWidth: 25, hipWidth: 52, legRatio: 55, chestVolume: 46 }], ["스포츠", { gender: "female", shoulderWidth: 45, waistWidth: 27, hipWidth: 44, legRatio: 56, muscleMass: 48 }]],
+    male: [["슬림", { gender: "male", shoulderWidth: 45, waistWidth: 27, hipWidth: 39, legRatio: 54, muscleMass: 18 }], ["스탠다드", { gender: "male", shoulderWidth: 49, waistWidth: 30, hipWidth: 40, legRatio: 53, muscleMass: 30 }], ["운동형", { gender: "male", shoulderWidth: 54, waistWidth: 29, hipWidth: 41, legRatio: 53, muscleMass: 62 }], ["와이드", { gender: "male", shoulderWidth: 56, waistWidth: 34, hipWidth: 43, legRatio: 51, weightMass: 22 }]],
+    neutral: [["밸런스", { gender: "neutral", shoulderWidth: 42, waistWidth: 28, hipWidth: 42, legRatio: 54 }], ["슬림", { gender: "neutral", shoulderWidth: 38, waistWidth: 24, hipWidth: 38, legRatio: 57, weightMass: -18 }], ["롱레그", { gender: "neutral", shoulderWidth: 40, waistWidth: 26, hipWidth: 40, legRatio: 63, legLength: 116 }], ["소프트", { gender: "neutral", shoulderWidth: 39, waistWidth: 29, hipWidth: 45, legRatio: 53, bodyFat: 26 }]],
+  };
+  const applyPreset = (patch) => updateProfile({ ...patch });
+  const randomizeBody = () => {
+    updateProfile({
+      height: 158 + Math.round(Math.random() * 24),
+      headSize: 94 + Math.round(Math.random() * 16),
+      shoulderWidth: 37 + Math.round(Math.random() * 14),
+      waistWidth: 23 + Math.round(Math.random() * 12),
+      hipWidth: 36 + Math.round(Math.random() * 18),
+      legRatio: 50 + Math.round(Math.random() * 12),
+      chestVolume: Math.round(Math.random() * 48),
+      muscleMass: Math.round(Math.random() * 55),
+      bodyFat: Math.round(Math.random() * 38),
+    });
+  };
+  const resetBody = () => updateProfile(bodyPreset("regular"));
+  const saveBody = () => persist({ bodyProfile: profile });
+  const onPointerDown = (event) => {
+    dragState.current = { active: true, x: event.clientX, rotation };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+  const onPointerMove = (event) => {
+    if (!dragState.current.active) return;
+    setRotation(dragState.current.rotation + (event.clientX - dragState.current.x) * .5);
+  };
+  const onPointerUp = () => {
+    dragState.current.active = false;
+  };
+  const onWheel = (event) => {
+    event.preventDefault();
+    setZoom((value) => clamp(value - event.deltaY * .035, 88, 142));
+  };
+  const tabItems = [
+    ["face", UserRound, "얼굴"],
+    ["hair", Sparkles, "헤어"],
+    ["body", UserRound, "체형"],
+    ["tops", Shirt, "상의"],
+    ["bottoms", Trees, "하의"],
+    ["shoes", Check, "신발"],
+    ["detail", Palette, "디테일"],
+  ];
 
   return (
-    <section className="world-room room-split character-room-v3">
-      <RoomHeader eyebrow="캐릭터" title="아바타 스튜디오" comment="내 체형과 스타일을 직접 조정하는 공간" />
-      <div className="avatar-dressing-stage avatar-studio-stage" style={{ "--studio-zoom": zoom / 100, "--studio-rotate": `${rotation}deg` }}>
-        <FashionAvatar fit={fit} mood={mood} bodyProfile={profile} t={t} />
-        <div className="studio-stage-actions">
-          <button type="button" onClick={() => setRotation((value) => value - 8)}>왼쪽</button>
-          <button type="button" onClick={() => setRotation(0)}>정면</button>
-          <button type="button" onClick={() => setRotation((value) => value + 8)}>오른쪽</button>
+    <section className="world-room character-room-v3 avatar-studio-premium">
+      <header className="avatar-studio-header">
+        <div>
+          <p className="eyebrow">AVATAR STUDIO</p>
+          <h2>패션 아바타 스튜디오</h2>
         </div>
+        <aside className="avatar-live-analysis" aria-label="실시간 체형 분석">
+          <span>오늘의 체형 분석</span>
+          <strong>{genderLabel} · {silhouetteLabel}</strong>
+          <p>추천 핏 {profile.shoulderWidth >= 48 ? "세미오버 자켓" : "스트레이트 상의"} · 퍼스널 컬러 {profileSummary.personalColor || "모름"}</p>
+        </aside>
+      </header>
+
+      <div
+        className={`avatar-dressing-stage avatar-studio-stage focus-${activeCustomizeTab}`}
+        style={{ "--studio-zoom": (zoom / 100) * focusZoom, "--studio-rotate": `${rotation}deg`, "--studio-pan-y": viewportY }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onWheel={onWheel}
+        role="application"
+        aria-label="드래그로 아바타 회전, 마우스 휠로 확대 축소"
+      >
+        <div className="studio-depth-grid" aria-hidden="true" />
+        <FashionAvatar fit={fit} mood={mood} bodyProfile={profile} t={t} />
+        <div className="studio-view-hint">드래그 회전 · 휠 줌</div>
       </div>
-      <div className="room-panel-v3">
-        <h3>캐릭터 커스터마이징</h3>
-        <div className="avatar-studio-tabs" role="tablist" aria-label="캐릭터 커스터마이징 항목">
-          {[
-            ["head", "머리·목"],
-            ["upper", "상체"],
-            ["arms", "팔·손"],
-            ["waistHip", "허리·골반"],
-            ["legs", "다리·발"],
-            ["volume", "전체 비율"],
-            ["hair", "헤어"],
-            ["view", "보기"],
-          ].map(([key, label]) => (
+
+      <aside className="room-panel-v3 avatar-control-console">
+        <div className="studio-console-top">
+          <h3>커스터마이징</h3>
+          <button className={advancedMode ? "active" : ""} type="button" onClick={() => setAdvancedMode((value) => !value)}>
+            {advancedMode ? "고급 닫기" : "고급 모드"}
+          </button>
+        </div>
+        <div className="avatar-icon-tabs" role="tablist" aria-label="아바타 스튜디오 카테고리">
+          {tabItems.map(([key, Icon, label]) => (
             <button key={key} className={activeCustomizeTab === key ? "active" : ""} type="button" onClick={() => setActiveCustomizeTab(key)}>
-              {label}
+              <Icon size={18} />
+              <span>{label}</span>
             </button>
           ))}
         </div>
-        <div className="avatar-studio-tools compact">
-          <Segment label="성별 베이스" items={[["neutral", "뉴트럴"], ["female", "여성"], ["male", "남성"]]} value={profile.gender} onChange={(value) => updateProfile({ gender: value })} />
-          {activeCustomizeTab === "head" && (
-            <div className="custom-tab-panel-v3">
-              <p className="custom-panel-note-v3">얼굴 파츠는 숨기고, 무안면 마네킹의 머리 형태와 목 비율만 조정해요.</p>
-              <div className="custom-range-grid-v3">{renderRanges(headControls)}</div>
-            </div>
-          )}
-          {activeCustomizeTab === "upper" && (
-            <div className="custom-tab-panel-v3">
-              <p className="custom-panel-note-v3">어깨선, 흉곽, 가슴 볼륨이 옷 실루엣과 함께 변해요.</p>
-              <div className="custom-range-grid-v3">{renderRanges(upperControls)}</div>
-            </div>
-          )}
-          {activeCustomizeTab === "arms" && (
-            <div className="custom-tab-panel-v3">
-              <p className="custom-panel-note-v3">팔 길이와 손 크기를 조절하면 소매 길이도 같이 맞춰져요.</p>
-              <div className="custom-range-grid-v3">{renderRanges(armControls)}</div>
-            </div>
-          )}
-          {activeCustomizeTab === "waistHip" && (
-            <div className="custom-tab-panel-v3">
-              <p className="custom-panel-note-v3">허리와 골반 변화가 상의 폭, 바지 폭에 바로 반영돼요.</p>
-              <div className="custom-range-grid-v3">{renderRanges(waistHipControls)}</div>
-            </div>
-          )}
-          {activeCustomizeTab === "legs" && (
-            <div className="custom-tab-panel-v3">
-              <p className="custom-panel-note-v3">다리 길이, 허벅지, 종아리, 발 크기를 세밀하게 맞춰요.</p>
-              <div className="custom-range-grid-v3">{renderRanges(legControls)}</div>
-            </div>
-          )}
-          {activeCustomizeTab === "volume" && (
-            <div className="custom-tab-panel-v3">
-              <p className="custom-panel-note-v3">전체 체중감과 비율을 조절해 실제 체형에 더 가깝게 만들어요.</p>
-              <div className="custom-range-grid-v3">{renderRanges(volumeControls)}</div>
-            </div>
-          )}
-          {activeCustomizeTab === "hair" && (
-            <div className="custom-tab-panel-v3">
-              <Segment label="헤어" items={[["none", "없음"], ["short", "숏컷"], ["medium", "미디엄"], ["long", "롱"], ["wavy", "웨이브"], ["ponytail", "포니테일"], ["bun", "번헤어"]]} value={profile.hairStyle} onChange={(value) => updateProfile({ hairStyle: value })} />
-              <Segment label="헤어 컬러" items={[["black", "블랙"], ["brown", "브라운"], ["blonde", "블론드"], ["ash", "애쉬"]]} value={profile.hairColor} onChange={(value) => updateProfile({ hairColor: value })} />
-              <Segment label="베이스 컬러" items={[["ivory", "소프트 아이보리"], ["warmGray", "웜 그레이"], ["lightBeige", "라이트 베이지"], ["bright", "밝은 피부"], ["medium", "보통 피부"]]} value={profile.skinTone} onChange={(value) => updateProfile({ skinTone: value })} />
-            </div>
-          )}
-          {activeCustomizeTab === "view" && (
-            <div className="custom-tab-panel-v3">
-              <RangeControl label="줌" min="86" max="116" value={zoom} onChange={(value) => setZoom(Number(value))} />
-            </div>
-          )}
+        <Segment label="성별 베이스" items={[["neutral", "뉴트럴"], ["female", "여성"], ["male", "남성"]]} value={profile.gender} onChange={(value) => updateProfile({ gender: value })} />
+        <div className="preset-shelf">
+          {(presetGroups[profile.gender] || presetGroups.neutral).map(([label, patch]) => (
+            <button key={label} type="button" onClick={() => applyPreset(patch)}>{label}</button>
+          ))}
         </div>
-      </div>
+        {activeCustomizeTab === "hair" ? (
+          <div className="custom-tab-panel-v3">
+            <Segment label="헤어" items={[["none", "없음"], ["short", "숏컷"], ["medium", "미디엄"], ["long", "롱"], ["wavy", "웨이브"], ["ponytail", "포니테일"], ["bun", "번헤어"]]} value={profile.hairStyle} onChange={(value) => updateProfile({ hairStyle: value })} />
+            <Segment label="헤어 컬러" items={[["black", "블랙"], ["brown", "브라운"], ["blonde", "블론드"], ["ash", "애쉬"]]} value={profile.hairColor} onChange={(value) => updateProfile({ hairColor: value })} />
+            <Segment label="베이스 컬러" items={[["ivory", "소프트 아이보리"], ["warmGray", "웜 그레이"], ["lightBeige", "라이트 베이지"], ["bright", "밝은 피부"], ["medium", "보통 피부"]]} value={profile.skinTone} onChange={(value) => updateProfile({ skinTone: value })} />
+          </div>
+        ) : (
+          <div className="custom-tab-panel-v3">
+            <p className="custom-panel-note-v3">{activeGroup.note}</p>
+            <div className="custom-range-grid-v3 primary-ranges">{renderRanges(activeGroup.basic)}</div>
+            {advancedMode && <div className="custom-range-grid-v3 advanced-ranges">{renderRanges(activeGroup.advanced)}</div>}
+          </div>
+        )}
+        <div className="studio-save-actions">
+          <button type="button" onClick={saveLook}>룩 저장</button>
+          <button type="button" onClick={saveBody}>체형 저장</button>
+          <button type="button" onClick={randomizeBody}>랜덤 생성</button>
+          <button type="button" onClick={resetBody}>초기화</button>
+        </div>
+      </aside>
     </section>
   );
 }
