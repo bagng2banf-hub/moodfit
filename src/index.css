@@ -1,7 +1,7 @@
 :root {
   color-scheme: light;
-  font-family: "Pretendard Rounded", "SUIT Rounded", "Cafe24 Ssurround", "Gmarket Sans", "Noto Sans KR", "Apple SD Gothic Neo", Pretendard, Inter, system-ui, sans-serif;
-  --display-font: "Pretendard Rounded", "SUIT Rounded", "Cafe24 Ssurround", "Gmarket Sans", "Noto Sans KR", "Apple SD Gothic Neo", Pretendard, Inter, system-ui, sans-serif;
+  font-family: "Gmarket Sans", "GmarketSans", "SUIT", "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", Inter, system-ui, sans-serif;
+  --display-font: "Gmarket Sans", "GmarketSans", "SUIT", "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", Inter, system-ui, sans-serif;
   --ink: #4a3f3a;
   --muted: rgba(74, 63, 58, .64);
   --bg-a: #fffdfc;
@@ -23,8 +23,9 @@
 }
 
 * { box-sizing: border-box; }
-html { min-height: 100%; background: var(--bg-b); }
-body { margin: 0; min-width: 320px; min-height: 100vh; color: var(--ink); font-family: inherit; letter-spacing: 0; }
+html { width: 100%; min-height: 100%; overflow-x: hidden; background: var(--bg-b); text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+body { margin: 0; width: 100%; min-width: 320px; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; color: var(--ink); font-family: inherit; letter-spacing: 0; }
+#root { width: 100%; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
 button, input, textarea, select { font: inherit; letter-spacing: 0; }
 button { border: 0; cursor: pointer; }
 button, a, .primary, .secondary, .icon-button, .status-pill, .language-options button, .guest-button { white-space: normal; overflow-wrap: anywhere; }
@@ -225,7 +226,8 @@ a { color: inherit; text-decoration: none; }
 .brand-lockup { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; font-weight: 900; line-height: 1; }
 .brand-lockup span { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; color: var(--button-ink); background: var(--button); }
 .eyebrow { margin: 0 0 12px; color: var(--accent); font-size: 11px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
-h1, h2, h3, p { margin-top: 0; word-break: keep-all; }
+h1, h2, h3, p, span, strong, small, button, label, input, textarea, select { word-break: keep-all; overflow-wrap: break-word; writing-mode: horizontal-tb; }
+h1, h2, h3, p { margin-top: 0; }
 h1 { margin-bottom: 18px; max-width: 800px; font-family: var(--display-font); font-size: clamp(46px, 7vw, 88px); font-weight: 800; line-height: 1.05; letter-spacing: 0; }
 h2 { margin-bottom: 0; font-family: var(--display-font); font-size: clamp(25px, 3vw, 42px); font-weight: 780; line-height: 1.22; letter-spacing: 0; }
 h3 { line-height: 1.22; }
@@ -5040,6 +5042,757 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
   letter-spacing: 0;
 }
 
+/* Production polish: calmer hierarchy, safer icon/text sizing, tighter mobile navigation */
+.moodfit-game {
+  --surface-strong: #fffdfc;
+  --surface-soft: #f7f0ea;
+  --ink: #4a3f3a;
+  --muted: rgba(74, 63, 58, .64);
+}
+
+.moodfit-game .topbar {
+  grid-template-columns: minmax(116px, 170px) minmax(0, 1fr) auto;
+  min-height: 62px;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 16px;
+}
+
+.moodfit-game .brand span small {
+  display: none;
+}
+
+.moodfit-game .main-tabs {
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.moodfit-game .main-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.moodfit-game .main-tabs button {
+  flex: 0 0 auto;
+  min-width: 54px;
+  min-height: 38px;
+  padding: 0 9px;
+  gap: 5px;
+  white-space: nowrap;
+  line-height: 1;
+  font-size: 12px;
+}
+
+.moodfit-game .main-tabs svg,
+.avatar-icon-tabs svg,
+.map-place svg,
+.closet-tabs-v3 svg,
+.world-card svg,
+.wardrobe-actions-v3 svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  max-width: 16px;
+  max-height: 16px;
+  display: block;
+  stroke-width: 2;
+}
+
+.moodfit-game .world-room,
+.moodfit-game .world-card,
+.avatar-control-console,
+.avatar-studio-premium .avatar-dressing-stage,
+.closet-avatar-preview-v3,
+.compact-wearing-v3,
+.map-place {
+  border-color: rgba(231, 221, 216, .9);
+  background-color: rgba(255, 253, 252, .86);
+  box-shadow: 0 12px 32px rgba(74, 63, 58, .06);
+}
+
+.cloud-village .twinkle-field,
+.cloud-village .floating-cloud {
+  display: none !important;
+}
+
+.avatar-studio-header h2 {
+  font-size: clamp(25px, 3vw, 40px);
+  line-height: 1.12;
+}
+
+.avatar-live-analysis {
+  padding: 12px 14px;
+  border-radius: 16px;
+}
+
+.avatar-live-analysis span,
+.avatar-live-analysis p {
+  font-size: 12px;
+}
+
+.avatar-live-analysis p,
+.map-place span,
+.collectible-card p,
+.closet-avatar-preview-v3 p,
+.room-header-v3 p,
+.world-card p {
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.avatar-icon-tabs {
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.avatar-icon-tabs button {
+  min-height: 46px;
+  border-radius: 12px;
+  gap: 3px;
+  font-size: 10px;
+  overflow: hidden;
+}
+
+.avatar-control-console {
+  padding: 14px;
+}
+
+.studio-console-top {
+  margin-bottom: 8px;
+}
+
+.studio-console-top h3 {
+  font-size: 18px;
+}
+
+.studio-console-top button,
+.studio-save-actions button,
+.preset-shelf button {
+  min-height: 34px;
+  border-radius: 10px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.custom-panel-note-v3 {
+  display: none;
+}
+
+.avatar-control-console .range-control {
+  padding: 9px 10px;
+  border-radius: 14px;
+}
+
+.avatar-control-console .range-control span {
+  font-size: 11px;
+}
+
+.avatar-control-console .range-control input {
+  height: 22px;
+}
+
+.avatar-studio-premium {
+  gap: 14px;
+  padding: clamp(14px, 1.8vw, 22px);
+}
+
+.avatar-studio-premium .avatar-dressing-stage {
+  border-radius: 26px;
+}
+
+.storybook-closet {
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.closet-tabs-v3 {
+  padding: 10px;
+  gap: 7px;
+}
+
+.closet-tabs-v3 button {
+  min-height: 36px;
+  padding: 8px 9px;
+  border-radius: 12px;
+  font-size: 12px;
+  justify-content: center;
+}
+
+.closet-fitting-room-v3 {
+  grid-template-columns: minmax(310px, 400px) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.closet-avatar-preview-v3 {
+  grid-template-columns: minmax(150px, 190px) minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+}
+
+.closet-avatar-preview-v3 .svg-avatar,
+.closet-avatar-preview-v3 .fashion-avatar {
+  width: min(180px, 100%);
+  max-height: 285px;
+}
+
+.collectible-card {
+  min-height: 188px;
+  border-radius: 18px;
+}
+
+.wardrobe-actions-v3 {
+  gap: 6px;
+}
+
+.wardrobe-actions-v3 button {
+  min-width: 0;
+  padding: 0 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.style-studio-v3 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.style-studio-v3 .room-header-v3 {
+  max-width: 920px;
+}
+
+.avatar-runway-v3 {
+  min-height: 380px;
+  display: grid;
+  place-items: center;
+}
+
+.avatar-runway-v3 .mannequin-avatar {
+  width: min(360px, 92%);
+  max-height: 560px;
+}
+
+.village-map-v3 {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+  gap: 16px;
+}
+
+.map-grid-v3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.map-place {
+  min-width: 0;
+  min-height: 132px;
+  padding: 16px 12px;
+  border-radius: 18px;
+  text-align: center;
+}
+
+.map-place strong,
+.map-place span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-place span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.route-loading {
+  background: rgba(247, 240, 234, .74);
+}
+
+.loading-card-v3 {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  padding: 24px 28px;
+  border: 1px solid rgba(231, 221, 216, .9);
+  border-radius: 24px;
+  background: rgba(255, 253, 252, .84);
+  box-shadow: 0 18px 48px rgba(74, 63, 58, .08);
+}
+
+.loading-card-v3 img {
+  width: min(220px, 44vw);
+  height: auto;
+  border-radius: 18px;
+}
+
+.loading-card-v3 strong {
+  color: #4a3f3a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .moodfit-game .topbar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    width: calc(100vw - 18px);
+    gap: 8px;
+    padding: 8px;
+    min-height: 56px;
+  }
+
+  .moodfit-game .main-tabs button span,
+  .view-switch,
+  .status-pill span,
+  .settings-bubble span {
+    display: none;
+  }
+
+  .moodfit-game .main-tabs button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .moodfit-game .main-tabs svg {
+    width: 18px;
+    height: 18px;
+    max-width: 18px;
+    max-height: 18px;
+  }
+
+  .storybook-closet,
+  .closet-fitting-room-v3,
+  .village-map-v3 {
+    grid-template-columns: 1fr;
+  }
+
+  .closet-tabs-v3 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .closet-avatar-preview-v3 {
+    grid-template-columns: minmax(130px, 170px) minmax(0, 1fr);
+  }
+
+  .map-grid-v3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .moodfit-game .brand strong {
+    font-size: 13px;
+  }
+
+  .moodfit-game .topbar {
+    border-radius: 14px;
+  }
+
+  .avatar-studio-header h2 {
+    font-size: 24px;
+  }
+
+  .avatar-live-analysis {
+    display: none;
+  }
+
+  .avatar-icon-tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .closet-tabs-v3,
+  .map-grid-v3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .closet-avatar-preview-v3 {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .map-place {
+    min-height: 116px;
+  }
+}
+
+@media (max-width: 760px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .moodfit-game {
+    width: 100%;
+    max-width: 100vw;
+    padding: 8px 8px 24px;
+    overflow-x: hidden;
+  }
+
+  .moodfit-game > *,
+  .panel-view,
+  .world-room,
+  .world-card,
+  .room-panel-v3,
+  .profile-dock,
+  .wardrobe,
+  .lookbook,
+  .settings,
+  .feature-showcase,
+  .real-examples,
+  .trust-section,
+  .platform-layer {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .moodfit-game .topbar {
+    position: sticky;
+    top: 8px;
+    width: 100%;
+    max-width: calc(100vw - 16px);
+    margin-inline: auto;
+  }
+
+  .moodfit-game .brand {
+    min-width: 0;
+    gap: 7px;
+  }
+
+  .moodfit-game .brand > strong,
+  .moodfit-game .brand span,
+  .moodfit-game .brand strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-actions {
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .status-pill,
+  .settings-bubble {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+  }
+
+  .status-pill svg,
+  .settings-bubble svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .moodfit-game .main-tabs {
+    max-width: 100%;
+    min-width: 0;
+    padding: 3px;
+    gap: 3px;
+  }
+
+  .main-art-banner {
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    aspect-ratio: 2048 / 1024;
+    border-radius: 20px;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .v3-home-grid,
+  .dashboard-grid,
+  .home-card-grid,
+  .style-results-grid,
+  .calendar-shell-v3,
+  .ranking-layout-v3,
+  .hall-layout-v3,
+  .photo-lab-layout-v3 {
+    grid-template-columns: 1fr !important;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .avatar-studio-premium {
+    min-height: auto;
+    padding: 12px;
+    border-radius: 22px;
+  }
+
+  .avatar-studio-header {
+    gap: 8px;
+  }
+
+  .avatar-studio-header .eyebrow {
+    margin-bottom: 4px;
+    font-size: 10px;
+  }
+
+  .avatar-studio-premium .avatar-dressing-stage {
+    width: 100%;
+    height: min(66svh, 540px);
+    min-height: 430px;
+    border-radius: 22px;
+  }
+
+  .avatar-studio-stage .fashion-avatar {
+    transform-origin: 50% 50%;
+  }
+
+  .fashion-avatar.svg-avatar.mannequin-avatar {
+    width: min(86vw, 330px);
+    max-height: min(62svh, 500px);
+  }
+
+  .studio-view-hint {
+    left: 10px;
+    bottom: 10px;
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+
+  .avatar-control-console {
+    border-radius: 22px;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .avatar-control-console .segment {
+    padding: 10px;
+  }
+
+  .avatar-control-console .segment div {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .preset-shelf,
+  .studio-save-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .studio-save-actions button,
+  .preset-shelf button,
+  .studio-console-top button,
+  .closet-tabs-v3 button,
+  .wardrobe-actions-v3 button {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .custom-range-grid-v3,
+  .control-grid-v3,
+  .custom-chip-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .magic-closet-v3,
+  .style-studio-v3,
+  .fashion-lab-v3,
+  .hall-v3,
+  .village-map-v3,
+  .calendar-page-v3 {
+    padding: 14px;
+    border-radius: 22px;
+  }
+
+  .room-header-v3 {
+    gap: 8px;
+  }
+
+  .room-header-v3 h2 {
+    font-size: clamp(24px, 7vw, 32px);
+    line-height: 1.14;
+  }
+
+  .room-header-v3 p,
+  .room-header-v3 .assistant-note-v3 {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .storybook-closet {
+    gap: 10px;
+  }
+
+  .closet-tabs-v3 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .closet-fitting-room-v3 {
+    gap: 12px;
+  }
+
+  .closet-avatar-preview-v3 {
+    grid-template-columns: 1fr;
+    place-items: center;
+    padding: 12px;
+  }
+
+  .compact-wearing-v3 {
+    width: 100%;
+  }
+
+  .closet-collection-grid-v3,
+  .collection-grid-v3,
+  .collectible-grid-v3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+
+  .collectible-card {
+    min-width: 0;
+    min-height: 168px;
+    padding: 10px;
+  }
+
+  .collectible-card strong,
+  .collectible-card p {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .wardrobe-actions-v3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .avatar-runway-v3 {
+    min-height: 340px;
+    border-radius: 22px;
+  }
+
+  .avatar-runway-v3 .mannequin-avatar {
+    width: min(82vw, 320px);
+    max-height: 460px;
+  }
+
+  .map-grid-v3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .map-place {
+    min-height: 112px;
+    padding: 13px 9px;
+  }
+
+  .map-place strong {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .map-place span {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+}
+
+@media (max-width: 430px) {
+  .moodfit-game {
+    padding-inline: 6px;
+  }
+
+  .moodfit-game .topbar {
+    max-width: calc(100vw - 12px);
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .moodfit-game .brand strong {
+    display: none;
+  }
+
+  .moodfit-game .brand {
+    width: 34px;
+    justify-content: center;
+  }
+
+  .moodfit-game .brand > span:first-child,
+  .brand-lockup span {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+  }
+
+  .moodfit-game .main-tabs button {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    border-radius: 10px;
+  }
+
+  .moodfit-game .main-tabs svg,
+  .avatar-icon-tabs svg {
+    width: 17px;
+    height: 17px;
+    max-width: 17px;
+    max-height: 17px;
+  }
+
+  .status-pill,
+  .settings-bubble {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+  }
+
+  .avatar-studio-premium .avatar-dressing-stage {
+    height: min(62svh, 500px);
+    min-height: 400px;
+  }
+
+  .fashion-avatar.svg-avatar.mannequin-avatar {
+    width: min(88vw, 305px);
+    max-height: min(58svh, 455px);
+  }
+
+  .avatar-icon-tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .avatar-icon-tabs button {
+    min-height: 42px;
+    font-size: 9px;
+  }
+
+  .closet-tabs-v3,
+  .map-grid-v3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .closet-collection-grid-v3,
+  .collection-grid-v3,
+  .collectible-grid-v3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .map-place {
+    min-height: 104px;
+  }
+}
+
 @media (max-width: 900px) {
   .style-survey-card {
     grid-template-columns: 1fr;
@@ -5067,5 +5820,260 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 
   .fashion-avatar.svg-avatar.reference-avatar {
     max-height: 420px;
+  }
+}
+
+/* Android production pass: Toss-like clarity, white mode, safe ratios */
+.entry-screen,
+.moodfit-game.app {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background: #ffffff;
+}
+
+.theme-white,
+.moodfit-game.panel-v3-home,
+.moodfit-game[class*="panel-v3-"] {
+  --ink: #191f28;
+  --muted: rgba(25, 31, 40, .62);
+  --bg-a: #ffffff;
+  --bg-b: #ffffff;
+  --bg-c: #ffffff;
+  --surface: rgba(255, 255, 255, .94);
+  --surface-strong: #ffffff;
+  --line: rgba(17, 24, 39, .09);
+  --accent: #ff7a45;
+  --button: #191f28;
+  --button-ink: #ffffff;
+  color: #191f28;
+  background: #ffffff;
+}
+
+.entry-card {
+  border: 1px solid rgba(17, 24, 39, .08);
+  border-radius: 30px;
+  background: #ffffff;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, .08);
+  backdrop-filter: none;
+}
+
+.login-world,
+.auth-card,
+.pixel-auth-hero,
+.auth-form {
+  background: #ffffff;
+}
+
+.auth-form {
+  gap: 14px;
+  border-left: 1px solid rgba(17, 24, 39, .08);
+}
+
+.auth-hero::after {
+  display: none;
+}
+
+.landing-slogan strong {
+  color: #191f28;
+  font-weight: 850;
+}
+
+.landing-slogan p,
+.auth-form-lead {
+  color: rgba(25, 31, 40, .62);
+  font-weight: 650;
+  line-height: 1.65;
+}
+
+.login-world .primary {
+  background: #191f28;
+}
+
+.login-world .secondary,
+.login-world .guest-button {
+  color: #191f28;
+  background: #f7f8fa;
+  box-shadow: none;
+}
+
+.login-world input {
+  color: #191f28;
+  background: #ffffff;
+  border-color: rgba(17, 24, 39, .12);
+}
+
+.login-submit {
+  min-height: 48px;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(25, 31, 40, .48);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: rgba(17, 24, 39, .08);
+}
+
+.moodfit-game {
+  width: 100%;
+  max-width: 100%;
+  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(72px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+}
+
+.moodfit-game.view-mobile {
+  width: 100%;
+  max-width: none;
+  border-inline: 0;
+  box-shadow: none;
+}
+
+.moodfit-game .topbar {
+  position: sticky;
+  top: max(8px, env(safe-area-inset-top));
+  z-index: 30;
+  width: min(100%, 1340px);
+  margin-inline: auto;
+  background: rgba(255, 255, 255, .94);
+}
+
+.world-view {
+  width: min(100%, 1400px);
+  max-width: 100%;
+}
+
+.world-room,
+.seasonal-hero-banner,
+.avatar-studio-premium,
+.storybook-closet,
+.closet-fitting-room-v3 {
+  max-width: 100%;
+}
+
+.seasonal-hero-banner,
+.main-art-banner,
+.main-art-banner.banner-closet {
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.seasonal-hero-banner img {
+  object-fit: contain;
+}
+
+.collectible-grid {
+  max-height: none;
+}
+
+h1, h2, h3, p, span, strong, small, button, label, input, textarea, select {
+  font-family: "Gmarket Sans", "GmarketSans", "SUIT", "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", Inter, system-ui, sans-serif;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  writing-mode: horizontal-tb;
+}
+
+@media (max-width: 760px) {
+  .entry-screen {
+    place-items: stretch;
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  .entry-card {
+    width: 100%;
+    min-height: calc(100dvh - 20px);
+    border-radius: 24px;
+  }
+
+  .auth-card {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-hero,
+  .auth-form {
+    min-height: auto;
+    padding: 22px;
+  }
+
+  .pixel-auth-hero img {
+    max-height: 34dvh;
+    border-radius: 22px;
+  }
+
+  .language-options,
+  .compact-language {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .language-options button {
+    min-height: 48px;
+    padding: 0 12px;
+  }
+
+  .moodfit-game .topbar {
+    width: 100%;
+  }
+
+  .moodfit-game .brand {
+    min-width: 0;
+    max-width: 54px;
+  }
+
+  .moodfit-game .brand strong,
+  .moodfit-game .brand small {
+    display: none;
+  }
+
+  .world-view {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .world-room {
+    border-radius: 24px;
+  }
+
+  .avatar-studio-premium .avatar-dressing-stage {
+    height: auto;
+    min-height: clamp(420px, 70dvh, 620px);
+  }
+
+  .fashion-avatar.svg-avatar.mannequin-avatar {
+    width: min(100%, 340px);
+    max-height: min(62dvh, 520px);
+  }
+
+  .closet-avatar-preview-v3 .svg-avatar,
+  .closet-avatar-preview-v3 .fashion-avatar {
+    width: min(190px, 70vw);
+    max-height: min(310px, 50dvh);
+  }
+}
+
+@media (max-width: 380px) {
+  .moodfit-game .main-tabs button {
+    width: 38px;
+    min-width: 38px;
+  }
+
+  .settings-bubble,
+  .status-pill {
+    min-width: 38px;
+    width: 38px;
+    padding: 0;
+  }
+
+  .auth-hero,
+  .auth-form {
+    padding: 18px;
   }
 }
