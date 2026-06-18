@@ -36,13 +36,13 @@ import "./index.css";
 const storageKey = "moodfit-premium-state-v2";
 const assetPath = (fileName) => `${import.meta.env.BASE_URL}${fileName.replace(/^\//, "")}`;
 const fashionCategories = [
-  ["tops", "상의"],
-  ["bottoms", "하의"],
-  ["outerwear", "아우터"],
-  ["shoes", "신발"],
-  ["bags", "가방"],
-  ["accessories", "액세서리"],
-  ["other", "기타"],
+  ["tops", "\uC0C1\uC758"],
+  ["bottoms", "\uD558\uC758"],
+  ["outerwear", "\uC544\uC6B0\uD130"],
+  ["shoes", "\uC2E0\uBC1C"],
+  ["bags", "\uAC00\uBC29"],
+  ["accessories", "\uC561\uC138\uC11C\uB9AC"],
+  ["other", "\uAE30\uD0C0"],
 ];
 const subcategoryOptions = {
   tops: ["Basic T-Shirt", "Oversized T-Shirt", "Slim Fit T-Shirt", "Graphic T-Shirt", "Long Sleeve T-Shirt", "Oxford Shirt", "Dress Shirt", "Short Sleeve Shirt", "Denim Shirt", "Linen Shirt", "Pullover Hoodie", "Zip-Up Hoodie", "Oversized Hoodie", "Crewneck", "Oversized Crewneck", "Knit Sweater", "Turtleneck", "Cable Knit"],
@@ -59,42 +59,38 @@ const patternOptions = ["Solid", "Stripe", "Check", "Plaid", "Floral", "Graphic"
 const neckOptions = ["Round Neck", "V Neck", "Turtleneck", "Collar"];
 const sleeveOptions = ["Short Sleeve", "Long Sleeve", "Sleeveless", "Raglan"];
 const mainBannerOptions = [
-  { id: "dressing", label: "드레스룸", src: assetPath("main-banner-dressing.png") },
-  { id: "closet", label: "옷장룸", src: assetPath("main-banner-closet.png") },
+  { id: "dressing", label: "\uB4DC\uB808\uC2F1\uB8F8", src: assetPath("main-banner-dressing.png") },
+  { id: "closet", label: "\uC637\uC7A5\uB8F8", src: assetPath("main-banner-closet.png") },
 ];
 const shopItems = [
-  { id: "pose-walk", name: "워킹 포즈", type: "pose", value: "walking", price: 45, copy: "가볍게 걷는 자연스러운 포즈" },
-  { id: "pose-bag", name: "쇼핑백 포즈", type: "pose", value: "bag", price: 55, copy: "외출룩이 잘 살아나는 포즈" },
-  { id: "hair-wavy", name: "웨이브 헤어", type: "hairStyle", value: "wavy", price: 35, copy: "부드러운 패션 일러스트 헤어" },
-  { id: "hair-ash", name: "애쉬 헤어 컬러", type: "hairColor", value: "ash", price: 30, copy: "차분한 애쉬 브라운 톤" },
-  { id: "face-confident", name: "자신감 표정", type: "expression", value: "confident", price: 25, copy: "오늘 코디가 더 멋져 보이는 표정" },
+  { id: "pose-walk", name: "\uC6CC\uD0B9 \uD3EC\uC988", type: "pose", value: "walking", price: 45, copy: "\uC790\uC5F0\uC2A4\uB7FD\uAC8C \uAC77\uB294 \uD328\uC158 \uD3EC\uC988" },
+  { id: "pose-bag", name: "\uC1FC\uD551\uBC31 \uD3EC\uC988", type: "pose", value: "bag", price: 55, copy: "\uC190\uC5D0 \uAC00\uBC29\uC744 \uB4E0 \uB8E9\uBD81 \uD3EC\uC988" },
+  { id: "hair-wavy", name: "\uC6E8\uC774\uBE0C \uD5E4\uC5B4", type: "hairStyle", value: "wavy", price: 35, copy: "\uBD80\uB4DC\uB7EC\uC6B4 \uC2E4\uB8E8\uC5E3\uC758 \uD5E4\uC5B4" },
+  { id: "hair-ash", name: "\uC560\uC26C \uD5E4\uC5B4 \uCEEC\uB7EC", type: "hairColor", value: "ash", price: 30, copy: "\uCC28\uBD84\uD55C \uC560\uC26C \uD1A4\uC758 \uBE0C\uB77C\uC6B4" },
+  { id: "face-confident", name: "\uC790\uC2E0\uAC10 \uBB34\uB4DC", type: "expression", value: "confident", price: 25, copy: "\uC624\uB298 \uCF54\uB514\uAC00 \uB354 \uBA4B\uC838 \uBCF4\uC774\uB294 \uBB34\uB4DC" },
 ];
 const fashionLabelMap = {
-  tops: "상의", bottoms: "하의", outerwear: "아우터", shoes: "신발", bags: "가방", accessories: "액세서리", other: "기타",
-  "Basic T-Shirt": "기본 티셔츠", "Oversized T-Shirt": "오버핏 티셔츠", "Slim Fit T-Shirt": "슬림핏 티셔츠", "Graphic T-Shirt": "그래픽 티셔츠", "Long Sleeve T-Shirt": "긴팔 티셔츠",
-  "Oxford Shirt": "옥스퍼드 셔츠", "Dress Shirt": "드레스 셔츠", "Short Sleeve Shirt": "반팔 셔츠", "Denim Shirt": "데님 셔츠", "Linen Shirt": "리넨 셔츠",
-  "Pullover Hoodie": "풀오버 후디", "Zip-Up Hoodie": "집업 후디", "Oversized Hoodie": "오버핏 후디", Crewneck: "맨투맨", "Oversized Crewneck": "오버핏 맨투맨",
-  "Knit Sweater": "니트 스웨터", Turtleneck: "터틀넥", "Cable Knit": "케이블 니트",
-  "Skinny Jeans": "스키니 진", "Straight Jeans": "스트레이트 진", "Wide Jeans": "와이드 진", "Baggy Jeans": "배기 진",
-  Slacks: "슬랙스", Chinos: "치노 팬츠", "Cargo Pants": "카고 팬츠", Joggers: "조거 팬츠",
-  "Denim Shorts": "데님 쇼츠", "Athletic Shorts": "애슬레틱 쇼츠", "Casual Shorts": "캐주얼 쇼츠", "Mini Skirt": "미니 스커트", "Midi Skirt": "미디 스커트", "Long Skirt": "롱 스커트",
-  "Denim Jacket": "데님 재킷", "Leather Jacket": "레더 재킷", Bomber: "봄버 재킷", Harrington: "해링턴 재킷", "Trench Coat": "트렌치 코트", "Long Coat": "롱 코트", "Wool Coat": "울 코트", "Short Padding": "숏 패딩", "Long Padding": "롱 패딩", "Short Cardigan": "숏 가디건", "Long Cardigan": "롱 가디건",
-  Sneakers: "스니커즈", Loafers: "로퍼", Boots: "부츠", Slingback: "슬링백", Sandals: "샌들",
-  "Shoulder Bag": "숄더백", "Tote Bag": "토트백", Backpack: "백팩", "Mini Bag": "미니백", Glasses: "안경", Scarf: "스카프", Necklace: "목걸이", Hat: "모자", "Fashion Item": "패션 아이템",
-  Cotton: "코튼", Linen: "리넨", Denim: "데님", Wool: "울", Cashmere: "캐시미어", Polyester: "폴리에스터", Nylon: "나일론", Leather: "레더", Corduroy: "코듀로이", Fleece: "플리스", Silk: "실크",
-  "Slim Fit": "슬림핏", "Regular Fit": "레귤러핏", "Relaxed Fit": "릴랙스핏", Oversized: "오버사이즈", "Wide Fit": "와이드핏", "Baggy Fit": "배기핏", "Cropped Fit": "크롭핏",
-  Solid: "무지", Stripe: "스트라이프", Check: "체크", Plaid: "플래드", Floral: "플로럴", Graphic: "그래픽",
-  "Round Neck": "라운드넥", "V Neck": "브이넥", Collar: "카라", "Short Sleeve": "반팔", "Long Sleeve": "긴팔", Sleeveless: "민소매", Raglan: "래글런",
-  "Inner Layer": "이너", "Middle Layer": "미들 레이어", "Outer Layer": "아우터 레이어",
+  tops: "\uC0C1\uC758", bottoms: "\uD558\uC758", outerwear: "\uC544\uC6B0\uD130", shoes: "\uC2E0\uBC1C", bags: "\uAC00\uBC29", accessories: "\uC561\uC138\uC11C\uB9AC", other: "\uAE30\uD0C0",
+  "Basic T-Shirt": "\uAE30\uBCF8 \uD2F0\uC154\uCE20", "Oversized T-Shirt": "\uC624\uBC84\uD54F \uD2F0\uC154\uCE20", "Slim Fit T-Shirt": "\uC2AC\uB9BC\uD54F \uD2F0\uC154\uCE20", "Graphic T-Shirt": "\uADF8\uB798\uD53D \uD2F0\uC154\uCE20", "Long Sleeve T-Shirt": "\uAE34\uD314 \uD2F0\uC154\uCE20",
+  "Oxford Shirt": "\uC625\uC2A4\uD3EC\uB4DC \uC154\uCE20", "Dress Shirt": "\uB4DC\uB808\uC2A4 \uC154\uCE20", "Short Sleeve Shirt": "\uBC18\uD314 \uC154\uCE20", "Denim Shirt": "\uB370\uB2D8 \uC154\uCE20", "Linen Shirt": "\uB9AC\uB128 \uC154\uCE20",
+  "Pullover Hoodie": "\uD480\uC624\uBC84 \uD6C4\uB514", "Zip-Up Hoodie": "\uC9D1\uC5C5 \uD6C4\uB514", "Oversized Hoodie": "\uC624\uBC84\uD54F \uD6C4\uB514", Crewneck: "\uB9E8\uD22C\uB9E8", "Oversized Crewneck": "\uC624\uBC84\uD54F \uB9E8\uD22C\uB9E8",
+  "Knit Sweater": "\uB2C8\uD2B8", Turtleneck: "\uD130\uD2C0\uB125", "Cable Knit": "\uCF00\uC774\uBE14 \uB2C8\uD2B8",
+  "Skinny Jeans": "\uC2A4\uD0A4\uB2C8 \uC9C4", "Straight Jeans": "\uC2A4\uD2B8\uB808\uC774\uD2B8 \uC9C4", "Wide Jeans": "\uC640\uC774\uB4DC \uC9C4", "Baggy Jeans": "\uBC30\uAE30 \uC9C4",
+  Slacks: "\uC2AC\uB799\uC2A4", Chinos: "\uCE58\uB178\uD32C\uCE20", "Cargo Pants": "\uCE74\uACE0\uD32C\uCE20", Joggers: "\uC870\uAC70\uD32C\uCE20", "Denim Shorts": "\uB370\uB2D8 \uC1FC\uCE20", "Athletic Shorts": "\uC2A4\uD3EC\uCE20 \uC1FC\uCE20", "Casual Shorts": "\uCE90\uC8FC\uC5BC \uC1FC\uCE20", "Mini Skirt": "\uBBF8\uB2C8 \uC2A4\uCEE4\uD2B8", "Midi Skirt": "\uBBF8\uB514 \uC2A4\uCEE4\uD2B8", "Long Skirt": "\uB871 \uC2A4\uCEE4\uD2B8",
+  "Denim Jacket": "\uB370\uB2D8 \uC790\uCF13", "Leather Jacket": "\uB808\uB354 \uC790\uCF13", Bomber: "\uBD04\uBC84 \uC790\uCF13", Harrington: "\uD574\uB9C1\uD134 \uC790\uCF13", "Trench Coat": "\uD2B8\uB80C\uCE58\uCF54\uD2B8", "Long Coat": "\uB871\uCF54\uD2B8", "Wool Coat": "\uC6B8\uCF54\uD2B8", "Short Padding": "\uC20F\uD328\uB529", "Long Padding": "\uB871\uD328\uB529", "Short Cardigan": "\uC20F \uAC00\uB514\uAC74", "Long Cardigan": "\uB871 \uAC00\uB514\uAC74",
+  Sneakers: "\uC6B4\uB3D9\uD654", Loafers: "\uB85C\uD37C", Boots: "\uBD80\uCE20", Slingback: "\uC2AC\uB9C1\uBC31", Sandals: "\uC0CC\uB4E4", "Shoulder Bag": "\uC204\uB354\uBC31", "Tote Bag": "\uD1A0\uD2B8\uBC31", Backpack: "\uBC31\uD329", "Mini Bag": "\uBBF8\uB2C8\uBC31", Glasses: "\uC548\uACBD", Scarf: "\uC2A4\uCE74\uD504", Necklace: "\uBAA9\uAC78\uC774", Hat: "\uBAA8\uC790", "Fashion Item": "\uD328\uC158 \uC544\uC774\uD15C",
+  Cotton: "\uBA74", Linen: "\uB9AC\uB128", Denim: "\uB370\uB2D8", Wool: "\uC6B8", Cashmere: "\uCE90\uC2DC\uBBF8\uC5B4", Polyester: "\uD3F4\uB9AC\uC5D0\uC2A4\uD130", Nylon: "\uB098\uC77C\uB860", Leather: "\uB808\uB354", Corduroy: "\uCF54\uB4C0\uB85C\uC774", Fleece: "\uD50C\uB9AC\uC2A4", Silk: "\uC2E4\uD06C",
+  "Slim Fit": "\uC2AC\uB9BC\uD54F", "Regular Fit": "\uC815\uD54F", "Relaxed Fit": "\uB9B4\uB799\uC2A4\uD54F", Oversized: "\uC624\uBC84\uD54F", "Wide Fit": "\uC640\uC774\uB4DC\uD54F", "Baggy Fit": "\uBC30\uAE30\uD54F", "Cropped Fit": "\uD06C\uB86D\uD54F",
+  Solid: "\uBB34\uC9C0", Stripe: "\uC2A4\uD2B8\uB77C\uC774\uD504", Check: "\uCCB4\uD06C", Plaid: "\uD50C\uB798\uB4DC", Floral: "\uD50C\uB85C\uB7F4", Graphic: "\uADF8\uB798\uD53D", "Round Neck": "\uB77C\uC6B4\uB4DC\uB125", "V Neck": "V\uB125", Collar: "\uCE74\uB77C", "Short Sleeve": "\uBC18\uD314", "Long Sleeve": "\uAE34\uD314", Sleeveless: "\uBBFC\uC18C\uB9E4", Raglan: "\uB798\uAE00\uB7F0", "Inner Layer": "\uC774\uB108", "Middle Layer": "\uBBF8\uB4E4 \uB808\uC774\uC5B4", "Outer Layer": "\uC544\uC6B0\uD130 \uB808\uC774\uC5B4",
 };
 
 const styleSurveyOptions = {
-  styles: ["미니멀", "캐주얼", "스트릿", "시티보이", "시티걸", "아메카지", "클래식", "댄디", "비즈니스 캐주얼", "고프코어", "Y2K", "빈티지", "힙합", "스포츠웨어", "페미닌", "러블리", "모던", "올드머니", "놈코어", "테크웨어"],
-  fits: ["오버핏", "정핏", "슬림핏", "와이드핏", "크롭핏", "롱핏"],
-  colors: ["화이트", "블랙", "그레이", "베이지", "브라운", "카키", "네이비", "블루", "레드", "핑크", "퍼플", "그린", "옐로우"],
-  genders: [["male", "남성"], ["female", "여성"], ["neutral", "중성"], ["private", "선택 안 함"]],
-  bodyTypes: [["slim", "마른형"], ["balanced", "보통형"], ["athletic", "근육형"], ["curvy", "통통형"], ["custom", "직접 커스터마이징"]],
-  personalColors: ["모름", "봄 웜톤", "여름 쿨톤", "가을 웜톤", "겨울 쿨톤"],
+  styles: ["\uBBF8\uB2C8\uBA40", "\uCE90\uC8FC\uC5BC", "\uC2A4\uD2B8\uB9BF", "\uC2DC\uD2F0\uBCF4\uC774", "\uC2DC\uD2F0\uAC78", "\uC544\uBA54\uCE74\uC9C0", "\uD074\uB798\uC2DD", "\uB304\uB514", "\uBE44\uC988\uB2C8\uC2A4 \uCE90\uC8FC\uC5BC", "\uACE0\uD504\uCF54\uC5B4", "Y2K", "\uBE48\uD2F0\uC9C0", "\uD799\uD569", "\uC2A4\uD3EC\uCE20\uC6E8\uC5B4", "\uD398\uBBF8\uB2CC", "\uB7EC\uBE14\uB9AC", "\uBAA8\uB358", "\uC62C\uB4DC\uBA38\uB2C8", "\uB188\uCF54\uC5B4", "\uD14C\uD06C\uC6E8\uC5B4"],
+  fits: ["\uC624\uBC84\uD54F", "\uC815\uD54F", "\uC2AC\uB9BC\uD54F", "\uC640\uC774\uB4DC\uD54F", "\uD06C\uB86D\uD54F", "\uB871\uD54F"],
+  colors: ["\uD654\uC774\uD2B8", "\uBE14\uB799", "\uADF8\uB808\uC774", "\uBCA0\uC774\uC9C0", "\uBE0C\uB77C\uC6B4", "\uCE74\uD0A4", "\uB124\uC774\uBE44", "\uBE14\uB8E8", "\uB808\uB4DC", "\uD551\uD06C", "\uD37C\uD50C", "\uADF8\uB9B0", "\uC610\uB85C\uC6B0"],
+  genders: [["male", "\uB0A8\uC131"], ["female", "\uC5EC\uC131"], ["neutral", "\uC911\uC131"], ["private", "\uC120\uD0DD \uC548 \uD568"]],
+  bodyTypes: [["slim", "\uB9C8\uB978\uD615"], ["balanced", "\uBCF4\uD1B5\uD615"], ["athletic", "\uADFC\uC721\uD615"], ["curvy", "\uD1B5\uD1B5\uD615"], ["custom", "\uC9C1\uC811 \uCEE4\uC2A4\uD140"]],
+  personalColors: ["\uBAA8\uB984", "\uBD04 \uC6DC\uD1A4", "\uC5EC\uB984 \uCFE8\uD1A4", "\uAC00\uC744 \uC6DC\uD1A4", "\uACA8\uC6B8 \uCFE8\uD1A4"],
 };
 
 function App() {
@@ -259,11 +255,11 @@ function App() {
     setEntryStep("app");
   }
 
-  function openComingSoon(feature = "준비중인 기능") {
+  function openComingSoon(feature = "\uC900\uBE44\uC911\uC778 \uAE30\uB2A5") {
     setComingSoon({
       feature,
-      title: "준비중입니다",
-      subtitle: "더 똑똑한 기능으로 곧 돌아올게요",
+      title: "\uC900\uBE44\uC911\uC785\uB2C8\uB2E4",
+      subtitle: "\uB354 \uB611\uB611\uD55C \uAE30\uB2A5\uC73C\uB85C \uACE7 \uB3CC\uC544\uC62C\uAC8C\uC694",
     });
   }
 
@@ -271,7 +267,7 @@ function App() {
     const today = new Date().toISOString().slice(0, 10);
     const completedKey = rewardKey ? `${today}:${rewardKey}` : "";
     if (completedKey && game.completedMissions?.includes(completedKey)) {
-      showToast("이미 오늘 보상을 받았어요");
+      showToast("\uC774\uBBF8 \uC624\uB298 \uBCF4\uC0C1\uC744 \uBC1B\uC558\uC5B4\uC694");
       return;
     }
     setGame((current) => {
@@ -291,42 +287,42 @@ function App() {
       localStorage.setItem(storageKey, JSON.stringify({ ...saved, game: next }));
       return next;
     });
-    showToast(`${reason} +${xp} XP · +${coins} 코인`);
+    showToast(`${reason} +${xp} XP / +${coins} \uCF54\uC778`);
   }
 
   function buyShopItem(item) {
     const safe = normalizeGame(game);
-    if (safe.ownedShopItems.includes(item.id)) return showToast("이미 갖고 있는 아이템이에요");
-    if (safe.coins < item.price) return showToast(`${item.price - safe.coins}코인이 더 필요해요`);
+    if (safe.ownedShopItems.includes(item.id)) return showToast("\uC774\uBBF8 \uAC16\uACE0 \uC788\uB294 \uC544\uC774\uD15C\uC774\uC5D0\uC694");
+    if (safe.coins < item.price) return showToast(`${item.price - safe.coins}\uCF54\uC778\uC774 \uB354 \uD544\uC694\uD574\uC694`);
     const nextGame = { ...safe, coins: safe.coins - item.price, ownedShopItems: [...safe.ownedShopItems, item.id] };
     const nextProfile = { ...bodyProfile, [item.type]: item.value };
     setGame(nextGame);
     setBodyProfile(nextProfile);
     persist({ game: nextGame, bodyProfile: nextProfile });
-    showToast(`${item.name}을(를) 샀어요 · -${item.price} 코인`);
+    showToast(`${item.name}\uC744(\uB97C) \uC0C0\uC5B4\uC694 / -${item.price} \uCF54\uC778`);
   }
 
   function changeProfileName(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const nextName = sanitizeInput(form.get("profileName"));
-    if (!nextName) return showToast("바꿀 이름을 입력해줘");
-    if (game.coins < 20) return showToast("이름 변경에는 20코인이 필요해요");
+    if (!nextName) return showToast("\uBC14\uAFC0 \uC774\uB984\uC744 \uC785\uB825\uD574\uC918");
+    if (game.coins < 20) return showToast("\uC774\uB984 \uBCC0\uACBD\uC5D0\uB294 20\uCF54\uC778\uC774 \uD544\uC694\uD574\uC694");
     const nextGame = { ...game, coins: game.coins - 20 };
     setGame(nextGame);
     setProfileName(nextName);
     persist({ game: nextGame, profileName: nextName });
-    showToast("이름을 바꿨어요 · -20 코인");
+    showToast("\uC774\uB984\uC744 \uBC14\uAFC8\uC5C8\uC5B4\uC694 / -20 \uCF54\uC778");
   }
 
   async function changeProfilePhoto(event) {
     const file = event.target.files?.[0];
     const image = await readImageFile(file);
     event.target.value = "";
-    if (!image) return showToast("프로필 사진을 다시 골라줘");
+    if (!image) return showToast("\uD504\uB85C\uD544 \uC0AC\uC9C4\uC744 \uB2E4\uC2DC \uACE8\uB77C\uC918");
     setProfilePhoto(image);
     persist({ profilePhoto: image });
-    showToast("프로필 사진을 바꿨어요");
+    showToast("\uD504\uB85C\uD544 \uC0AC\uC9C4\uC744 \uBC14\uAFC8\uC5C8\uC5B4\uC694");
   }
 
   function generateStyling() {
@@ -345,16 +341,17 @@ function App() {
     setFit(nextFit);
     persist({ mood: nextMood, fit: nextFit, brief: cleanBrief });
     award(t("generate"), 30, 8);
-    openComingSoon("고급 AI 코디 추천");
+    openComingSoon("\uACE0\uAE09 AI \uCF54\uB514 \uCD94\uCC9C");
   }
 
   function wear(item) {
     if (!item || !item.category) return;
-    if (item.archived) return showToast("보관된 옷은 복원 후 입을 수 있어요");
+    if (item.archived) return showToast("\uBCF4\uAD00\uD55C \uC637\uC740 \uBCF5\uC6D0 \uD6C4 \uC785\uC744 \uC218 \uC788\uC5B4\uC694");
     const nextFit = normalizeFit({ ...fit, [item.category]: item }, wardrobe);
     setFit(nextFit);
     setMood(item.mood || mood);
     persist({ fit: nextFit, mood: item.mood || mood });
+    showToast(`${item.name || "\uC120\uD0DD\uD55C \uC637"}\uC744(\uB97C) \uC785\uD614\uC5B4\uC694`);
   }
 
   function addItem() {
@@ -402,9 +399,11 @@ function App() {
       },
     };
     const nextWardrobe = [item, ...safeWardrobe];
+    const nextFit = normalizeFit({ ...fit, [selectedCategory]: item }, nextWardrobe);
     setWardrobe(nextWardrobe);
-    wear(item);
-    persist({ wardrobe: nextWardrobe });
+    setFit(nextFit);
+    setMood(item.mood || mood);
+    persist({ wardrobe: nextWardrobe, fit: nextFit, mood: item.mood || mood });
     setComposerOpen(false);
     award(t("addItem"), 45, 12);
   }
@@ -419,9 +418,9 @@ function App() {
 
   function scanPhoto(event) {
     const file = event.target.files?.[0];
-    if (!file) return;
-    addItem();
     event.target.value = "";
+    if (!file) return;
+    openComingSoon("\uC0AC\uC9C4 AI \uBD84\uC11D");
   }
 
   function updateWardrobeItem(itemId, patch) {
@@ -431,7 +430,7 @@ function App() {
     setWardrobe(nextWardrobe);
     setFit(nextFit);
     persist({ wardrobe: nextWardrobe, fit: nextFit });
-    showToast("옷 정보를 저장했어요");
+    showToast("\uC637 \uC815\uBCF4\uB97C \uC800\uC7A5\uD588\uC5B4\uC694");
   }
 
   function archiveWardrobeItem(itemId) {
@@ -451,7 +450,7 @@ function App() {
     setFit(nextFit);
     persist({ wardrobe: nextWardrobe, fit: nextFit });
     setPendingDelete(null);
-    award("옷장 정리", 10, 2);
+    award("\uC637\uC7A5 \uC815\uB9AC", 10, 2);
   }
 
   if (entryStep === "auth") {

@@ -6077,3 +6077,281 @@ h1, h2, h3, p, span, strong, small, button, label, input, textarea, select {
     padding: 18px;
   }
 }
+
+/* Final mobile safety pass: no clipped icons, no runaway labels, tighter fashion-first panels */
+.main-tabs,
+.header-actions,
+.avatar-icon-tabs,
+.closet-tabs-v3,
+.calendar-filter-row-v3,
+.style-mode-grid-v3,
+.mood-row-v3 {
+  min-width: 0;
+}
+
+.main-tabs button,
+.header-actions button,
+.avatar-icon-tabs button,
+.closet-tabs-v3 button,
+.map-place,
+.collectible-card,
+.collectible-wear {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.main-tabs button svg,
+.header-actions button svg,
+.avatar-icon-tabs button svg,
+.map-place svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.main-tabs button span,
+.header-actions button span,
+.avatar-icon-tabs button span,
+.map-place span,
+.map-place strong,
+.collectible-wear strong,
+.collectible-wear p,
+.fitting-copy-v3 p,
+.room-header-v3 p {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-place span,
+.collectible-wear p,
+.fitting-copy-v3 p,
+.room-header-v3 p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.map-place strong,
+.collectible-wear strong {
+  white-space: nowrap;
+}
+
+.avatar-control-console,
+.room-panel-v3,
+.style-console-v3,
+.item-composer,
+.profile-card-v3 {
+  min-width: 0;
+}
+
+.range-control {
+  min-width: 0;
+}
+
+.range-control input[type="range"] {
+  width: 100%;
+  min-width: 0;
+}
+
+.collectible-wear img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  background: #f7f8fa;
+  border-radius: 18px;
+}
+
+.closet-fitting-room-v3 {
+  align-items: stretch;
+}
+
+.fitting-avatar-frame {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 760px) {
+  .moodfit-game {
+    padding-inline: max(8px, env(safe-area-inset-left));
+  }
+
+  .moodfit-game .topbar {
+    grid-template-columns: auto 1fr auto;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 20px;
+  }
+
+  .main-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(38px, 1fr));
+    gap: 4px;
+    width: 100%;
+  }
+
+  .main-tabs button {
+    width: 100%;
+    min-height: 42px;
+    padding: 6px 2px;
+    border-radius: 14px;
+    justify-content: center;
+  }
+
+  .main-tabs button span {
+    display: none;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  .header-actions .status-pill,
+  .header-actions .settings-bubble,
+  .header-actions button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 14px;
+  }
+
+  .header-actions span,
+  .header-actions small,
+  .status-pill span,
+  .status-pill small {
+    display: none;
+  }
+
+  .avatar-studio-premium {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .avatar-studio-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .avatar-live-analysis {
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .avatar-control-console {
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .avatar-icon-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .avatar-icon-tabs button {
+    min-height: 44px;
+    padding: 7px 4px;
+    border-radius: 14px;
+    font-size: 11px;
+    gap: 3px;
+  }
+
+  .custom-range-grid-v3 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .studio-save-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .storybook-closet {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .closet-tabs-v3 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .closet-tabs-v3 button {
+    min-height: 40px;
+    padding: 6px 4px;
+    border-radius: 14px;
+    font-size: 12px;
+  }
+
+  .closet-tabs-v3 .world-primary {
+    grid-column: span 2;
+  }
+
+  .collectible-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .collectible-card {
+    border-radius: 18px;
+  }
+
+  .collectible-wear {
+    padding: 8px;
+  }
+
+  .wardrobe-actions-v3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .wardrobe-actions-v3 button {
+    min-height: 34px;
+    padding: 5px 2px;
+    font-size: 11px;
+  }
+
+  .map-grid-v3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .map-place {
+    min-height: 108px;
+    padding: 12px;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 430px) {
+  .main-tabs {
+    grid-template-columns: repeat(5, minmax(34px, 1fr));
+  }
+
+  .main-tabs button,
+  .header-actions .status-pill,
+  .header-actions .settings-bubble,
+  .header-actions button {
+    width: auto;
+    min-width: 0;
+  }
+
+  .closet-tabs-v3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .collectible-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .map-grid-v3 {
+    grid-template-columns: 1fr;
+  }
+}

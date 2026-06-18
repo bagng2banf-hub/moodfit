@@ -14,7 +14,7 @@ export function sanitizeInput(value, maxLength = 600) {
 
 export function sanitizeIdentifier(value, maxLength = 32) {
   return sanitizeInput(value, maxLength)
-    .replace(/[^a-zA-Z0-9가-힣_.-]/g, "")
+    .replace(/[^a-zA-Z0-9\uAC00-\uD7A3_.-]/g, "")
     .slice(0, maxLength);
 }
 
@@ -63,7 +63,7 @@ export function pruneClientState(state = {}) {
     aesthetic: sanitizeInput(safe.aesthetic || "soft casual", 120),
     bodyProfile: safe.bodyProfile && typeof safe.bodyProfile === "object" ? safe.bodyProfile : {},
     game: safe.game && typeof safe.game === "object" ? safe.game : {},
-    profileName: sanitizeInput(safe.profileName || "무드핏 스타일러", 40),
+    profileName: sanitizeInput(safe.profileName || "\uBB34\uB4DC\uD54F \uC2A4\uD0C0\uC77C\uB7EC", 40),
     profilePhoto: typeof safe.profilePhoto === "string" && safe.profilePhoto.startsWith("data:image/") ? safe.profilePhoto.slice(0, 1_500_000) : "",
     homeBanner: ["dressing", "closet"].includes(safe.homeBanner) ? safe.homeBanner : "dressing",
     viewMode: safe.viewMode === "mobile" ? "mobile" : "desktop",
@@ -76,7 +76,7 @@ export function pruneClientState(state = {}) {
       gender: sanitizeInput(safe.styleProfile.gender || "neutral", 24),
       bodyType: sanitizeInput(safe.styleProfile.bodyType || "balanced", 24),
       brands: sanitizeInput(safe.styleProfile.brands || "", 240),
-      personalColor: sanitizeInput(safe.styleProfile.personalColor || "모름", 32),
+      personalColor: sanitizeInput(safe.styleProfile.personalColor || "\uBAA8\uB984", 32),
       summary: sanitizeInput(safe.styleProfile.summary || "", 120),
     } : {},
   };
